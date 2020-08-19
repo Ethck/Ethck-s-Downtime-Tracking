@@ -24,7 +24,7 @@ Handlebars.registerHelper("progressionStyle", function(trainingItem) {
 Hooks.once("init", () => {
   preloadTemplates();
 
-  game.settings.register("5e-training", "enableTraining", {
+  game.settings.register("downtime-ethck", "enableTraining", {
     name: game.i18n.localize("C5ETRAINING.ShowDowntimeTabPc"),
     hint: game.i18n.localize("C5ETRAINING.ShowDowntimeTabPcHint"),
     scope: "world",
@@ -33,7 +33,7 @@ Hooks.once("init", () => {
     type: Boolean
   });
 
-  game.settings.register("5e-training", "enableTrainingNpc", {
+  game.settings.register("downtime-ethck", "enableTrainingNpc", {
     name: game.i18n.localize("C5ETRAINING.ShowDowntimeTabNpc"),
     hint: game.i18n.localize("C5ETRAINING.ShowDowntimeTabNpcHint"),
     scope: "world",
@@ -42,7 +42,7 @@ Hooks.once("init", () => {
     type: Boolean
   });
 
-  game.settings.register("5e-training", "tabName", {
+  game.settings.register("downtime-ethck", "tabName", {
     name: game.i18n.localize("C5ETRAINING.DowntimeTabName"),
     hint: game.i18n.localize("C5ETRAINING.DowntimeTabNameHint"),
     scope: "world",
@@ -51,7 +51,7 @@ Hooks.once("init", () => {
     type: String
   });
 
-  game.settings.register("5e-training", "defaultAbility", {
+  game.settings.register("downtime-ethck", "defaultAbility", {
     name: game.i18n.localize("C5ETRAINING.DefaultAbility"),
     hint: game.i18n.localize("C5ETRAINING.DefaultAbilityHint"),
     scope: "world",
@@ -86,7 +86,7 @@ Hooks.once("init", () => {
     default: "int",
   });
 
-  game.settings.register("5e-training", "totalToComplete", {
+  game.settings.register("downtime-ethck", "totalToComplete", {
     name: game.i18n.localize("C5ETRAINING.DefaultAbilityCompletion"),
     hint: game.i18n.localize("C5ETRAINING.DefaultAbilityCompletionHint"),
     scope: "world",
@@ -95,7 +95,7 @@ Hooks.once("init", () => {
     type: Number
   });
 
-  game.settings.register("5e-training", "attemptsToComplete", {
+  game.settings.register("downtime-ethck", "attemptsToComplete", {
     name: game.i18n.localize("C5ETRAINING.DefaultSimpleCompletion"),
     hint: game.i18n.localize("C5ETRAINING.DefaultSimpleCompletionHint"),
     scope: "world",
@@ -104,7 +104,7 @@ Hooks.once("init", () => {
     type: Number
   });
 
-  game.settings.register("5e-training", "defaultDcDifficulty", {
+  game.settings.register("downtime-ethck", "defaultDcDifficulty", {
     name: game.i18n.localize("C5ETRAINING.DefaultDcDifficulty"),
     hint: game.i18n.localize("C5ETRAINING.DefaultDcDifficultyHint"),
     scope: "world",
@@ -113,7 +113,7 @@ Hooks.once("init", () => {
     type: Number
   });
 
-  game.settings.register("5e-training", "defaultDcSuccesses", {
+  game.settings.register("downtime-ethck", "defaultDcSuccesses", {
     name: game.i18n.localize("C5ETRAINING.DefaultDcSuccesses"),
     hint: game.i18n.localize("C5ETRAINING.DefaultDcSuccessesHint"),
     scope: "world",
@@ -123,7 +123,7 @@ Hooks.once("init", () => {
   });
 
   // IF ABOUT TIME IS ENABLED
-  // game.settings.register("5e-training", "timeToComplete", {
+  // game.settings.register("downtime-ethck", "timeToComplete", {
   //   name: game.i18n.localize("C5ETRAINING.DefaultTimeCompletion"),
   //   hint: game.i18n.localize("C5ETRAINING.DefaultTimeCompletionHint"),
   //   scope: "world",
@@ -133,7 +133,7 @@ Hooks.once("init", () => {
   // });
 
   // IF ABOUT TIME IS ENABLED
-  // game.settings.register("5e-training", "enableDowntimeReminders", {
+  // game.settings.register("downtime-ethck", "enableDowntimeReminders", {
   //   name: game.i18n.localize("C5ETRAINING.EnableDowntimeReminders"),
   //   hint: game.i18n.localize("C5ETRAINING.EnableDowntimeRemindersHint"),
   //   scope: "world",
@@ -142,7 +142,7 @@ Hooks.once("init", () => {
   //   type: Boolean
   // });
 
-  game.settings.register("5e-training", "announceCompletionFor", {
+  game.settings.register("downtime-ethck", "announceCompletionFor", {
     name: game.i18n.localize("C5ETRAINING.AnnounceActivityCompletionFor"),
     hint: game.i18n.localize("C5ETRAINING.AnnounceActivityCompletionForHint"),
     scope: "world",
@@ -159,42 +159,43 @@ Hooks.once("init", () => {
 
 });
 
+
 // The Meat And Potatoes
 async function addTrainingTab(app, html, data) {
 
   // Determine if we should show the downtime tab
   let showTrainingTab = false;
-  if(data.isCharacter){ showTrainingTab = game.settings.get("5e-training", "enableTraining"); }
-  else if(data.isNPC){ showTrainingTab = game.settings.get("5e-training", "enableTrainingNpc"); }
+  if(data.isCharacter){ showTrainingTab = game.settings.get("downtime-ethck", "enableTraining"); }
+  else if(data.isNPC){ showTrainingTab = game.settings.get("downtime-ethck", "enableTrainingNpc"); }
 
   if (showTrainingTab){
 
     // Get our actor
     let actor = game.actors.entities.find(a => a.data._id === data.actor._id);
     // Make sure flags exist if they don't already
-    if (actor.data.flags['5e-training'] === undefined || actor.data.flags['5e-training'] === null) {
+    if (actor.data.flags['downtime-ethck'] === undefined || actor.data.flags['downtime-ethck'] === null) {
       let trainingList = [];
       const flags = {trainingItems: trainingList};
-      actor.data.flags['5e-training'] = flags;
-      actor.update({'flags.5e-training': flags});
+      actor.data.flags['downtime-ethck'] = flags;
+      actor.update({'flags.downtime-ethck': flags});
     }
-    let flags = actor.data.flags['5e-training'];
+    let flags = actor.data.flags['downtime-ethck'];
 
     // Update the nav menu
-    let tabName = game.settings.get("5e-training", "tabName");
+    let tabName = game.settings.get("downtime-ethck", "tabName");
     let trainingTabBtn = $('<a class="item" data-tab="training">' + tabName + '</a>');
     let tabs = html.find('.tabs[data-group="primary"]');
     tabs.append(trainingTabBtn);
 
     // Create the tab content
     let sheet = html.find('.sheet-body');
-    let trainingTabHtml = $(await renderTemplate('modules/5e-training/templates/training-section.html', data));
+    let trainingTabHtml = $(await renderTemplate('modules/downtime-ethck/templates/training-section.html', data));
     sheet.append(trainingTabHtml);
 
     // Add New Downtime Activity
     html.find('.training-add').click(async (event) => {
       event.preventDefault();
-      console.log("Crash's 5e Downtime Tracking | Create Downtime Activity excuted!");
+      console.log("Ethck's Downtime Tracking | Create Downtime Activity excuted!");
 
       // Set up some variables
       let add = false;
@@ -206,7 +207,7 @@ async function addTrainingTab(app, html, data) {
         progressionStyle: 'ability'
       };
 
-      let dialogContent = await renderTemplate('modules/5e-training/templates/add-training-dialog.html', {training: newActivity});
+      let dialogContent = await renderTemplate('modules/downtime-ethck/templates/add-training-dialog.html', {training: newActivity});
 
       // Set up flags if they don't exist
       if (flags.trainingItems == undefined){
@@ -230,23 +231,23 @@ async function addTrainingTab(app, html, data) {
             newActivity.description = html.find('#descriptionInput').val();
             // Progression Type: Ability Check
             if (newActivity.progressionStyle == 'ability'){
-              newActivity.ability = game.settings.get("5e-training", "defaultAbility");
-              newActivity.completionAt = game.settings.get("5e-training", "totalToComplete");
+              newActivity.ability = game.settings.get("downtime-ethck", "defaultAbility");
+              newActivity.completionAt = game.settings.get("downtime-ethck", "totalToComplete");
             }
             // Progression Type: Simple
             else if (newActivity.progressionStyle == 'simple'){
-              newActivity.completionAt = game.settings.get("5e-training", "attemptsToComplete");
+              newActivity.completionAt = game.settings.get("downtime-ethck", "attemptsToComplete");
             }
             // Progression Type: DC
             else if (newActivity.progressionStyle == 'dc'){
-              newActivity.completionAt = game.settings.get("5e-training", "defaultDcSuccesses");
-              newActivity.ability = game.settings.get("5e-training", "defaultAbility");
-              newActivity.dc = game.settings.get("5e-training", "defaultDcDifficulty");
+              newActivity.completionAt = game.settings.get("downtime-ethck", "defaultDcSuccesses");
+              newActivity.ability = game.settings.get("downtime-ethck", "defaultAbility");
+              newActivity.dc = game.settings.get("downtime-ethck", "defaultDcDifficulty");
             }
             // Update flags and actor
             flags.trainingItems.push(newActivity);
-            actor.update({'flags.5e-training': null}).then(function(){
-              actor.update({'flags.5e-training': flags});
+            actor.update({'flags.downtime-ethck': null}).then(function(){
+              actor.update({'flags.downtime-ethck': flags});
             });
           }
         }
@@ -256,14 +257,14 @@ async function addTrainingTab(app, html, data) {
     // Edit Downtime Activity
     html.find('.training-edit').click(async (event) => {
       event.preventDefault();
-      console.log("Crash's 5e Downtime Tracking | Edit Downtime Activity excuted!");
+      console.log("Ethck's Downtime Tracking | Edit Downtime Activity excuted!");
 
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace('edit-',''));
       let activity = flags.trainingItems[trainingIdx];
       let edit = false;
-      let dialogContent = await renderTemplate('modules/5e-training/templates/training-details-dialog.html', {training: activity});
+      let dialogContent = await renderTemplate('modules/downtime-ethck/templates/training-details-dialog.html', {training: activity});
 
       // Create dialog
       new Dialog({
@@ -296,8 +297,8 @@ async function addTrainingTab(app, html, data) {
             }
             // Update flags and actor
             flags.trainingItems[trainingIdx] = activity;
-            actor.update({'flags.5e-training': null}).then(function(){
-              actor.update({'flags.5e-training': flags});
+            actor.update({'flags.downtime-ethck': null}).then(function(){
+              actor.update({'flags.downtime-ethck': flags});
             });
           }
         }
@@ -307,14 +308,14 @@ async function addTrainingTab(app, html, data) {
     // Remove Downtime Activity
     html.find('.training-delete').click(async (event) => {
       event.preventDefault();
-      console.log("Crash's 5e Downtime Tracking | Delete Downtime Activity excuted!");
+      console.log("Ethck's Downtime Tracking | Delete Downtime Activity excuted!");
 
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace('delete-',''));
       let activity = flags.trainingItems[trainingIdx];
       let del = false;
-      let dialogContent = await renderTemplate('modules/5e-training/templates/delete-training-dialog.html');
+      let dialogContent = await renderTemplate('modules/downtime-ethck/templates/delete-training-dialog.html');
 
       // Create dialog
       new Dialog({
@@ -329,8 +330,8 @@ async function addTrainingTab(app, html, data) {
           if (del) {
             // Delete item and update actor
             flags.trainingItems.splice(trainingIdx, 1);
-            actor.update({'flags.5e-training': null}).then(function(){
-              actor.update({'flags.5e-training': flags});
+            actor.update({'flags.downtime-ethck': null}).then(function(){
+              actor.update({'flags.downtime-ethck': flags});
             });
           }
         }
@@ -340,7 +341,7 @@ async function addTrainingTab(app, html, data) {
     // Edit Progression Value
     html.find('.training-override').change(async (event) => {
       event.preventDefault();
-      console.log("Crash's 5e Downtime Tracking | Progression Override excuted!");
+      console.log("Ethck's Downtime Tracking | Progression Override excuted!");
 
       // Set up some variables
       let fieldId = event.currentTarget.id;
@@ -371,15 +372,15 @@ async function addTrainingTab(app, html, data) {
 
       // Update flags and actor
       flags.trainingItems[trainingIdx] = activity;
-      actor.update({'flags.5e-training': null}).then(function(){
-        actor.update({'flags.5e-training': flags});
+      actor.update({'flags.downtime-ethck': null}).then(function(){
+        actor.update({'flags.downtime-ethck': flags});
       });
     });
 
     // Roll To Train
     html.find('.training-roll').click(async (event) => {
       event.preventDefault();
-      console.log("Crash's 5e Downtime Tracking | Progress Downtime Activity excuted!");
+      console.log("Ethck's Downtime Tracking | Progress Downtime Activity excuted!");
 
       // Set up some variables
       let fieldId = event.currentTarget.id;
@@ -401,8 +402,8 @@ async function addTrainingTab(app, html, data) {
           checkCompletion(actor, activity);
           // Update flags and actor
           flags.trainingItems[trainingIdx] = activity;
-          actor.update({'flags.5e-training': null}).then(function(){
-            actor.update({'flags.5e-training': flags});
+          actor.update({'flags.downtime-ethck': null}).then(function(){
+            actor.update({'flags.downtime-ethck': flags});
           });
         });
       }
@@ -419,8 +420,8 @@ async function addTrainingTab(app, html, data) {
           checkCompletion(actor, activity);
           // Update flags and actor
           flags.trainingItems[trainingIdx] = activity;
-          actor.update({'flags.5e-training': null}).then(function(){
-            actor.update({'flags.5e-training': flags});
+          actor.update({'flags.downtime-ethck': null}).then(function(){
+            actor.update({'flags.downtime-ethck': flags});
           });
         });
       }
@@ -433,8 +434,8 @@ async function addTrainingTab(app, html, data) {
         checkCompletion(actor, activity);
         // Update flags and actor
         flags.trainingItems[trainingIdx] = activity;
-        actor.update({'flags.5e-training': null}).then(function(){
-          actor.update({'flags.5e-training': flags});
+        actor.update({'flags.downtime-ethck': null}).then(function(){
+          actor.update({'flags.downtime-ethck': flags});
         });
       }
     });
@@ -444,7 +445,7 @@ async function addTrainingTab(app, html, data) {
     // dnd5e/module/actor/sheets/base.js
     html.find('.training-toggle-desc').click(async (event) => {
       event.preventDefault();
-      console.log("Crash's 5e Downtime Tracking | Toggle Acvtivity Info excuted!");
+      console.log("Ethck's Downtime Tracking | Toggle Acvtivity Info excuted!");
 
       // Set up some variables
       let fieldId = event.currentTarget.id;
@@ -468,7 +469,7 @@ async function addTrainingTab(app, html, data) {
     // Review Changes
     html.find('.training-audit').click(async (event) => {
       event.preventDefault();
-      console.log("Crash's 5e Downtime Tracking | GM Audit excuted!");
+      console.log("Ethck's Downtime Tracking | GM Audit excuted!");
       new AuditLog(actor).render(true);
     });
 
@@ -536,7 +537,7 @@ function calculateNewProgress(activity, actionName, change, absolute = false){
 // Checks for completion of an activity and logs it if it's done
 async function checkCompletion(actor, activity){
   if(activity.progress >= activity.completionAt){
-    let alertFor = game.settings.get("5e-training", "announceCompletionFor");
+    let alertFor = game.settings.get("downtime-ethck", "announceCompletionFor");
     let isPc = actor.isPC;
     let sendIt;
 
@@ -558,8 +559,8 @@ async function checkCompletion(actor, activity){
     }
 
     if (sendIt){
-      console.log("Crash's 5e Downtime Tracking | " + actor.name + " " + game.i18n.localize("C5ETRAINING.CompletedADowntimeActivity"));
-      let chatHtml = await renderTemplate('modules/5e-training/templates/completion-message.html', {actor:actor, activity:activity});
+      console.log("Ethck's Downtime Tracking | " + actor.name + " " + game.i18n.localize("C5ETRAINING.CompletedADowntimeActivity"));
+      let chatHtml = await renderTemplate('modules/downtime-ethck/templates/completion-message.html', {actor:actor, activity:activity});
       ChatMessage.create({content: chatHtml});
     }
   }

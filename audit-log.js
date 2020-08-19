@@ -3,7 +3,7 @@ export default class AuditLog extends FormApplication {
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
       id: "downtime-audit-log-form",
-      template: "modules/5e-training/templates/audit-dialog.html",
+      template: "modules/downtime-ethck/templates/audit-dialog.html",
       title: game.i18n.localize("C5ETRAINING.AuditLog"),
       width: 900,
       resizable: true,
@@ -13,7 +13,7 @@ export default class AuditLog extends FormApplication {
 
   async getData(options = {}) {
     let originalData = super.getData();
-    let activities = originalData.object.flags["5e-training"].trainingItems;
+    let activities = originalData.object.flags["downtime-ethck"].trainingItems;
     let changes = [];
 
 // Loop through each activity. If it's got no changes array, move on to the next one.
@@ -57,7 +57,7 @@ export default class AuditLog extends FormApplication {
 
     let actorId = formData.actorId;
     let actor = game.actors.get(actorId);
-    let flags = actor.data.flags['5e-training'];
+    let flags = actor.data.flags['downtime-ethck'];
     let activities = flags.trainingItems;
 
     // Same loop as before. Cycle through each activity, if it's got no change array,
@@ -76,8 +76,8 @@ export default class AuditLog extends FormApplication {
     }
 
     flags.trainingItems = activities;
-    actor.update({'flags.5e-training': null}).then(function(){
-      actor.update({'flags.5e-training': flags});
+    actor.update({'flags.downtime-ethck': null}).then(function(){
+      actor.update({'flags.downtime-ethck': flags});
     });
 
   }
