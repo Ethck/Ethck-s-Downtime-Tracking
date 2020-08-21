@@ -28,6 +28,15 @@ Handlebars.registerHelper("progressionStyle", function(trainingItem) {
 Hooks.once("init", () => {
   preloadTemplates();
 
+  game.settings.registerMenu("downtime-ethck", "config", {
+        name: "Config",
+        label: "Access Config Menu",
+        hint: "Access the configuration menu to find additional options.",
+        icon: "fas fa-desktop",
+        type: DWTForm,
+        restricted: true
+    });
+
   game.settings.register("downtime-ethck", "enableTraining", {
     name: game.i18n.localize("C5ETRAINING.ShowDowntimeTabPc"),
     hint: game.i18n.localize("C5ETRAINING.ShowDowntimeTabPcHint"),
@@ -161,6 +170,12 @@ Hooks.once("init", () => {
     default: "pc"
   });
 
+  game.settings.register("downtime-ethck", "activities", {
+    scope: "world",
+    config: false,
+    default: [],
+  });
+
 });
 
 
@@ -193,7 +208,8 @@ async function addTrainingTab(app, html, data) {
 
     // Create the tab content
     let sheet = html.find('.sheet-body');
-    let trainingTabHtml = $(await renderTemplate('modules/downtime-ethck/templates/training-section.html', data));
+    console.log(data);
+    let trainingTabHtml = $(await renderTemplate('modules/downtime-ethck/templates/training-section.html', {"activities": game.settings.get("downtime-ethck", "activities"), "actorAct": data}));
     sheet.append(trainingTabHtml);
 
     // Add New Downtime Activity
@@ -201,27 +217,13 @@ async function addTrainingTab(app, html, data) {
       event.preventDefault();
       console.log("Ethck's Downtime Tracking | Create Downtime Activity excuted!");
 
-      // Set up some variables
-      let add = false;
-      let newActivity = {
-        name: game.i18n.localize("C5ETRAINING.NewDowntimeActivity"),
-        progress: 0,
-        description: "",
-        changes: [],
-        progressionStyle: 'ability'
-      };
-
-      //let dialogContent = await renderTemplate('modules/downtime-ethck/templates/add-training-dialog.html', {training: newActivity});
-      //let dialogContent = await renderTemplate('modules/downtime-ethck/templates/add-downtime-form.html', {training: newActivity});
-
       // Set up flags if they don't exist
       if (flags.trainingItems == undefined){
         flags.trainingItems = [];
       }
 
-      let form = new DWTForm(actor);
+      let form = new DWTForm();
       form.render(true);
-
     });
 
     // Edit Downtime Activity
@@ -233,50 +235,8 @@ async function addTrainingTab(app, html, data) {
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace('edit-',''));
       let activity = flags.trainingItems[trainingIdx];
-      let edit = false;
-      let dialogContent = await renderTemplate('modules/downtime-ethck/templates/training-details-dialog.html', {training: activity});
-
-      // Create dialog
-      new Dialog({
-        title: game.i18n.localize("C5ETRAINING.EditDowntimeActivity"),
-        content: dialogContent,
-        buttons: {
-          yes: {icon: "<i class='fas fa-check'></i>", label: game.i18n.localize("C5ETRAINING.Edit"), callback: () => edit = true},
-          no: {icon: "<i class='fas fa-times'></i>",  label: game.i18n.localize("C5ETRAINING.Cancel"), callback: () => edit = false},
-        },
-        default: "yes",
-        close: html => {
-          if (edit) {
-            // Set up base values
-            activity.name = html.find('#nameInput').val();
-            activity.description = html.find('#descriptionInput').val();
-            // Progression Style: Ability Check
-            if (activity.progressionStyle == 'ability'){
-              activity.completionAt = parseInt(html.find('#completionAtInput').val());
-              activity.ability = html.find('#abilityInput').val();
-            }
-            // Progression Style: Simple
-            else if (activity.progressionStyle == 'simple'){
-              activity.completionAt = parseInt(html.find('#completionAtInput').val());
-            }
-            // Progression Style: DC
-            else if (activity.progressionStyle == 'dc'){
-              activity.completionAt = parseInt(html.find('#completionAtInput').val());
-              activity.ability = html.find('#abilityInput').val();
-              activity.dc = html.find('#dcInput').val();
-            }
-            // Progression Style: Complex
-            else if (activity.progressionStyle == 'complex'){
-              console.log(activity.rolls);
-            }
-            // Update flags and actor
-            flags.trainingItems[trainingIdx] = activity;
-            actor.update({'flags.downtime-ethck': null}).then(function(){
-              actor.update({'flags.downtime-ethck': flags});
-            });
-          }
-        }
-      }).render(true);
+      let form = new DWTForm(actor, activity, true);
+      form.render(true);
     });
 
     // Remove Downtime Activity
