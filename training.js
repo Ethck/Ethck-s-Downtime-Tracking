@@ -1,6 +1,7 @@
 // Imports
 import { preloadTemplates } from "./load-templates.js";
 import AuditLog from "./audit-log.js";
+import { DWTForm} from "./downtime.js";
 
 // Register Handlebars Helpers
 Handlebars.registerHelper("trainingCompletion", function(trainingItem) {
@@ -16,9 +17,12 @@ Handlebars.registerHelper("progressionStyle", function(trainingItem) {
     progressionTypeString = getAbilityName(trainingItem.ability);
   } else if(trainingItem.progressionStyle === "dc"){
     progressionTypeString = getAbilityName(trainingItem.ability)+" (" + game.i18n.localize("C5ETRAINING.DC") + trainingItem.dc + ")";
+  } else if (trainingItem.progressionStyle == "complex"){
+    progressionTypeString = "Complex";
   }
     return progressionTypeString;
-});
+  }
+);
 
 // Register Game Settings
 Hooks.once("init", () => {
@@ -207,51 +211,17 @@ async function addTrainingTab(app, html, data) {
         progressionStyle: 'ability'
       };
 
-      let dialogContent = await renderTemplate('modules/downtime-ethck/templates/add-training-dialog.html', {training: newActivity});
+      //let dialogContent = await renderTemplate('modules/downtime-ethck/templates/add-training-dialog.html', {training: newActivity});
+      //let dialogContent = await renderTemplate('modules/downtime-ethck/templates/add-downtime-form.html', {training: newActivity});
 
       // Set up flags if they don't exist
       if (flags.trainingItems == undefined){
         flags.trainingItems = [];
       }
 
-      // Create dialog
-      new Dialog({
-        title: game.i18n.localize("C5ETRAINING.CreateNewDowntimeActivity"),
-        content: dialogContent,
-        buttons: {
-          yes: {icon: "<i class='fas fa-check'></i>", label: game.i18n.localize("C5ETRAINING.Create"), callback: () => add = true},
-          no: {icon: "<i class='fas fa-times'></i>", label: game.i18n.localize("C5ETRAINING.Cancel"), callback: () => add = false},
-        },
-        default: "yes",
-        close: html => {
-          if (add) {
-            // Set up basic info
-            newActivity.name = html.find('#nameInput').val();
-            newActivity.progressionStyle = html.find('#progressionStyleInput').val();
-            newActivity.description = html.find('#descriptionInput').val();
-            // Progression Type: Ability Check
-            if (newActivity.progressionStyle == 'ability'){
-              newActivity.ability = game.settings.get("downtime-ethck", "defaultAbility");
-              newActivity.completionAt = game.settings.get("downtime-ethck", "totalToComplete");
-            }
-            // Progression Type: Simple
-            else if (newActivity.progressionStyle == 'simple'){
-              newActivity.completionAt = game.settings.get("downtime-ethck", "attemptsToComplete");
-            }
-            // Progression Type: DC
-            else if (newActivity.progressionStyle == 'dc'){
-              newActivity.completionAt = game.settings.get("downtime-ethck", "defaultDcSuccesses");
-              newActivity.ability = game.settings.get("downtime-ethck", "defaultAbility");
-              newActivity.dc = game.settings.get("downtime-ethck", "defaultDcDifficulty");
-            }
-            // Update flags and actor
-            flags.trainingItems.push(newActivity);
-            actor.update({'flags.downtime-ethck': null}).then(function(){
-              actor.update({'flags.downtime-ethck': flags});
-            });
-          }
-        }
-      }).render(true);
+      let form = new DWTForm(actor);
+      form.render(true);
+
     });
 
     // Edit Downtime Activity
@@ -294,6 +264,10 @@ async function addTrainingTab(app, html, data) {
               activity.completionAt = parseInt(html.find('#completionAtInput').val());
               activity.ability = html.find('#abilityInput').val();
               activity.dc = html.find('#dcInput').val();
+            }
+            // Progression Style: Complex
+            else if (activity.progressionStyle == 'complex'){
+              console.log(activity.rolls);
             }
             // Update flags and actor
             flags.trainingItems[trainingIdx] = activity;

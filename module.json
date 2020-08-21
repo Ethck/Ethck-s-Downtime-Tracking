@@ -7,7 +7,7 @@
 	"minimumCoreVersion": "0.6.0",
 	"compatibleCoreVersion": "0.7.0",
 	"systems": ["dnd5e"],
-	"esmodules": ["training.js"],
+	"esmodules": ["training.js", "downtime.js"],
 	"styles": ["styles/training.css"],
 	"languages": [
 		{

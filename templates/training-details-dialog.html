@@ -16,6 +16,10 @@
     {{> "modules/downtime-ethck/templates/partials/dc.html" training=training}}
   {{/if}}
 
+  {{#if (eq training.progressionStyle "complex")}}
+    {{> "modules/downtime-ethck/templates/partials/complex.html" training=training}}
+  {{/if}}
+
   <div class="wide-field">
     <label for="description">{{ localize "C5ETRAINING.Description" }}:</label>
     <textarea name="descriptionInput" id="descriptionInput">{{training.description}}</textarea>

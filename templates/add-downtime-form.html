@@ -1,0 +1,73 @@
+<form autocomplete="off" onsubmit="event.preventDefault();">
+    <fieldset>
+    <div class="form-group">
+        <label>Ability Checks</label>
+        <select name="abiCheck" id="abiCheck">
+        <div class="lmrtfy-ability-checks">
+            <option label=" "></option>
+            {{#each abilities as |name key|}}
+            <div class="lmrtfy-ability">
+                <option value="{{name}} Check" id="lmrtf-check-{{key}}" data-dtype="Boolean" />
+                <label for="lmrtf-check-{{key}}">{{name}}</label>
+            </div>
+            {{/each}}
+        </div>
+    </select>
+    </div>
+    <div class="form-group">
+        <label>Saving Throws</label>
+        <select name="saveSelect" id="saveSelect">
+        <div class="lmrtfy-saving-throws">
+            <option label=" "></option>
+            {{#each saves as |name key|}}
+            <div class="lmrtfy-ability">
+                <option vaule="{{name}} Saving Throw" id="lmrtf-save-{{key}}" data-dtype="Boolean" />
+                <label for="lmrtf-save-{{key}}">{{name}}</label>            
+            </div>
+            {{/each}}
+        </div>
+        </select>
+    </div>
+        <div class="form-group">
+            <label>Skill Checks</label>
+            <select name="skiCheck" id="skiCheck">
+            <div class="lmrtfy-skill-checks">
+                <option label=" "></option>
+                {{#each skills as |name key|}}
+                <div class="lmrtfy-skill">
+                    <option value="{{name}}" id="lmrtf-skill-{{key}}" data-dtype="Boolean" />
+                    <label for="lmrtf-skill-{{key}}">{{name}}</label>
+                </div>
+                {{/each}}
+            </div>
+        </select>
+    </div>
+
+    </fieldset>
+    <fieldset>
+        <label>DC</label>
+        <input type="text" id="dc" name="dc">
+        <div style="margin-right:0px;">
+            <button type="submit" name="addRollableEvent" value="1" class="addRollable"><i class="fas fa-dice"></i>Add Roll</button>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <table>
+            <tr>
+                <th>Roll</th>
+                <th>DC</th>
+            </tr>
+            {{#each rollableEvents as |arr|}}
+                <tr>
+                    <td><label>{{arr.[0]}}</label></td>
+                    <td><label>{{arr.[1]}}</label></td>
+                </tr>
+            {{/each}}
+        </table>
+    </fieldset>
+
+    <div class="lmrtfy-submit">
+        <button type="submit" class="lmrtfy-request-roll" name="submit" value="1"><i class="fas fa-dice"></i>Submit</button>
+    </div>
+</form>
