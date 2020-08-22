@@ -241,7 +241,6 @@ async function addTrainingTab(app, html, data) {
       type: CONST.CHAT_MESSAGE_TYPES.IC
      })
     })
-  };
 
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in
@@ -251,22 +250,34 @@ async function addTrainingTab(app, html, data) {
       console.log("Ethck's Downtime Tracking | Toggle Acvtivity Info excuted!");
 
       // Set up some variables
+      let flags = actor.data.flags['downtime-ethck'];
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace('toggle-desc-',''));
-      let activity = flags.trainingItems[trainingIdx];
-      let desc = activity.description || "";
+      let activity = {}
+
+      if ($(event.currentTarget).hasClass("localRoll")){
+        activity = flags.trainingItems[trainingIdx];
+      } else if ($(event.currentTarget).hasClass("worldRoll")){
+        activity = game.settings.get("downtime-ethck", "activities")[trainingIdx]
+      }
+
+      //let desc = activity.description || "asdjflksdjlk";
+      let desc = "";
+      for (let rollable of activity.rollableEvents){
+        desc += rollable[0] + " DC: " + rollable[1] + "</br>";
+      }
+
       let li = $(event.currentTarget).parents(".item");
 
       if ( li.hasClass("expanded") ) {
         let summary = li.children(".item-summary");
         summary.slideUp(200, () => summary.remove());
       } else {
-        let div = $(`<div class="item-summary">${desc}</div>`);
+        let div = $(`<div class="item-summary"><label>` + desc + `</label></div>`);
         li.append(div.hide());
         div.slideDown(200);
       }
       li.toggleClass("expanded");
-
     });
 
     // Review Changes
@@ -285,7 +296,7 @@ async function addTrainingTab(app, html, data) {
     html.find('.tabs .item:not(.tabs .item[data-tab="training"])').click(ev => {
       app.activateTrainingTab = false;
     });
-}
+}};
 // Calculates the progress value of an activity and logs the change to the progress
 // if absolute is true, set progress to the change value rather than adding to it
 // RETURNS THE ENTIRE ACTIVITY
