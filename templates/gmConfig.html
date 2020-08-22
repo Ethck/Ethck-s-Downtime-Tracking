@@ -15,6 +15,7 @@
                 <tr id={{act.id}} class="rollableEvent">
                     <td><label>{{act.name}}</label></td>
                     <td><label>{{act.description}}</label></td>
+                    <td style="text-align:center;"><a class="item-control training-edit" id="{{act.id}}" title="{{ localize 'C5ETRAINING.EditDowntimeActivity' }}"><i class="fas fa-edit"></i></a></td>
                     <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="{{ localize 'C5ETRAINING.DeleteDowntimeRoll' }}"><i class="fas fa-trash"></i></a></td>
                 </tr>
             {{/each}}

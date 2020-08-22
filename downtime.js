@@ -13,7 +13,11 @@ export class DWTForm extends FormApplication {
 
     static get defaultOptions() {
         const options = super.defaultOptions;
-        options.title = "Add a Downtime Event";
+        if (this.edit){
+            options.title = "Edit a Downtime Activity";
+        } else {
+            options.title = "Add a Downtime Event";
+        }
         options.id = "downtime-ethck";
         options.template = "modules/downtime-ethck/templates/add-downtime-form.html";
         options.closeOnSubmit = true;
@@ -29,13 +33,13 @@ export class DWTForm extends FormApplication {
         const saves = CONFIG.DND5E.abilities;
         const skills = CONFIG.DND5E.skills;
 
-        const rollableEvents = this.rollableEvents;
+        const activity = this.activity;
 
         return {
             abilities,
             saves,
             skills,
-            rollableEvents
+            activity
         };
     }
 
@@ -92,7 +96,7 @@ export class DWTForm extends FormApplication {
         const time = Date.now();
         // Add event
         this.rollableEvents.push([rbl, dc, time]);
-        // Add the row that shows in the form
+        // Add the row that shows in the form (DOM!)
         this.element.find("#rollableEventsTable").append(`
             <tr id="`+time+`" class="rollableEvent">
                 <td><label>`+rbl+`</label></td>
@@ -101,7 +105,6 @@ export class DWTForm extends FormApplication {
                     <i class="fas fa-trash"></i></a>
                 </td>
             </tr>`)
-
 
         //reset to initial vals
         abiElem.val($("#abiCheck option:first").val())
@@ -113,10 +116,11 @@ export class DWTForm extends FormApplication {
     }
 
     async _updateObject(event, formData) {
+        const actName = this.element.find("#name").val();
+        const actDesc = this.element.find("#desc").val();
+        let activity = {}
         if (!this.edit){
-            const actName = this.element.find("#name").val();
-            const actDesc = this.element.find("#desc").val();
-            const newActivity = {
+            activity = {
                 name: actName || game.i18n.localize("C5ETRAINING.NewDowntimeActivity"),
                 progress: 0,
                 description: actDesc || "",
@@ -124,23 +128,34 @@ export class DWTForm extends FormApplication {
                 progressionStyle: 'complex',
                 rollableEvents: this.rollableEvents,
                 id: Date.now()
-              };
-
-            const actor = this.actor;
-            if (!(jQuery.isEmptyObject(actor))){
-                const flags = actor.data.flags['downtime-ethck'];
-                // Update flags and actor
-                flags.trainingItems.push(newActivity);
-                actor.update({'flags.downtime-ethck': null}).then(function(){
-                  actor.update({'flags.downtime-ethck': flags});
-                });
-            } else {
-                const settings = game.settings.get("downtime-ethck", "activities");
-                settings.push(newActivity)
-                await game.settings.set("downtime-ethck", "activities", settings)
-            }
+            };
+        } else {
+            activity = this.activity;
+            activity["name"] = actName;
+            activity["description"] = actDesc;
+            activity["rollableEvents"] = this.rollableEvents;
         }
 
+        const actor = this.actor;
+        if (!(jQuery.isEmptyObject(actor))){
+            const flags = actor.data.flags['downtime-ethck'];
+            if (!this.edit){
+                activity["world"] = false;
+                // Update flags and actor
+                flags.trainingItems.push(activity);
+            }
+            actor.update({'flags.downtime-ethck': null}).then(function(){
+              actor.update({'flags.downtime-ethck': flags});
+            });
+        } else {
+            activity["world"] = true;
+            const settings = game.settings.get("downtime-ethck", "activities");
+            //settings.push(activity)
+            let act = settings.find(act => act.id == activity.id);
+            let idx = settings.indexOf(act);
+            settings[idx] = activity;
+            await game.settings.set("downtime-ethck", "activities", settings)
+        }
 
     }
 }

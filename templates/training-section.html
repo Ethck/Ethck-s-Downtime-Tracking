@@ -15,7 +15,7 @@
       {{#each actorAct.actor.flags.downtime-ethck.trainingItems as |training tid| }}
         <li class="item flexrow">
           <div class="item-name flexrow">
-            <div class="item-image rollable training-roll" id="roll-{{tid}}" title="{{ localize 'C5ETRAINING.AdvanceActivityProgress' }}" style="background-image: url(icons/svg/d20.svg);"></div>
+            <div class="item-image rollable training-roll localRoll" id="roll-{{tid}}" title="{{ localize 'C5ETRAINING.AdvanceActivityProgress' }}" style="background-image: url(icons/svg/d20.svg);"></div>
             <h4 class="rollable training-toggle-desc" id="toggle-desc-{{tid}}" title="{{ localize 'C5ETRAINING.ToggleInfo' }}">{{training.name}}</h4>
           </div>
           <div class="item-detail type">
@@ -35,7 +35,7 @@
       {{#each activities as |training tid| }}
         <li class="item flexrow">
           <div class="item-name flexrow">
-            <div class="item-image rollable training-roll" id="roll-{{tid}}" title="{{ localize 'C5ETRAINING.AdvanceActivityProgress' }}" style="background-image: url(icons/svg/d20.svg);"></div>
+            <div class="item-image rollable training-roll worldRoll" id="roll-{{tid}}" title="{{ localize 'C5ETRAINING.AdvanceActivityProgress' }}" style="background-image: url(icons/svg/d20.svg);"></div>
             <h4 class="rollable training-toggle-desc" id="toggle-desc-{{tid}}" title="{{ localize 'C5ETRAINING.ToggleInfo' }}">{{training.name}}</h4>
           </div>
           <div class="item-detail type">

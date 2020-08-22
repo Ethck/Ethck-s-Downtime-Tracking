@@ -36,6 +36,19 @@ export class GMConfig extends FormApplication {
             $(row).find("#deleteRollable").click((event) => this.handleRollableDelete(event, row));
         }
         this.element.find(".addWorldDowntime").click((event) => this.addWorldDowntime(event));
+        this.element.find(".training-edit").click((event) => this.editWorldDowntime(event));
+    }
+
+    editWorldDowntime(event){
+      // Edit Downtime Activity
+      event.preventDefault();
+      console.log("Ethck's Downtime Tracking | Edit World Downtime Activity excuted!");
+
+      // Set up some variables
+      let fieldId = event.currentTarget.id;
+      let activity = game.settings.get("downtime-ethck", "activities").find(act => act.id === parseInt(fieldId));
+      let form = new DWTForm({}, activity, true);
+      form.render(true);
     }
 
     addWorldDowntime(event){
@@ -55,7 +68,7 @@ export class GMConfig extends FormApplication {
     }
 
     async _updateObject(event, formData) {
-        console.log("Update");
+        return
     }
 }
 

@@ -191,27 +191,56 @@ async function addTrainingTab(app, html, data) {
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace('roll-',''));
-      let activity = flags.trainingItems[trainingIdx];
-      let abilities = ['str','dex','con','int','wis', 'cha'];
-      let skillRoll = !abilities.includes(activity.ability);
+      let activity = {}
 
-      console.log(activity)
+      if ($(event.currentTarget).hasClass("localRoll")){
+        activity = flags.trainingItems[trainingIdx];
+      } else if ($(event.currentTarget).hasClass("worldRoll")){
+        activity = game.settings.get("downtime-ethck", "activities")[trainingIdx]
+      }
+
+      let abilities = ['str','dex','con','int','wis', 'cha'];
+
+      let res = []
+
       for (let rollable of activity.rollableEvents){
         if (rollable[0].includes("Check")){
           let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
-          actor.rollAbilityTest(abiAcr).then((r) => {
-            console.log(r)
+          await actor.rollAbilityTest(abiAcr).then((r) => {
+            res.push(rollDC(r, rollable))
           })
         } else if (rollable[0].includes("Save")){
           let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
-          actor.rollAbilitySave(abiAcr)
+          await actor.rollAbilitySave(abiAcr).then((r) => {
+            res.push(rollDC(r, rollable))
+          })
         } else {
           let skillAcr = Object.keys(skills).find(key => skills[key].toLowerCase().includes(rollable[0].toLowerCase()))
-          actor.rollSkill(skillAcr);
+          await actor.rollSkill(skillAcr).then((r) => {
+            res.push(rollDC(r, rollable))
+          });
 
         }
+     }
+     let results = [0, 0];
+     for (let r of res){
+      if (r === 1){
+        results[0] += 1;
+      } else {
+        results[1] += 1;
       }
-    }
+     }
+
+     const cmsg = "With " + results[0] + " successes and " + results[1] + " failures.";
+
+     ChatMessage.create({
+      user: game.user._id,
+      speaker: ChatMessage.getSpeaker({actor}),
+      content: cmsg,
+      flavor: "has completed the downtime activity of " + activity.name,
+      type: CONST.CHAT_MESSAGE_TYPES.IC
+     })
+    })
   };
 
     // Toggle Information Display
@@ -256,9 +285,6 @@ async function addTrainingTab(app, html, data) {
     html.find('.tabs .item:not(.tabs .item[data-tab="training"])').click(ev => {
       app.activateTrainingTab = false;
     });
-
-  }
-
 }
 // Calculates the progress value of an activity and logs the change to the progress
 // if absolute is true, set progress to the change value rather than adding to it
@@ -338,6 +364,17 @@ async function checkCompletion(actor, activity){
       ChatMessage.create({content: chatHtml});
     }
   }
+}
+
+async function rollDC(preRoll, rollable){
+  const rdc = new Roll(rollable[1]);
+  const dcRoll = rdc.roll();
+  if (preRoll._result >= dcRoll._result){
+    return 1;
+  } else {
+    return -1;
+  }
+
 }
 
 // Takes in the die roll string and returns whether it was made at adv/disadv/normal
