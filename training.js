@@ -206,30 +206,32 @@ async function addTrainingTab(app, html, data) {
       for (let rollable of activity.rollableEvents){
         if (rollable[0].includes("Check")){
           let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
-          await actor.rollAbilityTest(abiAcr).then((r) => {
-            res.push(rollDC(r, rollable))
+          await actor.rollAbilityTest(abiAcr).then(async (r) => {
+            await res.push(await rollDC(r, rollable))
           })
         } else if (rollable[0].includes("Save")){
           let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
-          await actor.rollAbilitySave(abiAcr).then((r) => {
-            res.push(rollDC(r, rollable))
+          await actor.rollAbilitySave(abiAcr).then(async (r) => {
+            await res.push(await rollDC(r, rollable))
           })
         } else {
           let skillAcr = Object.keys(skills).find(key => skills[key].toLowerCase().includes(rollable[0].toLowerCase()))
-          await actor.rollSkill(skillAcr).then((r) => {
-            res.push(rollDC(r, rollable))
+          await actor.rollSkill(skillAcr).then(async (r) => {
+            await res.push(await rollDC(r, rollable))
           });
 
         }
      }
      let results = [0, 0];
      for (let r of res){
-      if (r === 1){
+      if (r == 1){
         results[0] += 1;
       } else {
         results[1] += 1;
       }
      }
+
+     console.log(results);
 
      const cmsg = "With " + results[0] + " successes and " + results[1] + " failures.";
 
@@ -380,7 +382,8 @@ async function checkCompletion(actor, activity){
 async function rollDC(preRoll, rollable){
   const rdc = new Roll(rollable[1]);
   const dcRoll = rdc.roll();
-  if (preRoll._result >= dcRoll._result){
+  console.log(preRoll._total, dcRoll._total)
+  if (preRoll._total >= dcRoll._total){
     return 1;
   } else {
     return -1;
