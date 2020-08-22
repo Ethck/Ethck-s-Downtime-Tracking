@@ -151,9 +151,13 @@ export class DWTForm extends FormApplication {
             activity["world"] = true;
             const settings = game.settings.get("downtime-ethck", "activities");
             //settings.push(activity)
-            let act = settings.find(act => act.id == activity.id);
-            let idx = settings.indexOf(act);
-            settings[idx] = activity;
+            if (this.edit){
+                let act = settings.find(act => act.id == activity.id);
+                let idx = settings.indexOf(act);
+                settings[idx] = activity;
+            } else {
+                settings.push(activity);
+            }
             await game.settings.set("downtime-ethck", "activities", settings)
         }
 
