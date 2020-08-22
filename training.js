@@ -1,7 +1,8 @@
 // Imports
 import { preloadTemplates } from "./load-templates.js";
 import AuditLog from "./audit-log.js";
-import { DWTForm} from "./downtime.js";
+import { DWTForm } from "./downtime.js";
+import { GMConfig } from "./gmConfig.js";
 
 // Register Handlebars Helpers
 Handlebars.registerHelper("trainingCompletion", function(trainingItem) {
@@ -33,7 +34,7 @@ Hooks.once("init", () => {
         label: "Access Config Menu",
         hint: "Access the configuration menu to find additional options.",
         icon: "fas fa-desktop",
-        type: DWTForm,
+        type: GMConfig,
         restricted: true
     });
 
@@ -63,97 +64,6 @@ Hooks.once("init", () => {
     default: "Downtime",
     type: String
   });
-
-  game.settings.register("downtime-ethck", "defaultAbility", {
-    name: game.i18n.localize("C5ETRAINING.DefaultAbility"),
-    hint: game.i18n.localize("C5ETRAINING.DefaultAbilityHint"),
-    scope: "world",
-    config: true,
-    type: String,
-    choices: {
-      "str": game.i18n.localize("C5ETRAINING.AbilityStr"),
-      "dex": game.i18n.localize("C5ETRAINING.AbilityDex"),
-      "con": game.i18n.localize("C5ETRAINING.AbilityCon"),
-      "int": game.i18n.localize("C5ETRAINING.AbilityInt"),
-      "wis": game.i18n.localize("C5ETRAINING.AbilityWis"),
-      "cha": game.i18n.localize("C5ETRAINING.AbilityCha"),
-      "acr": game.i18n.localize("C5ETRAINING.SkillAcr"),
-      "ani": game.i18n.localize("C5ETRAINING.SkillAni"),
-      "arc": game.i18n.localize("C5ETRAINING.SkillArc"),
-      "ath": game.i18n.localize("C5ETRAINING.SkillAth"),
-      "dec": game.i18n.localize("C5ETRAINING.SkillDec"),
-      "his": game.i18n.localize("C5ETRAINING.SkillHis"),
-      "ins": game.i18n.localize("C5ETRAINING.SkillIns"),
-      "inv": game.i18n.localize("C5ETRAINING.SkillInv"),
-      "itm": game.i18n.localize("C5ETRAINING.SkillItm"),
-      "med": game.i18n.localize("C5ETRAINING.SkillMed"),
-      "nat": game.i18n.localize("C5ETRAINING.SkillNat"),
-      "per": game.i18n.localize("C5ETRAINING.SkillPer"),
-      "prc": game.i18n.localize("C5ETRAINING.SkillPrc"),
-      "prf": game.i18n.localize("C5ETRAINING.SkillPrf"),
-      "rel": game.i18n.localize("C5ETRAINING.SkillRel"),
-      "slt": game.i18n.localize("C5ETRAINING.SkillSlt"),
-      "ste": game.i18n.localize("C5ETRAINING.SkillSte"),
-      "sur": game.i18n.localize("C5ETRAINING.SkillSur")
-    },
-    default: "int",
-  });
-
-  game.settings.register("downtime-ethck", "totalToComplete", {
-    name: game.i18n.localize("C5ETRAINING.DefaultAbilityCompletion"),
-    hint: game.i18n.localize("C5ETRAINING.DefaultAbilityCompletionHint"),
-    scope: "world",
-    config: true,
-    default: 300,
-    type: Number
-  });
-
-  game.settings.register("downtime-ethck", "attemptsToComplete", {
-    name: game.i18n.localize("C5ETRAINING.DefaultSimpleCompletion"),
-    hint: game.i18n.localize("C5ETRAINING.DefaultSimpleCompletionHint"),
-    scope: "world",
-    config: true,
-    default: 10,
-    type: Number
-  });
-
-  game.settings.register("downtime-ethck", "defaultDcDifficulty", {
-    name: game.i18n.localize("C5ETRAINING.DefaultDcDifficulty"),
-    hint: game.i18n.localize("C5ETRAINING.DefaultDcDifficultyHint"),
-    scope: "world",
-    config: true,
-    default: 10,
-    type: Number
-  });
-
-  game.settings.register("downtime-ethck", "defaultDcSuccesses", {
-    name: game.i18n.localize("C5ETRAINING.DefaultDcSuccesses"),
-    hint: game.i18n.localize("C5ETRAINING.DefaultDcSuccessesHint"),
-    scope: "world",
-    config: true,
-    default: 5,
-    type: Number
-  });
-
-  // IF ABOUT TIME IS ENABLED
-  // game.settings.register("downtime-ethck", "timeToComplete", {
-  //   name: game.i18n.localize("C5ETRAINING.DefaultTimeCompletion"),
-  //   hint: game.i18n.localize("C5ETRAINING.DefaultTimeCompletionHint"),
-  //   scope: "world",
-  //   config: true,
-  //   default: 30,
-  //   type: Number
-  // });
-
-  // IF ABOUT TIME IS ENABLED
-  // game.settings.register("downtime-ethck", "enableDowntimeReminders", {
-  //   name: game.i18n.localize("C5ETRAINING.EnableDowntimeReminders"),
-  //   hint: game.i18n.localize("C5ETRAINING.EnableDowntimeRemindersHint"),
-  //   scope: "world",
-  //   config: true,
-  //   default: false,
-  //   type: Boolean
-  // });
 
   game.settings.register("downtime-ethck", "announceCompletionFor", {
     name: game.i18n.localize("C5ETRAINING.AnnounceActivityCompletionFor"),
@@ -206,9 +116,10 @@ async function addTrainingTab(app, html, data) {
     let tabs = html.find('.tabs[data-group="primary"]');
     tabs.append(trainingTabBtn);
 
+    const skills = CONFIG.DND5E.skills;
+
     // Create the tab content
     let sheet = html.find('.sheet-body');
-    console.log(data);
     let trainingTabHtml = $(await renderTemplate('modules/downtime-ethck/templates/training-section.html', {"activities": game.settings.get("downtime-ethck", "activities"), "actorAct": data}));
     sheet.append(trainingTabHtml);
 
@@ -222,7 +133,7 @@ async function addTrainingTab(app, html, data) {
         flags.trainingItems = [];
       }
 
-      let form = new DWTForm();
+      let form = new DWTForm(actor);
       form.render(true);
     });
 
@@ -272,45 +183,6 @@ async function addTrainingTab(app, html, data) {
       }).render(true);
     });
 
-    // Edit Progression Value
-    html.find('.training-override').change(async (event) => {
-      event.preventDefault();
-      console.log("Ethck's Downtime Tracking | Progression Override excuted!");
-
-      // Set up some variables
-      let fieldId = event.currentTarget.id;
-      let field = event.currentTarget;
-      let trainingIdx = parseInt(fieldId.replace('override-',''));
-      let activity = flags.trainingItems[trainingIdx];
-      let adjustment = 0;
-
-      // Format text field input and change
-      if(isNaN(field.value)){
-        ui.notifications.warn("Downtime Tracking: " + game.i18n.localize("C5ETRAINING.InvalidNumberWarning"));
-      } else if(field.value.charAt(0)=="+"){
-        let changeName = game.i18n.localize("C5ETRAINING.AdjustProgressValue") + " (+)";
-        adjustment = parseInt(field.value.substr(1).trim());
-        activity = calculateNewProgress(activity, changeName, adjustment);
-      } else if (field.value.charAt(0)=="-"){
-        let changeName = game.i18n.localize("C5ETRAINING.AdjustProgressValue") + " (-)";
-        adjustment = 0 - parseInt(field.value.substr(1).trim());
-        activity = calculateNewProgress(activity, changeName, adjustment);
-      } else {
-        let changeName = game.i18n.localize("C5ETRAINING.AdjustProgressValue") + " (=)";
-        adjustment = parseInt(field.value);
-        activity = calculateNewProgress(activity, changeName, adjustment, true);
-      }
-
-      // Log completion
-      checkCompletion(actor, activity);
-
-      // Update flags and actor
-      flags.trainingItems[trainingIdx] = activity;
-      actor.update({'flags.downtime-ethck': null}).then(function(){
-        actor.update({'flags.downtime-ethck': flags});
-      });
-    });
-
     // Roll To Train
     html.find('.training-roll').click(async (event) => {
       event.preventDefault();
@@ -320,59 +192,27 @@ async function addTrainingTab(app, html, data) {
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace('roll-',''));
       let activity = flags.trainingItems[trainingIdx];
-      let abilities = ['str','dex','con','int','wis','con'];
+      let abilities = ['str','dex','con','int','wis', 'cha'];
       let skillRoll = !abilities.includes(activity.ability);
 
-      // Progression Type: Ability Check or DC - ABILITY
-      if (activity.ability && !skillRoll){
-        let abilityName = getAbilityName(activity.ability);
-        // Roll to increase progress
-        actor.rollAbilityTest(activity.ability).then(function(r){
-          let rollMode = getRollMode(r._formula);
-          let attemptName = game.i18n.localize("C5ETRAINING.Roll") + " " + abilityName + " (" + rollMode + ")";
-          // Increase progress
-          activity = calculateNewProgress(activity, attemptName, r._total);
-          // Log activity completion
-          checkCompletion(actor, activity);
-          // Update flags and actor
-          flags.trainingItems[trainingIdx] = activity;
-          actor.update({'flags.downtime-ethck': null}).then(function(){
-            actor.update({'flags.downtime-ethck': flags});
-          });
-        });
+      console.log(activity)
+      for (let rollable of activity.rollableEvents){
+        if (rollable[0].includes("Check")){
+          let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
+          actor.rollAbilityTest(abiAcr).then((r) => {
+            console.log(r)
+          })
+        } else if (rollable[0].includes("Save")){
+          let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
+          actor.rollAbilitySave(abiAcr)
+        } else {
+          let skillAcr = Object.keys(skills).find(key => skills[key].toLowerCase().includes(rollable[0].toLowerCase()))
+          actor.rollSkill(skillAcr);
+
+        }
       }
-      // Progression Type: Ability Check or DC - SKILL
-      else if (activity.ability && skillRoll){
-        let abilityName = getAbilityName(activity.ability);
-        // Roll to increase progress
-        actor.rollSkill(activity.ability).then(function(r){
-          let rollMode = getRollMode(r._formula);
-          let attemptName = game.i18n.localize("C5ETRAINING.Roll") + " " + abilityName + " (" + rollMode + ")";
-          // Increase progress
-          activity = calculateNewProgress(activity, attemptName, r._total);
-          // Log activity completion
-          checkCompletion(actor, activity);
-          // Update flags and actor
-          flags.trainingItems[trainingIdx] = activity;
-          actor.update({'flags.downtime-ethck': null}).then(function(){
-            actor.update({'flags.downtime-ethck': flags});
-          });
-        });
-      }
-      // Progression Type: Simple
-      else if (activity.progressionStyle == 'simple'){
-        let activityName = game.i18n.localize("C5ETRAINING.Attempt") + " (" + game.i18n.localize("C5ETRAINING.Simple") + ")";
-        // Increase progress
-        activity = calculateNewProgress(activity, activityName, 1);
-        // Log activity completion
-        checkCompletion(actor, activity);
-        // Update flags and actor
-        flags.trainingItems[trainingIdx] = activity;
-        actor.update({'flags.downtime-ethck': null}).then(function(){
-          actor.update({'flags.downtime-ethck': flags});
-        });
-      }
-    });
+    }
+  };
 
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in

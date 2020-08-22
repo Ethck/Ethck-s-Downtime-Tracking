@@ -20,7 +20,6 @@ export class DWTForm extends FormApplication {
         options.popOut = true;
         options.width = 600;
         options.height = "auto";
-        //options.classes = ["lmrtfy", "lmrtfy-requestor"];
         return options;
     }
 
@@ -123,7 +122,8 @@ export class DWTForm extends FormApplication {
                 description: actDesc || "",
                 changes: [],
                 progressionStyle: 'complex',
-                rollableEvents: this.rollableEvents
+                rollableEvents: this.rollableEvents,
+                id: Date.now()
               };
 
             const actor = this.actor;

@@ -1,0 +1,28 @@
+<form autocomplete="off" onsubmit="event.preventDefault();">
+    <fieldset>
+        <table id="rollableEventsTable">
+            <colgroup>
+               <col span="1" style="width: 45%;">
+               <col span="1" style="width: 45%;">
+               <col span="1" style="width: 10%;">
+            </colgroup>
+            <tr>
+                <th style="text-align:left;">Roll</th>
+                <th style="text-align:left;">DC</th>
+                <th>Delete</th>
+            </tr>
+            {{#each activities as |act|}}
+                <tr id={{act.id}} class="rollableEvent">
+                    <td><label>{{act.name}}</label></td>
+                    <td><label>{{act.description}}</label></td>
+                    <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="{{ localize 'C5ETRAINING.DeleteDowntimeRoll' }}"><i class="fas fa-trash"></i></a></td>
+                </tr>
+            {{/each}}
+        </table>
+    </fieldset>
+
+    <div class="lmrtfy-submit">
+        <button type="button" class="addWorldDowntime" name="addWorldDowntime"><i class="fas fa-dice"></i>Add World Downtime</button>
+        <button type="submit" class="lmrtfy-request-roll" name="submit" value="1"><i class="fas fa-dice"></i>Submit</button>
+    </div>
+</form>
