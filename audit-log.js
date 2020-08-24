@@ -1,5 +1,4 @@
 export default class AuditLog extends FormApplication {
-
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
       id: "downtime-audit-log-form",
@@ -7,7 +6,7 @@ export default class AuditLog extends FormApplication {
       title: game.i18n.localize("C5ETRAINING.AuditLog"),
       width: 900,
       resizable: true,
-      closeOnSubmit: true
+      closeOnSubmit: true,
     });
   }
 
@@ -16,19 +15,26 @@ export default class AuditLog extends FormApplication {
     let activities = originalData.object.flags["downtime-ethck"].trainingItems;
     let changes = [];
 
-// Loop through each activity. If it's got no changes array, move on to the next one.
-//  If it DOES have a change array, loop through each entry and set up the info we need
-//  for display in the application. Most of it's one-to one, but we need to pull the activity name
-//  from the activity itself, and we do some math for the change. Once that's done,
-//   push the change into the array.
-    for (var a=0; a < activities.length; a++){
-      if(!activities[a].changes){ continue; }
-      for(var c=0; c < activities[a].changes.length; c++){
+    // Loop through each activity. If it's got no changes array, move on to the next one.
+    //  If it DOES have a change array, loop through each entry and set up the info we need
+    //  for display in the application. Most of it's one-to one, but we need to pull the activity name
+    //  from the activity itself, and we do some math for the change. Once that's done,
+    //   push the change into the array.
+    for (var a = 0; a < activities.length; a++) {
+      if (!activities[a].changes) {
+        continue;
+      }
+      for (var c = 0; c < activities[a].changes.length; c++) {
         // Don't include the change if it's already been dismissed
-        if(activities[a].changes[c].dismissed){ continue; }
+        if (activities[a].changes[c].dismissed) {
+          continue;
+        }
         // calc difference and add a '+' if the change is positive
-        let difference = activities[a].changes[c].newValue - activities[a].changes[c].oldValue;
-        if (difference > 0){ difference = "+" + difference;}
+        let difference =
+          activities[a].changes[c].newValue - activities[a].changes[c].oldValue;
+        if (difference > 0) {
+          difference = "+" + difference;
+        }
         // Set up our display object
         let change = {
           timestamp: activities[a].changes[c].timestamp,
@@ -38,26 +44,25 @@ export default class AuditLog extends FormApplication {
           valueChanged: activities[a].changes[c].valueChanged,
           oldValue: activities[a].changes[c].oldValue,
           newValue: activities[a].changes[c].newValue,
-          diff: difference
-        }
+          diff: difference,
+        };
         changes.push(change);
       }
     }
     // Sort by time, oldest to newest
-    changes.sort((a, b) => (a.timestamp > b.timestamp) ? 1 : -1);
+    changes.sort((a, b) => (a.timestamp > b.timestamp ? 1 : -1));
 
     return mergeObject(originalData, {
       isGm: game.user.isGM,
-      changes: changes
+      changes: changes,
     });
   }
 
- // Called on submission, handle doing stuff.
+  // Called on submission, handle doing stuff.
   async _updateObject(event, formData) {
-
     let actorId = formData.actorId;
     let actor = game.actors.get(actorId);
-    let flags = actor.data.flags['downtime-ethck'];
+    let flags = actor.data.flags["downtime-ethck"];
     let activities = flags.trainingItems;
 
     // Same loop as before. Cycle through each activity, if it's got no change array,
@@ -65,27 +70,26 @@ export default class AuditLog extends FormApplication {
     //  (which we use an ID since it's unique in this case) is present in the formData
     //  object as a key. If it is, it means this change has a checkbox present in the
     //  audit log. We wanna know its value so we can dismiss it. Or not.
-    for (var a=0; a < activities.length; a++){
-      if(!activities[a].changes){ continue; }
-      for(var c=0; c < activities[a].changes.length; c++){
+    for (var a = 0; a < activities.length; a++) {
+      if (!activities[a].changes) {
+        continue;
+      }
+      for (var c = 0; c < activities[a].changes.length; c++) {
         let timestamp = activities[a].changes[c].timestamp;
-        if (formData.hasOwnProperty(timestamp)){
+        if (formData.hasOwnProperty(timestamp)) {
           activities[a].changes[c].dismissed = formData[timestamp];
         }
       }
     }
 
     flags.trainingItems = activities;
-    actor.update({'flags.downtime-ethck': null}).then(function(){
-      actor.update({'flags.downtime-ethck': flags});
+    actor.update({ "flags.downtime-ethck": null }).then(function () {
+      actor.update({ "flags.downtime-ethck": flags });
     });
-
   }
 
   activateListeners(html) {
     super.activateListeners(html);
     // add listeners here
   }
-
-
-};
+}
