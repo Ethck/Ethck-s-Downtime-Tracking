@@ -65,6 +65,19 @@ Hooks.once("init", () => {
     type: String
   });
 
+  game.settings.register("downtime-ethck", "dcRollMode", {
+    name: "DC Roll Mode",
+    hint: "Roll Mode used when downtime activities' DCs are called",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {
+      "gmroll": "GM Roll (Player can see)",
+      "blindroll": "Blind Roll (Player can't see)",
+    },
+    default: "blindroll",
+  });
+
   game.settings.register("downtime-ethck", "announceCompletionFor", {
     name: game.i18n.localize("C5ETRAINING.AnnounceActivityCompletionFor"),
     hint: game.i18n.localize("C5ETRAINING.AnnounceActivityCompletionForHint"),
@@ -207,33 +220,60 @@ async function addTrainingTab(app, html, data) {
         if (rollable[0].includes("Check")){
           let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
           await actor.rollAbilityTest(abiAcr).then(async (r) => {
-            await res.push(await rollDC(r, rollable))
+            const dc = await rollDC(rollable)
+            res.push([r._total, dc._total])
           })
         } else if (rollable[0].includes("Save")){
           let abiAcr = abilities.find(abi => rollable[0].toLowerCase().includes(abi))
           await actor.rollAbilitySave(abiAcr).then(async (r) => {
-            await res.push(await rollDC(r, rollable))
+            const dc = await rollDC(rollable)
+            res.push([r._total, dc._total])
           })
         } else {
           let skillAcr = Object.keys(skills).find(key => skills[key].toLowerCase().includes(rollable[0].toLowerCase()))
           await actor.rollSkill(skillAcr).then(async (r) => {
-            await res.push(await rollDC(r, rollable))
+            const dc = await rollDC(rollable)
+            res.push([r._total, dc._total])
           });
 
         }
      }
-     let results = [0, 0];
-     for (let r of res){
-      if (r == 1){
-        results[0] += 1;
-      } else {
-        results[1] += 1;
-      }
+
+     let cmsg = ""
+
+     if (activity.type === "succFail"){
+       let booleanResults = [0, 0];
+       res.map((pair) => {
+        if (pair[0] >= pair[1]){ //Rolled is greater than dc
+          booleanResults[0] += 1;
+        } else { //Rolled is less than dc
+          booleanResults[1] += 1;
+        }
+       });
+
+       console.log(booleanResults);
+
+        cmsg = "With " + booleanResults[0] + " successes and " + booleanResults[1] + " failures.";
+        activity.results.map((result) => {
+          if (result[0] <= booleanResults[0] && result[1] >= booleanResults[0]){
+            cmsg = cmsg + "</br>" + result[2];
+          }
+        })
+     } else if (activity.type === "categories"){
+      console.log("CATEGORY!")
+      activity.results.map((result) => {
+        console.log(res.length)
+        if (res.length <= 2){ //Only support 1 roll for the categories type
+          console.log(res, result[0])
+          if (res[0][0] >= result[0] && res[0][1] <= result[1]){
+            cmsg = "Result: " + result[2];
+            console.log(cmsg);
+          }
+        }
+      });
      }
 
-     console.log(results);
-
-     const cmsg = "With " + results[0] + " successes and " + results[1] + " failures.";
+     console.log(cmsg)
 
      ChatMessage.create({
       user: game.user._id,
@@ -379,15 +419,12 @@ async function checkCompletion(actor, activity){
   }
 }
 
-async function rollDC(preRoll, rollable){
+async function rollDC(rollable){
   const rdc = new Roll(rollable[1]);
   const dcRoll = rdc.roll();
-  console.log(preRoll._total, dcRoll._total)
-  if (preRoll._total >= dcRoll._total){
-    return 1;
-  } else {
-    return -1;
-  }
+  dcRoll.toMessage({}, {rollMode: game.settings.get("downtime-ethck", "dcRollMode"), create: true});
+
+  return dcRoll;
 
 }
 

@@ -7,6 +7,10 @@ export class DWTForm extends FormApplication {
         if ("rollableEvents" in activity){
             this.rollableEvents = activity["rollableEvents"];
         }
+        this.results = [];
+        if ("results" in activity){
+            this.results = activity["results"];
+        }
         this.actor = actor;
         this.edit = editMode;
     }
@@ -52,17 +56,18 @@ export class DWTForm extends FormApplication {
     activateListeners(html) {
         super.activateListeners(html);
         this.element.find(".addRollable").click((event) => this.handleRollables(event));
-        for (let row of this.element.find("#rollableEventsTable > tbody > .rollableEvent")){
-            $(row).find("#deleteRollable").click((event) => this.handleRollableDelete(event, row));
-        }
+        this.element.find("#rollableEventsTable > tbody > .rollableEvent").on("click", "#deleteRollable", (event) => this.handleRollableDelete(event));
+        this.element.find(".addResult").click((event) => this.handleResults(event));
+        this.element.find("#resultsTable > tbody > .result").on("click", "#deleteResult", (event) => this.handleResultDelete(event));
     }
 
-    handleRollableDelete(event, row){
+    handleRollableDelete(event){
         event.preventDefault();
-        const toDel = this.rollableEvents.find(rbl => rbl[2] == $(row).attr("id"));
+        const elem = $(event.currentTarget).parent().parent();
+        const toDel = this.rollableEvents.find(rbl => rbl[2] == elem.attr("id"));
         const idx = this.rollableEvents.indexOf(toDel);
         this.rollableEvents.splice(idx, 1);
-        $(row).remove();
+        elem.remove();
     }
 
     handleRollables(event) {
@@ -111,13 +116,60 @@ export class DWTForm extends FormApplication {
         saveElem.val($("#saveSelect option:first").val())
         skiElem.val($("#skiCheck option:first").val())
         dcElem.val($("#dc option:first").val())
+    }
 
+    handleResultDelete(event){
+        event.preventDefault();
+        const elem = $(event.currentTarget).parent().parent();
+        const toDel = this.results.find(res => res[3] == elem.attr("id"));
+        const idx = this.results.indexOf(toDel);
+        this.results.splice(idx, 1)
+        elem.remove(); 
+    }
 
+    handleResults(event) {
+        event.preventDefault();
+
+        const min = this.element.find("#resultMin");
+        const max = this.element.find("#resultMax");
+        const text = this.element.find("#resultText");
+
+        const minV = min.val();
+        const maxV = max.val();
+        const textV = text.val();
+
+        if (minV === "" || maxV === "" || textV === "") {
+            ui.notifications.error("Fill in min, max, and text before submission.");
+            return;
+        } else if (isNaN(minV) || isNaN(maxV)) {
+            ui.notifications.error("Min and Max only accept numbers.");
+            return;
+        }
+
+        const time = Date.now();
+        // Add event
+        this.results.push([parseInt(minV), parseInt(maxV), textV, time]);
+        // Add the row that shows in the form (DOM!)
+        this.element.find("#resultsTable").append(`
+            <tr id="`+time+`" class="result">
+                <td><label>`+minV+`</label></td>
+                <td><label>`+maxV+`</label></td>
+                <td><label>`+textV+`</label></td>
+                <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete">
+                    <i class="fas fa-trash"></i></a>
+                </td>
+            </tr>`)
+
+        //reset to initial vals
+        min.val("")
+        max.val("")
+        text.val("")
     }
 
     async _updateObject(event, formData) {
         const actName = this.element.find("#name").val();
         const actDesc = this.element.find("#desc").val();
+        const actType = this.element.find("#succFailActivity:checked").val() || this.element.find("#categoryActivity:checked").val()
         let activity = {}
         if (!this.edit){
             activity = {
@@ -127,13 +179,17 @@ export class DWTForm extends FormApplication {
                 changes: [],
                 progressionStyle: 'complex',
                 rollableEvents: this.rollableEvents,
-                id: Date.now()
+                results: this.results,
+                id: Date.now(),
+                type: actType
             };
         } else {
             activity = this.activity;
             activity["name"] = actName;
             activity["description"] = actDesc;
             activity["rollableEvents"] = this.rollableEvents;
+            activity["results"] = this.results;
+            activity["type"] = actType;
         }
 
         const actor = this.actor;
