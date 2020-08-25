@@ -2,34 +2,6 @@
   <input type="hidden" name="actorId" value="{{object._id}}"/>
 
   <h1 class="title">{{object.name}}'s Downtime Activity Log</h1>
-
-  <!-- Player View -->
-  {{#unless isGm}}
-    <div class="instructions">
-      <p>{{ localize "C5ETRAINING.AuditLogInstructionsPlayer" }}</p>
-    </div>
-    <div class="action-table">
-      <table>
-        <tr>
-          <th>{{ localize "C5ETRAINING.Time" }}</th>
-          <th>{{ localize "C5ETRAINING.User" }}</th>
-          <th>{{ localize "C5ETRAINING.Activity" }}</th>
-          <th>Result</th>
-        </tr>
-        {{#each changes as |change id|}}
-        <tr>
-          <td>{{change.timestamp}}</td>
-          <td>{{change.user}}</td>
-          <td>{{change.activityName}} {{change.dismissed}}</td>
-          <td>{{change.result}}</td>
-        </tr>
-        {{/each}}
-      </table>
-    </div>
-  {{/unless}}
-
-  <!-- GM View -->
-  {{#if isGm}}
   <div class="instructions">
     <p>{{ localize "C5ETRAINING.AuditLogInstructionsGm" }}</p>
     <p>{{ localize "C5ETRAINING.AuditLogDeleteNote" }}</p>
@@ -56,7 +28,6 @@
   <footer>
     <button id="apply-audits"><i class='fas fa-check'></i> Exit</button>
   </footer>
-  {{/if}}
 
 
 </form>

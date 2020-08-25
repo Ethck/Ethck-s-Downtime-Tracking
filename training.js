@@ -244,7 +244,6 @@ async function addTrainingTab(app, html, data) {
       }
 
       let cmsg = "";
-      console.log(res);
 
       if (activity.type === "succFail") {
         let booleanResults = [0, 0];

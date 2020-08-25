@@ -192,7 +192,6 @@ export class DWTForm extends FormApplication {
       const groupVal = this.element
         .find("#" + rollableEvent[2] + " > td > #group")
         .val();
-      console.log(this.element.find("#" + rollableEvent[2] + " > td > #group"));
       rollableGroups.map((groupDict) => {
         if (groupDict["group"] == groupVal) {
           groupDict["rolls"].push(rollableEvent);
