@@ -2,24 +2,15 @@
 	"name": "downtime-ethck",
 	"title": "Ethck's 5e Downtime Tracking",
 	"description": "Adds a section to the character sheet to keep track of downtime activity progression. Track proficiency training, spell scribing, and anything else you can think of.",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"author": "Ethck",
 	"minimumCoreVersion": "0.6.0",
-	"compatibleCoreVersion": "0.7.0",
+	"compatibleCoreVersion": "0.6.5",
 	"systems": ["dnd5e"],
 	"esmodules": ["training.js", "downtime.js"],
 	"styles": ["styles/training.css"],
-	"languages": [
-		{
-			"lang": "en",
-			"name": "English",
-			"path": "lang/en.json"
-		},
-		{
-			"lang": "ko",
-			"name": "Korean",
-			"path": "lang/ko.json"
-		}
-	],
-	"url": "https://github.com/Ethck/Ethck-s-Downtime-Tracking"
+	"url": "https://github.com/Ethck/Ethck-s-Downtime-Tracking",
+	"manifest": "https://raw.githubusercontent.com/Ethck/Ethck-s-Downtime-Tracking/master/module.json",
+	"readme": "https://github.com/Ethck/Ethck-s-Downtime-Tracking/blob/master/README.md",
+
 }
