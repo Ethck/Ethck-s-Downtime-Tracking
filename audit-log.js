@@ -13,8 +13,10 @@ export default class AuditLog extends FormApplication {
   async getData(options = {}) {
     let originalData = super.getData();
     let changes = originalData.object.flags["downtime-ethck"].changes || [];
-    let activitiesWorld = game.settings.get("downtime-ethck", "changes");
-    changes.push(...activitiesWorld);
+    let activitiesWorld = game.settings.get("downtime-ethck", "changes")[originalData.object._id];
+    if (activitiesWorld !== undefined){
+      changes.push(...activitiesWorld);
+    }
 
     // Sort by time, newest to oldest
     changes.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));

@@ -64,7 +64,7 @@ Hooks.once("init", () => {
   game.settings.register("downtime-ethck", "changes", {
     scope: "world",
     config: false,
-    default: [],
+    default: {},
   });
 });
 
@@ -300,7 +300,11 @@ async function addTrainingTab(app, html, data) {
           await game.settings.set("downtime-ethck", "changes", []);
         }
         let changes = game.settings.get("downtime-ethck", "changes");
-        changes.push(change);
+        if (!(actor._id in changes)){
+          changes[actor._id] = [];
+        }
+        changes[actor._id].push(change);
+        console.log(changes);
         await game.settings.set("downtime-ethck", "changes", changes);
       }
     });
