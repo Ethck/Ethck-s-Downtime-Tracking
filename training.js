@@ -16,8 +16,8 @@ Hooks.once("init", () => {
   });
 
   game.settings.register("downtime-ethck", "enableTraining", {
-    name: game.i18n.localize("C5ETRAINING.ShowDowntimeTabPc"),
-    hint: game.i18n.localize("C5ETRAINING.ShowDowntimeTabPcHint"),
+    name: "Show Training Tab on PCs",
+    hint: "Display the training tab for Player Characters",
     scope: "world",
     config: true,
     default: true,
@@ -25,8 +25,8 @@ Hooks.once("init", () => {
   });
 
   game.settings.register("downtime-ethck", "enableTrainingNpc", {
-    name: game.i18n.localize("C5ETRAINING.ShowDowntimeTabNpc"),
-    hint: game.i18n.localize("C5ETRAINING.ShowDowntimeTabNpcHint"),
+    name: "Show Training Tab on NPCs",
+    hint: "Display the training tab for Non-Player Characters",
     scope: "world",
     config: true,
     default: true,
@@ -34,8 +34,8 @@ Hooks.once("init", () => {
   });
 
   game.settings.register("downtime-ethck", "tabName", {
-    name: game.i18n.localize("C5ETRAINING.DowntimeTabName"),
-    hint: game.i18n.localize("C5ETRAINING.DowntimeTabNameHint"),
+    name: "Tab Name",
+    hint: "Name for the custom downtime tab",
     scope: "world",
     config: true,
     default: "Downtime",
@@ -53,21 +53,6 @@ Hooks.once("init", () => {
       blindroll: "Blind Roll (Player can't see)",
     },
     default: "blindroll",
-  });
-
-  game.settings.register("downtime-ethck", "announceCompletionFor", {
-    name: game.i18n.localize("C5ETRAINING.AnnounceActivityCompletionFor"),
-    hint: game.i18n.localize("C5ETRAINING.AnnounceActivityCompletionForHint"),
-    scope: "world",
-    config: true,
-    type: String,
-    choices: {
-      pc: game.i18n.localize("C5ETRAINING.PcsOnly"),
-      npc: game.i18n.localize("C5ETRAINING.NpcsOnly"),
-      both: game.i18n.localize("C5ETRAINING.PcsAndNpcs"),
-      none: game.i18n.localize("C5ETRAINING.None"),
-    },
-    default: "pc",
   });
 
   game.settings.register("downtime-ethck", "activities", {
@@ -176,12 +161,12 @@ async function addTrainingTab(app, html, data) {
         buttons: {
           yes: {
             icon: "<i class='fas fa-check'></i>",
-            label: game.i18n.localize("C5ETRAINING.Delete"),
+            label:"Delete",
             callback: () => (del = true),
           },
           no: {
             icon: "<i class='fas fa-times'></i>",
-            label: game.i18n.localize("C5ETRAINING.Cancel"),
+            label: "Cancel",
             callback: () => (del = false),
           },
         },

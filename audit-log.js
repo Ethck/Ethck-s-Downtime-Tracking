@@ -3,7 +3,7 @@ export default class AuditLog extends FormApplication {
     return mergeObject(super.defaultOptions, {
       id: "downtime-audit-log-form",
       template: "modules/downtime-ethck/templates/audit-dialog.html",
-      title: game.i18n.localize("C5ETRAINING.AuditLog"),
+      title: "Activity Log",
       width: 900,
       resizable: true,
       closeOnSubmit: true,

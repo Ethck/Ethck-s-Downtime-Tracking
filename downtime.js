@@ -215,7 +215,7 @@ export class DWTForm extends FormApplication {
     let activity = {};
     if (!this.edit) {
       activity = {
-        name: actName || game.i18n.localize("C5ETRAINING.NewDowntimeActivity"),
+        name: actName || "New Downtime Activity",
         progress: 0,
         description: actDesc || "",
         changes: [],
