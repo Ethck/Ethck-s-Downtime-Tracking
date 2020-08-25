@@ -59,21 +59,26 @@
     <fieldset>
         <table id="rollableEventsTable">
             <colgroup>
-               <col span="1" style="width: 45%;">
-               <col span="1" style="width: 45%;">
+               <col span="1" style="width: 35%;">
+               <col span="1" style="width: 20%;">
+               <col span="1" style="width: 35%;">
                <col span="1" style="width: 10%;">
             </colgroup>
             <tr>
                 <th style="text-align:left;">Roll</th>
                 <th style="text-align:left;">DC</th>
+                <th>Group</th>
                 <th>Delete</th>
             </tr>
-            {{#each activity.rollableEvents as |arr|}}
+            {{#each activity.rollableGroups as |group|}}
+            {{#each group.rolls as |arr|}}
                 <tr id="{{arr.[2]}}" class="rollableEvent">
                     <td><label>{{arr.[0]}}</label></td>
                     <td><label>{{arr.[1]}}</label></td>
+                    <td><input type="text" id="group" placeholder="group name for OR rolls" value="{{group.group}}"></td>
                     <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="{{ localize 'C5ETRAINING.DeleteDowntimeRoll' }}"><i class="fas fa-trash"></i></a></td>
                 </tr>
+            {{/each}}
             {{/each}}
         </table>
     </fieldset>

@@ -114,8 +114,9 @@ export class DWTForm extends FormApplication {
     this.element.find("#rollableEventsTable").append(
       `
             <tr id="` + time + `" class="rollableEvent">
-                <td><label>` + rbl + `</label></td>
-                <td><label>` + dc + `</label></td>
+                <td><label>` +rbl + `</label></td>
+                <td><label>` +dc + `</label></td>
+                <td><input type="text" id="group" placeholder="group name for OR rolls"></td>
                 <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="Delete">
                     <i class="fas fa-trash"></i></a>
                 </td>
@@ -162,10 +163,10 @@ export class DWTForm extends FormApplication {
     this.results.push([parseInt(minV), parseInt(maxV), textV, time]);
     // Add the row that shows in the form (DOM!)
     this.element.find("#resultsTable").append(
-      `<tr id="` + time +`" class="result">
-        <td><label>` + minV + `</label></td>
-        <td><label>` + maxV + `</label></td>
-        <td><label>` + textV + `</label></td>
+      `<tr id="` +time +`" class="result">
+        <td><label>` +minV + `</label></td>
+        <td><label>` +maxV + `</label></td>
+        <td><label>` +textV + `</label></td>
         <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete">
             <i class="fas fa-trash"></i></a>
         </td>
@@ -184,6 +185,34 @@ export class DWTForm extends FormApplication {
     const actType =
       this.element.find("#succFailActivity:checked").val() ||
       this.element.find("#categoryActivity:checked").val();
+
+    // Handle OR grouping of rollableEvents
+    let rollableGroups = [{ group: "", rolls: [] }];
+    this.rollableEvents.map((rollableEvent) => {
+      const groupVal = this.element
+        .find("#" + rollableEvent[2] + " > td > #group")
+        .val();
+      console.log(this.element.find("#" + rollableEvent[2] + " > td > #group"));
+      rollableGroups.map((groupDict) => {
+        if (groupDict["group"] == groupVal) {
+          groupDict["rolls"].push(rollableEvent);
+          return;
+        }
+      });
+
+      if (
+        rollableGroups.find((group) => group["group"] === groupVal) ===
+        undefined
+      ) {
+        const groupDict = {
+          group: groupVal,
+          rolls: [rollableEvent],
+        };
+
+        rollableGroups.push(groupDict);
+      }
+    });
+
     let activity = {};
     if (!this.edit) {
       activity = {
@@ -193,6 +222,7 @@ export class DWTForm extends FormApplication {
         changes: [],
         progressionStyle: "complex",
         rollableEvents: this.rollableEvents,
+        rollableGroups: rollableGroups,
         results: this.results,
         id: Date.now(),
         type: actType,
@@ -202,6 +232,7 @@ export class DWTForm extends FormApplication {
       activity["name"] = actName;
       activity["description"] = actDesc;
       activity["rollableEvents"] = this.rollableEvents;
+      activity["rollableGroups"] = rollableGroups;
       activity["results"] = this.results;
       activity["type"] = actType;
     }

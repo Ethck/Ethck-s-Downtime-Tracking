@@ -2,6 +2,7 @@
 import AuditLog from "./audit-log.js";
 import { DWTForm } from "./downtime.js";
 import { GMConfig } from "./gmConfig.js";
+import { ChooseRoll } from "./chooseRoll.js";
 
 // Register Game Settings
 Hooks.once("init", () => {
@@ -195,7 +196,6 @@ async function addTrainingTab(app, html, data) {
     html.find(".training-roll").click(async (event) => {
       event.preventDefault();
 
-      // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("roll-", ""));
       let activity = {};
@@ -208,43 +208,42 @@ async function addTrainingTab(app, html, data) {
         ];
       }
 
-      let abilities = ["str", "dex", "con", "int", "wis", "cha"];
-
       let res = [];
 
-      for (let rollable of activity.rollableEvents) {
-        if (rollable[0].includes("Check")) {
-          let abiAcr = abilities.find((abi) =>
-            rollable[0].toLowerCase().includes(abi)
-          );
-          await actor.rollAbilityTest(abiAcr).then(async (r) => {
-            const dc = await rollDC(rollable);
-            res.push([r._total, dc._total]);
-          });
-        } else if (rollable[0].includes("Save")) {
-          let abiAcr = abilities.find((abi) =>
-            rollable[0].toLowerCase().includes(abi)
-          );
-          await actor.rollAbilitySave(abiAcr).then(async (r) => {
-            const dc = await rollDC(rollable);
-            res.push([r._total, dc._total]);
-          });
-        } else {
-          let skillAcr = Object.keys(skills).find((key) =>
-            skills[key].toLowerCase().includes(rollable[0].toLowerCase())
-          );
-          await actor.rollSkill(skillAcr).then(async (r) => {
-            const dc = await rollDC(rollable);
-            res.push([r._total, dc._total]);
-          });
+      for (let rollGroup of activity.rollableGroups) {
+        if (rollGroup.rolls[0] !== undefined) {
+          let form = new ChooseRoll(actor, activity, rollGroup);
+          if (rollGroup.rolls.length > 1) {
+            form.render(true);
+            while (true) {
+              if (form.done) {
+                res.push(form.res);
+                break;
+              } else {
+                await new Promise((r) => setTimeout(r, 2000));
+              }
+            }
+          } else {
+            form.rollRollable(rollGroup.rolls[0]);
+            while (true) {
+              if (form.done) {
+                res.push(form.res);
+                break;
+              } else {
+                await new Promise((r) => setTimeout(r, 2000));
+              }
+            }
+          }
         }
       }
 
       let cmsg = "";
+      console.log(res);
 
       if (activity.type === "succFail") {
         let booleanResults = [0, 0];
         res.map((pair) => {
+          pair = pair[0];
           if (pair[0] >= pair[1]) {
             //Rolled is greater than dc
             booleanResults[0] += 1;
@@ -269,8 +268,9 @@ async function addTrainingTab(app, html, data) {
           }
         });
       } else if (activity.type === "categories") {
+        console.log("CATEGORIES");
         activity.results.map((result) => {
-          if (res[0][0] >= result[0] && res[0][1] <= result[1]) {
+          if (res[0][0][0] >= result[0] && res[0][0][1] <= result[1]) {
             cmsg = "Result: " + result[2];
           }
         });
@@ -342,20 +342,6 @@ async function addTrainingTab(app, html, data) {
         app.activateTrainingTab = false;
       });
   }
-}
-
-async function rollDC(rollable) {
-  const rdc = new Roll(rollable[1]);
-  const dcRoll = rdc.roll();
-  dcRoll.toMessage(
-    {},
-    {
-      rollMode: game.settings.get("downtime-ethck", "dcRollMode"),
-      create: true,
-    }
-  );
-
-  return dcRoll;
 }
 
 Hooks.on(`renderActorSheet`, (app, html, data) => {
