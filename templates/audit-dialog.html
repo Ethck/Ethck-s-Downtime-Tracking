@@ -14,16 +14,14 @@
           <th>{{ localize "C5ETRAINING.Time" }}</th>
           <th>{{ localize "C5ETRAINING.User" }}</th>
           <th>{{ localize "C5ETRAINING.Activity" }}</th>
-          <th>{{ localize "C5ETRAINING.Action" }}</th>
-          <th>{{ localize "C5ETRAINING.ProgressChange" }}</th>
+          <th>Result</th>
         </tr>
         {{#each changes as |change id|}}
         <tr>
           <td>{{change.timestamp}}</td>
           <td>{{change.user}}</td>
           <td>{{change.activityName}} {{change.dismissed}}</td>
-          <td>{{change.actionName}}</td>
-          <td>{{change.oldValue}} -> {{change.newValue}} ({{change.diff}})</td>
+          <td>{{change.result}}</td>
         </tr>
         {{/each}}
       </table>
@@ -42,25 +40,21 @@
         <th>{{ localize "C5ETRAINING.Time" }}</th>
         <th>{{ localize "C5ETRAINING.User" }}</th>
         <th>{{ localize "C5ETRAINING.Activity" }}</th>
-        <th>{{ localize "C5ETRAINING.Action" }}</th>
-        <th>{{ localize "C5ETRAINING.ProgressChange" }}</th>
-        <th>{{ localize "C5ETRAINING.Dismiss" }}<th>
+        <th>Result</th>
       </tr>
       {{#each changes as |change id|}}
       <tr>
         <td>{{change.timestamp}}</td>
         <td>{{change.user}}</td>
-        <td>{{change.activityName}} {{change.dismissed}}</td>
-        <td>{{change.actionName}}</td>
-        <td>{{change.oldValue}} -> {{change.newValue}} ({{change.diff}})</td>
-        <td><input type="checkbox" name="{{change.timestamp}}" id="{{change.timestamp}}"/></td>
+        <td>{{change.activityName}}</td>
+        <td>{{change.result}}</td>
       </tr>
       {{/each}}
     </table>
   </div>
 
   <footer>
-    <button id="apply-audits"><i class='fas fa-check'></i> {{ localize "C5ETRAINING.DismissSelected" }}</button>
+    <button id="apply-audits"><i class='fas fa-check'></i> Exit</button>
   </footer>
   {{/if}}
 

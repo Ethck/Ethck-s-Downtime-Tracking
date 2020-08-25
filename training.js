@@ -75,6 +75,12 @@ Hooks.once("init", () => {
     config: false,
     default: [],
   });
+
+  game.settings.register("downtime-ethck", "changes", {
+    scope: "world",
+    config: false,
+    default: [],
+  });
 });
 
 // The Meat And Potatoes
@@ -283,6 +289,36 @@ async function addTrainingTab(app, html, data) {
         flavor: "has completed the downtime activity of " + activity.name,
         type: CONST.CHAT_MESSAGE_TYPES.IC,
       });
+
+      const timestamp = Date.now()
+
+      const change = {
+        timestamp: new Date(timestamp).toDateString(),
+        user: game.user.name,
+        activityName: activity.name,
+        result: cmsg,
+      }
+
+      if ($(event.currentTarget).hasClass("localRoll")) {
+        activity = flags.trainingItems[trainingIdx];
+        if (flags.changes === undefined){
+          flags.changes = [];
+        }
+        flags.changes.push(change)
+        actor.update({ "flags.downtime-ethck": null }).then(function () {
+        actor.update({ "flags.downtime-ethck": flags });
+      });
+      } else if ($(event.currentTarget).hasClass("worldRoll")) {
+        activity = game.settings.get("downtime-ethck", "activities")[
+          trainingIdx
+        ];
+        if (game.settings.get("downtime-ethck", "changes") === undefined){
+          await game.settings.set("downtime-ethck", "changes", []);
+        }
+        let changes = game.settings.get("downtime-ethck", "changes");
+        changes.push(change);
+        await game.settings.set("downtime-ethck", "changes", changes);
+      }
     });
 
     // Toggle Information Display
