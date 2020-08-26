@@ -201,113 +201,44 @@ async function addTrainingTab(app, html, data) {
 
       let res = [];
 
-      for (let rollGroup of activity.rollableGroups) {
-        if (rollGroup.rolls[0] !== undefined) {
-          let form = new ChooseRoll(actor, activity, rollGroup);
-          if (rollGroup.rolls.length > 1) {
-            form.render(true);
-            while (true) {
-              if (form.done) {
-                res.push(form.res);
-                break;
-              } else {
-                await new Promise((r) => setTimeout(r, 2000));
-              }
+      if (activity.rollableGroups.length !== 1){
+        // We have more than 1 group
+        let rolls = [];
+        if (activity.rollableGroups.every((rg) => rg.rolls.length <= 1)){ //No ORs in activity
+          activity.rollableGroups.forEach((group) => {
+            if (group.rolls.length >= 1){
+              rolls.push(group.rolls[0])
             }
-          } else {
-            form.rollRollable(rollGroup.rolls[0]);
-            while (true) {
-              if (form.done) {
-                res.push(form.res);
-                break;
-              } else {
-                await new Promise((r) => setTimeout(r, 2000));
-              }
+          });
+        } else { // Some ORs in Activity
+        let form = new ChooseRoll(actor, activity)
+        const choices = await form.chooseRollDialog();
+        for (let rg of activity.rollableGroups){
+          for (let c of choices){
+            const choice = rg.rolls.find(async (roll) => roll[2] === c)
+            if (choice !== undefined){
+              rolls.push(choice)
+              break;
             }
           }
         }
-      }
+        }
 
-      let cmsg = "";
+        let rollRes = rolls.map(async (roll) => {
+          return await rollRollable(actor, activity, roll);
+        })
+        res.push(...await Promise.all(rollRes))
+        outputRolls(actor, activity, event, trainingIdx, res);
 
-      if (activity.type === "succFail") {
-        let booleanResults = [0, 0];
-        res.map((pair) => {
-          pair = pair[0];
-          if (pair[0] >= pair[1]) {
-            //Rolled is greater than dc
-            booleanResults[0] += 1;
-          } else {
-            //Rolled is less than dc
-            booleanResults[1] += 1;
-          }
+      } else {
+        const resPromises = activity.rollableGroups[0].rolls.map(async (roll) => {
+          return await rollRollable(actor, activity, roll);
         });
 
-        cmsg =
-          "With " +
-          booleanResults[0] +
-          " successes and " +
-          booleanResults[1] +
-          " failures.";
-        activity.results.map((result) => {
-          if (
-            result[0] <= booleanResults[0] &&
-            result[1] >= booleanResults[0]
-          ) {
-            cmsg = cmsg + "</br>" + result[2];
-          }
-        });
-      } else if (activity.type === "categories") {
-        console.log("CATEGORIES");
-        activity.results.map((result) => {
-          if (res[0][0][0] >= result[0] && res[0][0][1] <= result[1]) {
-            cmsg = "Result: " + result[2];
-          }
-        });
-      }
-
-      ChatMessage.create({
-        user: game.user._id,
-        speaker: ChatMessage.getSpeaker({ actor }),
-        content: cmsg,
-        flavor: "has completed the downtime activity of " + activity.name,
-        type: CONST.CHAT_MESSAGE_TYPES.IC,
-      });
-
-      const timestamp = Date.now()
-
-      const change = {
-        timestamp: new Date(timestamp).toDateString(),
-        user: game.user.name,
-        activityName: activity.name,
-        result: cmsg,
-      }
-
-      if ($(event.currentTarget).hasClass("localRoll")) {
-        activity = flags.trainingItems[trainingIdx];
-        if (flags.changes === undefined){
-          flags.changes = [];
-        }
-        flags.changes.push(change)
-        actor.update({ "flags.downtime-ethck": null }).then(function () {
-        actor.update({ "flags.downtime-ethck": flags });
-      });
-      } else if ($(event.currentTarget).hasClass("worldRoll")) {
-        activity = game.settings.get("downtime-ethck", "activities")[
-          trainingIdx
-        ];
-        if (game.settings.get("downtime-ethck", "changes") === undefined){
-          await game.settings.set("downtime-ethck", "changes", []);
-        }
-        let changes = game.settings.get("downtime-ethck", "changes");
-        if (!(actor._id in changes)){
-          changes[actor._id] = [];
-        }
-        changes[actor._id].push(change);
-        console.log(changes);
-        await game.settings.set("downtime-ethck", "changes", changes);
-      }
-    });
+        res.push(await Promise.all(resPromises));
+        outputRolls(actor, activity, event, trainingIdx, res);
+     }
+  });
 
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in
@@ -375,3 +306,130 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
     }
   });
 });
+
+async function outputRolls(actor, activity, event, trainingIdx, res){
+  let cmsg = "";
+
+  if (activity.type === "succFail") {
+    let booleanResults = [0, 0];
+    res.map((pair) => {
+      if (pair[0] >= pair[1]) {
+        //Rolled is greater than dc
+        booleanResults[0] += 1;
+      } else {
+        //Rolled is less than dc
+        booleanResults[1] += 1;
+      }
+    });
+
+    cmsg =
+      "With " +
+      booleanResults[0] +
+      " successes and " +
+      booleanResults[1] +
+      " failures.";
+    activity.results.forEach((result) => {
+      if (
+        result[0] <= booleanResults[0] &&
+        result[1] >= booleanResults[0]
+      ) {
+        cmsg = cmsg + "</br>" + result[2];
+      }
+    });
+  } else if (activity.type === "categories") {
+    activity.results.forEach((result) => {
+      if (res[0][0][0] >= result[0] && res[0][0][1] <= result[1]) {
+        cmsg = "Result: " + result[2];
+      }
+    });
+  }
+
+  ChatMessage.create({
+    user: game.user._id,
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: cmsg,
+    flavor: "has completed the downtime activity of " + activity.name,
+    type: CONST.CHAT_MESSAGE_TYPES.IC,
+  });
+
+  const timestamp = Date.now()
+
+  const change = {
+    timestamp: new Date(timestamp).toDateString(),
+    user: game.user.name,
+    activityName: activity.name,
+    result: cmsg,
+  }
+
+  if ($(event.currentTarget).hasClass("localRoll")) {
+    activity = flags.trainingItems[trainingIdx];
+    if (flags.changes === undefined){
+      flags.changes = [];
+    }
+    flags.changes.push(change)
+    actor.update({ "flags.downtime-ethck": null }).then(function () {
+    actor.update({ "flags.downtime-ethck": flags });
+  });
+  } else if ($(event.currentTarget).hasClass("worldRoll")) {
+    activity = game.settings.get("downtime-ethck", "activities")[
+      trainingIdx
+    ];
+    if (game.settings.get("downtime-ethck", "changes") === undefined){
+      await game.settings.set("downtime-ethck", "changes", []);
+    }
+    let changes = game.settings.get("downtime-ethck", "changes");
+    if (!(actor._id in changes)){
+      changes[actor._id] = [];
+    }
+    changes[actor._id].push(change);
+    await game.settings.set("downtime-ethck", "changes", changes);
+  }
+}
+
+async function rollDC(rollable) {
+  const rdc = new Roll(rollable[1]);
+  const dcRoll = rdc.roll();
+  dcRoll.toMessage(
+    {},
+    {
+      rollMode: game.settings.get("downtime-ethck", "dcRollMode"),
+      create: true,
+    }
+  );
+
+  return dcRoll;
+}
+
+async function rollRollable(actor, activity, rollable) {
+  let abilities = ["str", "dex", "con", "int", "wis", "cha"];
+  const skills = CONFIG.DND5E.skills;
+  let res = []
+
+  if (rollable[0].includes("Check")) {
+    let abiAcr = abilities.find((abi) =>
+      rollable[0].toLowerCase().includes(abi)
+    );
+    await actor.rollAbilityTest(abiAcr).then(async (r) => {
+      const dc = await rollDC(rollable);
+      res = [r._total, dc._total];
+    });
+  } else if (rollable[0].includes("Save")) {
+    let abiAcr = abilities.find((abi) =>
+      rollable[0].toLowerCase().includes(abi)
+    );
+    await actor.rollAbilitySave(abiAcr).then(async (r) => {
+      const dc = await rollDC(rollable);
+      res = [r._total, dc._total];
+    });
+  } else {
+    let skillAcr = Object.keys(skills).find((key) =>
+      skills[key].toLowerCase().includes(rollable[0].toLowerCase())
+    );
+    await actor.rollSkill(skillAcr).then(async (r) => {
+      const dc = await rollDC(rollable);
+      res = [r._total, dc._total];
+    });
+  }
+
+  return res;
+}
