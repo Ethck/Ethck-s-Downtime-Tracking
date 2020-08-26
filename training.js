@@ -96,7 +96,7 @@ async function addTrainingTab(app, html, data) {
     // Update the nav menu
     let tabName = game.settings.get("downtime-ethck", "tabName");
     let trainingTabBtn = $(
-      '<a class="item" data-tab="training">' + tabName + "</a>"
+      '<a class="item" data-tab="downtime">' + tabName + "</a>"
     );
     let tabs = html.find('.tabs[data-group="primary"]');
     tabs.append(trainingTabBtn);
@@ -355,23 +355,23 @@ async function addTrainingTab(app, html, data) {
     });
 
     // Set Training Tab as Active
-    html.find('.tabs .item[data-tab="training"]').click((ev) => {
-      app.activateTrainingTab = true;
+    html.find('.tabs .item[data-tab="downtime"]').click((ev) => {
+      app.activateDowntimeTab = true;
     });
 
     // Unset Training Tab as Active
     html
-      .find('.tabs .item:not(.tabs .item[data-tab="training"])')
+      .find('.tabs .item:not(.tabs .item[data-tab="downtime"])')
       .click((ev) => {
-        app.activateTrainingTab = false;
+        app.activateDowntimeTab = false;
       });
   }
 }
 
 Hooks.on(`renderActorSheet`, (app, html, data) => {
   addTrainingTab(app, html, data).then(function () {
-    if (app.activateTrainingTab) {
-      app._tabs[0].activate("training");
+    if (app.activateDowntimeTab) {
+      app._tabs[0].activate("downtime");
     }
   });
 });

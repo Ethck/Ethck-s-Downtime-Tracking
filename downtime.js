@@ -216,10 +216,8 @@ export class DWTForm extends FormApplication {
     if (!this.edit) {
       activity = {
         name: actName || "New Downtime Activity",
-        progress: 0,
         description: actDesc || "",
         changes: [],
-        progressionStyle: "complex",
         rollableEvents: this.rollableEvents,
         rollableGroups: rollableGroups,
         results: this.results,
