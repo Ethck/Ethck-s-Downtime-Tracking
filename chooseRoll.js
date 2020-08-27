@@ -16,7 +16,7 @@ export class ChooseRoll extends Dialog {
     "id": "downtime-ethck",
     "closeOnSubmit": true,
     "popOut": true,
-    "width": 600,
+    "width": "auto",
     "height": "auto",
   });
   }
@@ -40,7 +40,7 @@ export class ChooseRoll extends Dialog {
             label: "Submit",
             callback: (html) => {
               let chosen = [];
-              html.find("form > fieldset > input:checked").each((i, check) => {
+              html.find("form > fieldset > div > input:checked").each((i, check) => {
                 const c = parseInt($(check).attr("id"));
                 chosen.push(c);
               })

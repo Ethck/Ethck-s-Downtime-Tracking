@@ -2,8 +2,10 @@
     {{#each activity.rollableGroups as |groupRoll |}}
     <fieldset>
         {{#each groupRoll.rolls as |roll |}}
+        <div>
             <input type="radio" id="{{roll.[2]}}" value="{{roll.[2]}}" name="{{groupRoll.group}}">
             <label for="{{roll.[2]}}">{{roll.[0]}} DC: {{roll.[1]}}</label>
+        </div>
         {{/each}}
     </fieldset>
     {{/each}}
