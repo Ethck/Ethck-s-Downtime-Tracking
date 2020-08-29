@@ -338,8 +338,10 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     });
   } else if (activity.type === "categories") {
     activity.results.forEach((result) => {
-      if (res[0][0][0] >= result[0] && res[0][0][1] <= result[1]) {
+      console.log(res[0][0]);
+      if (res[0][0] >= result[0] && res[0][1] <= result[1]) {
         cmsg = "Result: " + result[2];
+        console.log
       }
     });
   }
