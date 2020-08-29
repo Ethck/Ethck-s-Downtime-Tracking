@@ -13,6 +13,7 @@ export class DWTForm extends FormApplication {
     }
     this.actor = actor;
     this.edit = editMode;
+    this.image = activity["img"] || ""
   }
 
   static get defaultOptions() {
@@ -68,6 +69,18 @@ export class DWTForm extends FormApplication {
     this.element
       .find("#resultsTable > tbody > .result")
       .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
+    this.element.find(".file-picker").click((event) => this.handleImage(event));
+  }
+
+  async handleImage(event) {
+    const fp = new FilePicker({
+        type: "image",
+        callback: (path) => {
+            this.image = path;
+            $(event.currentTarget).attr("src", path);
+        }
+
+    }).browse("");
   }
 
   handleRollableDelete(event) {
@@ -223,6 +236,7 @@ export class DWTForm extends FormApplication {
         results: this.results,
         id: Date.now(),
         type: actType,
+        img: this.image,
       };
     } else {
       activity = this.activity;
@@ -232,6 +246,7 @@ export class DWTForm extends FormApplication {
       activity["rollableGroups"] = rollableGroups;
       activity["results"] = this.results;
       activity["type"] = actType;
+      activity["img"] = this.image;
     }
 
     const actor = this.actor;

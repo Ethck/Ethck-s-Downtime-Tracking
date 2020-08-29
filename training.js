@@ -344,10 +344,12 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     });
   }
 
+  const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg})
+
   ChatMessage.create({
     user: game.user._id,
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: cmsg,
+    content: cmsgTemplate,
     flavor: "has completed the downtime activity of " + activity.name,
     type: CONST.CHAT_MESSAGE_TYPES.IC,
   });

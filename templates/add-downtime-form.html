@@ -1,10 +1,15 @@
 <form autocomplete="off" onsubmit="event.preventDefault();">
-    <fieldset>
-        <label>Name:</label>
-        <input type="text" id="name" name="name" value="{{activity.name}}"/>
-        <label>Description:</label>
-        <textarea name="desc" id="desc">{{activity.description}}</textarea>
-    </fieldset>
+    <div style="display:flex; flex-direction:row">
+        <div style="width:160px; margin-right: 5px;">
+            <img style="height: 160px; width: 160px;" class="file-picker" src="{{activity.img}}" data-type="image"></img>
+        </div>
+        <div>
+            <label>Name:</label>
+            <input type="text" id="name" name="name" value="{{activity.name}}"/>
+            <label>Description:</label>
+            <textarea name="desc" id="desc">{{activity.description}}</textarea>
+        </div>
+    </div>
     <fieldset>
     <div class="form-group">
         <label>Ability Checks</label>
