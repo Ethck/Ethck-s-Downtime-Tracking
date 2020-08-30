@@ -139,7 +139,7 @@ export class DWTForm extends FormApplication {
             <tr id="` + time + `" class="rollableEvent">
                 <td><label>` + rbl + `</label></td>
                 <td><label>` + dc + `</label></td>
-                <td><input type="text" id="group" placeholder="group name for OR rolls"></td>
+                <td><input type="text" id="group" placeholder="group name for rolls"></td>
                 <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="Delete">
                     <i class="fas fa-trash"></i></a>
                 </td>
