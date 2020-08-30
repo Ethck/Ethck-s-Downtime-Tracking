@@ -201,6 +201,8 @@ async function addTrainingTab(app, html, data) {
 
       let res = [];
 
+      const emptyGroup = activity.rollableGroups.find((group) => group.group === "");
+
       if (activity.rollableGroups.length !== 1){
         // We have more than 1 group
         let rolls = [];
@@ -211,17 +213,17 @@ async function addTrainingTab(app, html, data) {
             }
           });
         } else { // Some ORs in Activity
-        let form = new ChooseRoll(actor, activity)
-        const choices = await form.chooseRollDialog();
-        for (let rg of activity.rollableGroups){
-          for (let c of choices){
-            const choice = rg.rolls.find(async (roll) => roll[2] === c)
-            if (choice !== undefined){
-              rolls.push(choice)
-              break;
+          let form = new ChooseRoll(actor, activity)
+          const choices = await form.chooseRollDialog();
+          for (let rg of activity.rollableGroups){
+            for (let c of choices){
+              const choice = rg.rolls.find(async (roll) => roll[2] === c)
+              if (choice !== undefined){
+                rolls.push(choice)
+                break;
+              }
             }
           }
-        }
         }
 
         let rollRes = rolls.map(async (roll) => {
