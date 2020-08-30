@@ -338,8 +338,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     });
   } else if (activity.type === "categories") {
     activity.results.forEach((result) => {
-      console.log(res[0][0]);
-      if (res[0][0] >= result[0] && res[0][1] <= result[1]) {
+      if (res[0][0][0] >= result[0] && res[0][0][1] <= result[1]) {
         cmsg = "Result: " + result[2];
         console.log
       }
@@ -365,8 +364,9 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     result: cmsg,
   }
 
-  if ($(event.currentTarget).hasClass("localRoll")) {
-    activity = flags.trainingItems[trainingIdx];
+  let flags = actor.data.flags["downtime-ethck"];
+
+
     if (flags.changes === undefined){
       flags.changes = [];
     }
@@ -374,20 +374,6 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     actor.update({ "flags.downtime-ethck": null }).then(function () {
     actor.update({ "flags.downtime-ethck": flags });
   });
-  } else if ($(event.currentTarget).hasClass("worldRoll")) {
-    activity = game.settings.get("downtime-ethck", "activities")[
-      trainingIdx
-    ];
-    if (game.settings.get("downtime-ethck", "changes") === undefined){
-      await game.settings.set("downtime-ethck", "changes", []);
-    }
-    let changes = game.settings.get("downtime-ethck", "changes");
-    if (!(actor._id in changes)){
-      changes[actor._id] = [];
-    }
-    changes[actor._id].push(change);
-    await game.settings.set("downtime-ethck", "changes", changes);
-  }
 }
 
 async function rollDC(rollable) {
