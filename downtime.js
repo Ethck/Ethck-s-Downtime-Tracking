@@ -3,14 +3,8 @@ export class DWTForm extends FormApplication {
     super(...args);
     game.users.apps.push(this);
     this.activity = activity;
-    this.rollableEvents = [];
-    if ("rollableEvents" in activity) {
-      this.rollableEvents = activity["rollableEvents"];
-    }
-    this.results = [];
-    if ("results" in activity) {
-      this.results = activity["results"];
-    }
+    this.rollableEvents = activity["rollableEvents"] || [];
+    this.results = activity["results"] || [];
     this.actor = actor;
     this.edit = editMode;
     this.image = activity["img"] || ""
@@ -57,22 +51,35 @@ export class DWTForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
+    // Add Rollable
     this.element
       .find(".addRollable")
       .click((event) => this.handleRollables(event));
+    // Handle deletes in table
     this.element
       .find("#rollableEventsTable > tbody > .rollableEvent")
       .on("click", "#deleteRollable", (event) =>
         this.handleRollableDelete(event)
       );
+    // Add results
     this.element.find(".addResult").click((event) => this.handleResults(event));
+    // Deletes on result(s)
     this.element
       .find("#resultsTable > tbody > .result")
       .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
+    // Picture picker
     this.element.find(".file-picker").click((event) => this.handleImage(event));
+
+    // Not really a listener, but update the state of this.
+    if (this.activity.type === "categories"){
+        this.element.find("#categoryActivity").attr("checked", true);
+    }
   }
 
   async handleImage(event) {
+    // Make a new FilePicker to allow the user to 
+    // use their own pictures. Update the img
+    // in the form when an image is chosen.
     const fp = new FilePicker({
         type: "image",
         callback: (path) => {
@@ -84,6 +91,7 @@ export class DWTForm extends FormApplication {
   }
 
   handleRollableDelete(event) {
+    // In the rollable table, handle removing elements
     event.preventDefault();
     const elem = $(event.currentTarget).parent().parent();
     const toDel = this.rollableEvents.find((rbl) => rbl[2] == elem.attr("id"));
@@ -93,18 +101,19 @@ export class DWTForm extends FormApplication {
   }
 
   handleRollables(event) {
+    // When adding a new roll
     event.preventDefault();
-
+    // Setup DOM references
     const abiElem = this.element.find("#abiCheck");
     const saveElem = this.element.find("#saveSelect");
     const skiElem = this.element.find("#skiCheck");
     const dcElem = this.element.find("#dc");
-
+    // Get Vals
     const abi = abiElem.val();
     const save = saveElem.val();
     const ski = skiElem.val();
     const dc = dcElem.val();
-
+    // Error Handling
     let rbl = "";
 
     if (abi !== "") {
@@ -119,7 +128,8 @@ export class DWTForm extends FormApplication {
       ui.notifications.error("ERROR! Select roll and DC first!");
       return;
     }
-
+    // End Errors
+    // Get a unique ID
     const time = Date.now();
     // Add event
     this.rollableEvents.push([rbl, dc, time]);
@@ -127,8 +137,8 @@ export class DWTForm extends FormApplication {
     this.element.find("#rollableEventsTable").append(
       `
             <tr id="` + time + `" class="rollableEvent">
-                <td><label>` +rbl + `</label></td>
-                <td><label>` +dc + `</label></td>
+                <td><label>` + rbl + `</label></td>
+                <td><label>` + dc + `</label></td>
                 <td><input type="text" id="group" placeholder="group name for OR rolls"></td>
                 <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="Delete">
                     <i class="fas fa-trash"></i></a>
@@ -144,6 +154,7 @@ export class DWTForm extends FormApplication {
   }
 
   handleResultDelete(event) {
+    // Delete result
     event.preventDefault();
     const elem = $(event.currentTarget).parent().parent();
     const toDel = this.results.find((res) => res[3] == elem.attr("id"));
@@ -153,6 +164,7 @@ export class DWTForm extends FormApplication {
   }
 
   handleResults(event) {
+    // Add result to table
     event.preventDefault();
 
     const min = this.element.find("#resultMin");
@@ -162,7 +174,7 @@ export class DWTForm extends FormApplication {
     const minV = min.val();
     const maxV = max.val();
     const textV = text.val();
-
+    // Errors...
     if (minV === "" || maxV === "" || textV === "") {
       ui.notifications.error("Fill in min, max, and text before submission.");
       return;
@@ -170,7 +182,7 @@ export class DWTForm extends FormApplication {
       ui.notifications.error("Min and Max only accept numbers.");
       return;
     }
-
+    // ID
     const time = Date.now();
     // Add event
     this.results.push([parseInt(minV), parseInt(maxV), textV, time]);
@@ -193,6 +205,8 @@ export class DWTForm extends FormApplication {
   }
 
   async _updateObject(event, formData) {
+    // create/edit activity to show
+    // Get vals from form
     const actName = this.element.find("#name").val();
     const actDesc = this.element.find("#desc").val();
     const actType =
@@ -250,6 +264,7 @@ export class DWTForm extends FormApplication {
     }
 
     const actor = this.actor;
+    // local scope
     if (!jQuery.isEmptyObject(actor)) {
       const flags = actor.data.flags["downtime-ethck"];
       if (!this.edit) {
@@ -260,10 +275,10 @@ export class DWTForm extends FormApplication {
       actor.update({ "flags.downtime-ethck": null }).then(function () {
         actor.update({ "flags.downtime-ethck": flags });
       });
+    // World scope
     } else {
       activity["world"] = true;
       const settings = game.settings.get("downtime-ethck", "activities");
-      //settings.push(activity)
       if (this.edit) {
         let act = settings.find((act) => act.id == activity.id);
         let idx = settings.indexOf(act);
