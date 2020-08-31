@@ -33,6 +33,15 @@ Hooks.once("init", () => {
     type: Boolean,
   });
 
+  game.settings.register("downtime-ethck", "aboutTimeCompat", {
+    name: "Enable About Time Compatibility",
+    hint: "Allows for About Time month/day to appear in Activity Log",
+    scope: "world",
+    config: true,
+    default: false,
+    type: Boolean
+  })
+
   game.settings.register("downtime-ethck", "tabName", {
     name: "Tab Name",
     hint: "Name for the custom downtime tab",
@@ -357,10 +366,20 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     type: CONST.CHAT_MESSAGE_TYPES.IC,
   });
 
-  const timestamp = Date.now()
+  let timestamp = Date.now()
+
+  // About Time Compat
+  if (game.settings.get("downtime-ethck", "aboutTimeCompat")) {
+    console.log(game.modules.get("about-time"))
+    if (game.modules.get("about-time") !== undefined){
+      timestamp = game.Gametime.DTNow().longDate().date;
+    }
+  } else {
+    timestamp = new Date(timestamp).toDateString()
+  }
 
   const change = {
-    timestamp: new Date(timestamp).toDateString(),
+    timestamp: timestamp,
     user: game.user.name,
     activityName: activity.name,
     result: cmsg,
