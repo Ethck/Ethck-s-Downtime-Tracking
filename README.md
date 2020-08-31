@@ -7,6 +7,8 @@ downtime activities as detailed in Xanathar's Guide to Everything.
 ## How to Use
 ### Overview
 ![Overview](images/overview.png)
+
+
 Downtime activities come in two different forms: local and global. Local downtimes are on a per actor
 basis and will not be shown in other actor's downtime tabs. Global downtimes will appear in every actor's
 downtime tabs. Local downtimes can be configured directly in the actor's character sheet, but global
@@ -48,13 +50,14 @@ check.
 In order to roll these downtime activities, just navigate to an actor's character sheet, go in the
 downtime tab, and click on the d20 icon next to the downtime activity you wish to do. Just follow
 the prompts on the screen, and in no time you'll have completed your downtime activity!
+
+
 ![After Roll](images/postRoll.png)
 
 
 Upon completion of your downtime activity, you'll notice that the rolls are in the chatlog, including
 the DC(s) for each of the rolls (only visible to GM by default), and that there is an additional message
 showing your completion and its result.
-
 
 
 Based off of Crash's 5e Downtime Tracking https://github.com/crash1115/5e-training
