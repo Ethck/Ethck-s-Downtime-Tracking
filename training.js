@@ -226,7 +226,7 @@ async function addTrainingTab(app, html, data) {
           const choices = await form.chooseRollDialog();
           for (let rg of activity.rollableGroups){
             for (let c of choices){
-              const choice = rg.rolls.find(async (roll) => roll[2] === c)
+              const choice = rg.rolls.find((roll) => roll[2] === c)
               if (choice !== undefined){
                 rolls.push(choice)
                 break;
