@@ -1,4 +1,6 @@
 # Ethck's 5e Downtime Tracking
+![All Downloads](https://img.shields.io/github/downloads/ethck/downtime-ethck/total?style=for-the-badge)
+![Latest Downloads](https://img.shields.io/github/downloads/ethck/downtime-ethck/latest/total?style=for-the-badge)
 
 ## Summary
 Ethck's 5e Downtime Tracking allows you to create a series of rolls with predefined DCs that represent
