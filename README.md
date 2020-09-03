@@ -63,3 +63,6 @@ showing your completion and its result.
 
 
 Based off of Crash's 5e Downtime Tracking https://github.com/crash1115/5e-training
+
+This work is licensed under the 
+![Foundry Virtual Tabletop EULA - Limited License Agreement for Module Development.](https://foundryvtt.com/article/license/)
