@@ -433,7 +433,7 @@ async function rollRollable(actor, activity, rollable) {
       const dc = await rollDC(rollable);
       res = [r._total, dc._total];
     });
-  } else if (rollable[0].includes("Save")) {
+  } else if (rollable[0].includes("Saving Throw")) {
     let abiAcr = abilities.find((abi) =>
       rollable[0].toLowerCase().includes(abi)
     );
