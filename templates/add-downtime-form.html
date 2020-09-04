@@ -128,8 +128,25 @@
         <label for="categoryActivity">Categories</label>
 
     </fieldset>
-
+    <fieldset>
+        <label>Complications</label></br>
+        <label>Chance of occuring per use</label>
+        <select name="compchance" id="compchance">
+            <option label=" "></option>
+            {{#each compChances as |cc |}}
+                <option value="{{cc}}" id="{{cc}}">{{cc}}%</option>
+            {{/each}}
+        </select></br>
+        <label>RollTable to use</label>
+        <select name="Complications" id="complications">
+            <option label=" "></option>
+            {{#each tables as |table |}}
+                <option value="{{table.data._id}}" id="{{table.data._id}}"/>{{table.data.name}}</option>
+            {{/each}}
+        </select>
+    </fieldset>
     <div>
+
         <button type="submit" name="submit" value="1"><i class="fas fa-dice"></i>Submit</button>
     </div>
 </form>

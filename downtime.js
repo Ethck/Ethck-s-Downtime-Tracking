@@ -34,12 +34,16 @@ export class DWTForm extends FormApplication {
     const skills = CONFIG.DND5E.skills;
 
     const activity = this.activity;
+    const tables = game.tables;
+    const compChances = [10, 25, 50, 75, 100]
 
     return {
       abilities,
       saves,
       skills,
       activity,
+      tables,
+      compChances
     };
   }
 
@@ -74,6 +78,9 @@ export class DWTForm extends FormApplication {
     if (this.activity.type === "categories"){
         this.element.find("#categoryActivity").attr("checked", true);
     }
+    // Set initial state of dropdowns to stored values
+    this.element.find("#compchance").val(this.activity.complication.chance)
+    this.element.find("#complications").val(this.activity.complication.table)
   }
 
   async handleImage(event) {
@@ -213,6 +220,12 @@ export class DWTForm extends FormApplication {
       this.element.find("#succFailActivity:checked").val() ||
       this.element.find("#categoryActivity:checked").val();
 
+    // Make the complication object with table id and chance
+    const complication = {
+      table: this.element.find("#complications").val(),
+      chance: parseInt(this.element.find("#compchance").val())
+    }
+
     // Handle OR grouping of rollableEvents
     let rollableGroups = [{ group: "", rolls: [] }];
     this.rollableEvents.map((rollableEvent) => {
@@ -251,6 +264,7 @@ export class DWTForm extends FormApplication {
         id: Date.now(),
         type: actType,
         img: this.image,
+        complication: complication
       };
     } else {
       activity = this.activity;
@@ -261,6 +275,7 @@ export class DWTForm extends FormApplication {
       activity["results"] = this.results;
       activity["type"] = actType;
       activity["img"] = this.image;
+      activity["complication"] = complication;
     }
 
     const actor = this.actor;

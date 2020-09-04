@@ -351,7 +351,6 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     activity.results.forEach((result) => {
       if (res[0][0][0] >= result[0] && res[0][0][1] <= result[1]) {
         cmsg = "Result: " + result[2];
-        console.log
       }
     });
   }
@@ -366,11 +365,21 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     type: CONST.CHAT_MESSAGE_TYPES.IC,
   });
 
+  // Test if complications are being used
+  if (activity.complication !== undefined && (activity.complication.chance !== " " || activity.complication.table !== " ")){
+    const num = Math.floor(Math.random() * 100) + 1 // 1-100
+    if (num <= activity.complication.chance){
+      // Complication has occured
+      const tableRes = game.tables.get(activity.complication.table);
+      // Also outputs chat message, YAY!
+      tableRes.draw()
+    }
+  }
+
   let timestamp = Date.now()
 
   // About Time Compat
   if (game.settings.get("downtime-ethck", "aboutTimeCompat")) {
-    console.log(game.modules.get("about-time"))
     if (game.modules.get("about-time") !== undefined){
       timestamp = game.Gametime.DTNow().longDate().date;
     }
