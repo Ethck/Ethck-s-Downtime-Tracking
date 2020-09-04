@@ -79,8 +79,10 @@ export class DWTForm extends FormApplication {
         this.element.find("#categoryActivity").attr("checked", true);
     }
     // Set initial state of dropdowns to stored values
-    this.element.find("#compchance").val(this.activity.complication.chance)
-    this.element.find("#complications").val(this.activity.complication.table)
+    if (this.activity.complication !== undefined) {
+      this.element.find("#compchance").val(this.activity.complication.chance)
+      this.element.find("#complications").val(this.activity.complication.table)
+    }
   }
 
   async handleImage(event) {
