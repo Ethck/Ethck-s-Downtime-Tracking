@@ -36,7 +36,7 @@ export class ChooseRoll extends Dialog {
         content: dialogContent,
         buttons: {
           submit: {
-            icon: '<i class="fas fa-bed"></i>',
+            icon: '<i class="fas fa-dice"></i>',
             label: "Submit",
             callback: (html) => {
               let chosen = [];
