@@ -32,6 +32,30 @@ export class DWTForm extends FormApplication {
     const abilities = CONFIG.DND5E.abilities;
     const saves = CONFIG.DND5E.abilities;
     const skills = CONFIG.DND5E.skills;
+    const tools = [
+      "Alchemist's Supplies",
+      "Brewer's Supplies",
+      "Calligrapher's Supplies",
+      "Carpenter's Tools",
+      "Cartographer's Tools",
+      "Cobbler's Tools",
+      "Cook's Utensils",
+      "Glassblower's Tools",
+      "Jeweler's Tools",
+      "Leatherworker's Tools",
+      "Mason's Tools",
+      "Painter's Supplies",
+      "Poisoner's Kit",
+      "Potter's Tools",
+      "Smith's Tools",
+      "Tinker's Tools",
+      "Weaver's Tools",
+      "Woodcarver's Tools"
+    ]
+
+
+    //tools = this.actor.items.filter((item) => item.type === "tool") || []
+    //tools.map((tool) => this.actor.getOwnedItem(tool.data._id))
 
     const activity = this.activity;
     const tables = game.tables;
@@ -41,6 +65,7 @@ export class DWTForm extends FormApplication {
       abilities,
       saves,
       skills,
+      tools,
       activity,
       tables,
       compChances
@@ -116,11 +141,13 @@ export class DWTForm extends FormApplication {
     const abiElem = this.element.find("#abiCheck");
     const saveElem = this.element.find("#saveSelect");
     const skiElem = this.element.find("#skiCheck");
+    const toolElem = this.element.find("#toolSelect");
     const dcElem = this.element.find("#dc");
     // Get Vals
     const abi = abiElem.val();
     const save = saveElem.val();
     const ski = skiElem.val();
+    const tool = toolElem.val();
     const dc = dcElem.val();
     // Error Handling
     let rbl = "";
@@ -131,6 +158,8 @@ export class DWTForm extends FormApplication {
       rbl = save;
     } else if (ski !== "") {
       rbl = ski;
+    } else if (tool !== ""){
+      rbl = tool;
     }
 
     if (dc === "" || rbl === "") {
@@ -159,6 +188,7 @@ export class DWTForm extends FormApplication {
     abiElem.val($("#abiCheck option:first").val());
     saveElem.val($("#saveSelect option:first").val());
     skiElem.val($("#skiCheck option:first").val());
+    skiElem.val($("#toolSelect option:first").val());
     dcElem.val($("#dc option:first").val());
   }
 

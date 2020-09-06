@@ -235,19 +235,27 @@ async function addTrainingTab(app, html, data) {
           }
         }
 
-        let rollRes = rolls.map(async (roll) => {
-          return await rollRollable(actor, activity, roll);
-        })
-        res.push(...await Promise.all(rollRes))
-        outputRolls(actor, activity, event, trainingIdx, res);
+        try {
+          let rollRes = rolls.map(async (roll) => {
+            return await rollRollable(actor, activity, roll);
+          })
+          res.push(...await Promise.all(rollRes))
+          outputRolls(actor, activity, event, trainingIdx, res);
+        } catch (e) {
+          console.log(e);
+        }
 
       } else {
-        const resPromises = activity.rollableGroups[0].rolls.map(async (roll) => {
-          return await rollRollable(actor, activity, roll);
-        });
+        try {
+          const resPromises = activity.rollableGroups[0].rolls.map(async (roll) => {
+            return await rollRollable(actor, activity, roll);
+          });
 
-        res.push(await Promise.all(resPromises));
-        outputRolls(actor, activity, event, trainingIdx, res);
+          res.push(await Promise.all(resPromises));
+          outputRolls(actor, activity, event, trainingIdx, res);
+        } catch (e) {
+          console.log(e);
+        }
      }
   });
 
@@ -349,7 +357,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     });
   } else if (activity.type === "categories") {
     activity.results.forEach((result) => {
-      if (res[0][0][0] >= result[0] && res[0][0][1] <= result[1]) {
+      if (res[0][0][0] >= result[0] && res[0][0][0] <= result[1]) {
         cmsg = "Result: " + result[2];
       }
     });
@@ -441,6 +449,20 @@ async function rollRollable(actor, activity, rollable) {
       const dc = await rollDC(rollable);
       res = [r._total, dc._total];
     });
+  } else if (rollable[0].includes("Tool") || rollable[0].includes("Supplies")) {
+    const actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
+
+    if (actorTool !== null) {
+      await actorTool.rollToolCheck().then(async (r) => {
+        const dc = await rollDC(rollable);
+        res = [r._total, dc._total];
+      })
+    } else {
+      // No tool of that name found.
+      ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
+      res = [];
+    }
+
   } else {
     let skillAcr = Object.keys(skills).find((key) =>
       skills[key].toLowerCase().includes(rollable[0].toLowerCase())
@@ -449,6 +471,11 @@ async function rollRollable(actor, activity, rollable) {
       const dc = await rollDC(rollable);
       res = [r._total, dc._total];
     });
+  }
+
+  if (res.length === 0) {
+    throw "Error on rolling ability/tool/skill check/save."
+
   }
 
   return res;

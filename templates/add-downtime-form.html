@@ -53,6 +53,19 @@
             </div>
         </select>
     </div>
+    <div class="form-group">
+        <label>Tools</label>
+        <select name="toolSelect" id="toolSelect">
+        <div>
+            <option label=" "></option>
+            {{#each tools as |name|}}
+            <div>
+                <option value="{{name}}" id="{{name}}" data-dtype="Boolean">{{name}}</option>          
+            </div>
+            {{/each}}
+        </div>
+        </select>
+    </div>
 
     <label>DC</label>
     <input type="text" id="dc" name="dc"/>
