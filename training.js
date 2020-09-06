@@ -328,6 +328,7 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
 
 async function outputRolls(actor, activity, event, trainingIdx, res){
   let cmsg = "";
+  let cmsgResult = "";
 
   if (activity.type === "succFail") {
     let booleanResults = [0, 0];
@@ -352,18 +353,19 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
         result[0] <= booleanResults[0] &&
         result[1] >= booleanResults[0]
       ) {
-        cmsg = cmsg + "</br>" + result[2];
+        cmsgResult = result[2];
       }
     });
   } else if (activity.type === "categories") {
     activity.results.forEach((result) => {
       if (res[0][0][0] >= result[0] && res[0][0][0] <= result[1]) {
-        cmsg = "Result: " + result[2];
+        cmsg = "Result: ";
+        cmsgResult = result[2];
       }
     });
   }
 
-  const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg})
+  const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg, result: cmsgResult})
 
   ChatMessage.create({
     user: game.user._id,
