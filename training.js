@@ -126,7 +126,7 @@ async function addTrainingTab(app, html, data) {
     sheet.append(trainingTabHtml);
 
     // Add New Downtime Activity
-    html.find(".training-add").click(async (event) => {
+    html.find(".activity-add").click(async (event) => {
       event.preventDefault();
 
       // Set up flags if they don't exist
@@ -139,24 +139,24 @@ async function addTrainingTab(app, html, data) {
     });
 
     // Edit Downtime Activity
-    html.find(".training-edit").click(async (event) => {
+    html.find(".activity-edit").click(async (event) => {
       event.preventDefault();
 
       // Set up some variables
       let fieldId = event.currentTarget.id;
-      let trainingIdx = parseInt(fieldId.replace("edit-", ""));
+      let trainingIdx = parseInt(fieldId.replace("ethck-edit-", ""));
       let activity = flags.trainingItems[trainingIdx];
       let form = new DWTForm(actor, activity, true);
       form.render(true);
     });
 
     // Remove Downtime Activity
-    html.find(".training-delete").click(async (event) => {
+    html.find(".activity-delete").click(async (event) => {
       event.preventDefault();
 
       // Set up some variables
       let fieldId = event.currentTarget.id;
-      let trainingIdx = parseInt(fieldId.replace("delete-", ""));
+      let trainingIdx = parseInt(fieldId.replace("ethck-delete-", ""));
       let activity = flags.trainingItems[trainingIdx];
       let del = false;
       let dialogContent = await renderTemplate(
@@ -193,11 +193,11 @@ async function addTrainingTab(app, html, data) {
     });
 
     // Roll To Train
-    html.find(".training-roll").click(async (event) => {
+    html.find(".activity-roll").click(async (event) => {
       event.preventDefault();
 
       let fieldId = event.currentTarget.id;
-      let trainingIdx = parseInt(fieldId.replace("roll-", ""));
+      let trainingIdx = parseInt(fieldId.replace("ethck-roll-", ""));
       let activity = {};
 
       if ($(event.currentTarget).hasClass("localRoll")) {
@@ -262,12 +262,12 @@ async function addTrainingTab(app, html, data) {
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in
     // dnd5e/module/actor/sheets/base.js
-    html.find(".training-toggle-desc").click(async (event) => {
+    html.find(".activity-training-toggle-desc").click(async (event) => {
       event.preventDefault();
       // Set up some variables
       let flags = actor.data.flags["downtime-ethck"];
       let fieldId = event.currentTarget.id;
-      let trainingIdx = parseInt(fieldId.replace("toggle-desc-", ""));
+      let trainingIdx = parseInt(fieldId.replace("ethck-toggle-desc-", ""));
       let activity = {};
 
       if ($(event.currentTarget).hasClass("localRoll")) {
@@ -299,7 +299,7 @@ async function addTrainingTab(app, html, data) {
     });
 
     // Review Changes
-    html.find(".training-audit").click(async (event) => {
+    html.find(".activity-log").click(async (event) => {
       event.preventDefault();
       new AuditLog(actor).render(true);
     });
