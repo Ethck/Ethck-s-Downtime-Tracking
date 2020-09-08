@@ -102,19 +102,26 @@ async function addTrainingTab(app, html, data) {
     }
     let flags = actor.data.flags["downtime-ethck"];
 
-    // Update the nav menu
-    let tabName = game.settings.get("downtime-ethck", "tabName");
-    let trainingTabBtn = $(
-      '<a class="item" data-tab="downtime">' + tabName + "</a>"
-    );
-    let tabs = html.find('.tabs[data-group="primary"]');
-    tabs.append(trainingTabBtn);
+    let CRASH_COMPAT = false;
+    const crash5eTraining = game.modules.get("5e-training")
+
+    if (crash5eTraining !== undefined && crash5eTraining.active === true) {
+      CRASH_COMPAT = true;
+    } else {
+      // Update the nav menu
+      let tabName = game.settings.get("downtime-ethck", "tabName");
+      let trainingTabBtn = $(
+        '<a class="item" data-tab="downtime">' + tabName + "</a>"
+      );
+      let tabs = html.find('.tabs[data-group="primary"]');
+      tabs.append(trainingTabBtn);
+    }
 
     const skills = CONFIG.DND5E.skills;
 
     // Create the tab content
     let sheet = html.find(".sheet-body");
-    let trainingTabHtml = $(
+    let ethckDowntimeTabHtml = $(
       await renderTemplate(
         "modules/downtime-ethck/templates/training-section.html",
         {
@@ -123,7 +130,15 @@ async function addTrainingTab(app, html, data) {
         }
       )
     );
-    sheet.append(trainingTabHtml);
+
+    if (CRASH_COMPAT === true) {
+      ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
+      let crash5eTrainingHtml = html.find(".crash-training");
+      crash5eTrainingHtml.append(ethckDowntimeTabHtml);
+      crash5eTrainingHtml.find(".inventory-list").wrapAll('<ol class="inventory-list"></ol>')
+    } else {
+      sheet.append(ethckDowntimeTabHtml);
+    }
 
     // Add New Downtime Activity
     html.find(".activity-add").click(async (event) => {
@@ -374,7 +389,8 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
 
   // About Time Compat
   if (game.settings.get("downtime-ethck", "aboutTimeCompat")) {
-    if (game.modules.get("about-time") !== undefined){
+    const aboutTime = game.modules.get("about-time")
+    if (aboutTime !== undefined && aboutTime.active === true){
       timestamp = game.Gametime.DTNow().longDate().date;
     }
   } else {

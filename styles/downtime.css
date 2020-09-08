@@ -15,10 +15,14 @@
 	margin-right: 5px;
 }
 
+.dnd5e.sheet.actor .inventory-list.ethck-downtime .item .item-name {
+	flex: 0 1 30%;
+}
 /* Type Column */
-.dnd5e.sheet.actor .downtime .inventory-list .item-detail.type {
+.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type {
 	text-transform: capitalize;
-	flex: 0 0 50%;
+	flex: 1 0 60%;
+	text-align: left;
 }
 
 
@@ -46,8 +50,6 @@
 	padding-bottom: 5px;
 	text-transform: capitalize;
 }
-
-
 
 .activity-log .action-table table tr:nth-of-type(even) td {
 	background-color: rgba(0,0,0,0.2);
