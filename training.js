@@ -262,7 +262,7 @@ async function addTrainingTab(app, html, data) {
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in
     // dnd5e/module/actor/sheets/base.js
-    html.find(".activity-training-toggle-desc").click(async (event) => {
+    html.find(".activity-toggle-desc").click(async (event) => {
       event.preventDefault();
       // Set up some variables
       let flags = actor.data.flags["downtime-ethck"];
