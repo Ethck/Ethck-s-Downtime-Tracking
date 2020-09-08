@@ -210,53 +210,37 @@ async function addTrainingTab(app, html, data) {
 
       let res = [];
 
-      const emptyGroup = activity.rollableGroups.find((group) => group.group === "");
-
-      if (activity.rollableGroups.length !== 1){
-        // We have more than 1 group
-        let rolls = [];
-        if (activity.rollableGroups.every((rg) => rg.rolls.length <= 1)){ //No ORs in activity
-          activity.rollableGroups.forEach((group) => {
-            if (group.rolls.length >= 1){
-              rolls.push(group.rolls[0])
-            }
-          });
-        } else { // Some ORs in Activity
-          let form = new ChooseRoll(actor, activity)
-          const choices = await form.chooseRollDialog();
-          for (let rg of activity.rollableGroups){
-            for (let c of choices){
-              const choice = rg.rolls.find((roll) => roll[2] === c)
-              if (choice !== undefined){
-                rolls.push(choice)
-                break;
-              }
+      let rolls = [];
+      if (activity.rollableGroups.every((rg) => rg.rolls.length <= 1)){ //No ORs in activity
+        activity.rollableGroups.forEach((group) => {
+          if (group.rolls.length >= 1){
+            rolls.push(group.rolls[0])
+          }
+        });
+      } else { // Some ORs in Activity
+        let form = new ChooseRoll(actor, activity)
+        const choices = await form.chooseRollDialog();
+        for (let rg of activity.rollableGroups){
+          for (let c of choices){
+            const choice = rg.rolls.find((roll) => roll[2] === c)
+            if (choice !== undefined){
+              rolls.push(choice)
+              break;
             }
           }
         }
+      }
 
-        try {
-          let rollRes = rolls.map(async (roll) => {
-            return await rollRollable(actor, activity, roll);
-          })
-          res.push(...await Promise.all(rollRes))
-          outputRolls(actor, activity, event, trainingIdx, res);
-        } catch (e) {
-          console.log(e);
-        }
+      try {
+        let rollRes = rolls.map(async (roll) => {
+          return await rollRollable(actor, activity, roll);
+        })
+        res.push(...await Promise.all(rollRes))
+        outputRolls(actor, activity, event, trainingIdx, res);
+      } catch (e) {
+        console.log(e);
+      }
 
-      } else {
-        try {
-          const resPromises = activity.rollableGroups[0].rolls.map(async (roll) => {
-            return await rollRollable(actor, activity, roll);
-          });
-
-          res.push(await Promise.all(resPromises));
-          outputRolls(actor, activity, event, trainingIdx, res);
-        } catch (e) {
-          console.log(e);
-        }
-     }
   });
 
     // Toggle Information Display
@@ -358,7 +342,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     });
   } else if (activity.type === "categories") {
     activity.results.forEach((result) => {
-      if (res[0][0][0] >= result[0] && res[0][0][0] <= result[1]) {
+      if (res[0][0] >= result[0] && res[0][0] <= result[1]) {
         cmsg = "Result: ";
         cmsgResult = result[2];
       }
