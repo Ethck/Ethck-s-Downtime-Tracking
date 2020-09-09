@@ -40,7 +40,16 @@ Hooks.once("init", () => {
     config: true,
     default: false,
     type: Boolean
-  })
+  });
+
+  game.settings.register("downtime-ethck", "crashCompat", {
+    name: "Enable Compatibility for Crash's 5e Downtime Tracking",
+    hint: "Allows for Crash's Downtime and this module to reside in the same tab.",
+    scope: "world",
+    config: true,
+    default: true,
+    type: Boolean
+  });
 
   game.settings.register("downtime-ethck", "tabName", {
     name: "Tab Name",
@@ -105,7 +114,7 @@ async function addTrainingTab(app, html, data) {
     let CRASH_COMPAT = false;
     const crash5eTraining = game.modules.get("5e-training")
 
-    if (crash5eTraining !== undefined && crash5eTraining.active === true) {
+    if (crash5eTraining !== undefined && crash5eTraining.active === true && game.settings.get("downtime-ethck", "crashCompat")) {
       CRASH_COMPAT = true;
     } else {
       // Update the nav menu
@@ -131,7 +140,7 @@ async function addTrainingTab(app, html, data) {
       )
     );
 
-    if (CRASH_COMPAT === true) {
+    if (CRASH_COMPAT === true && game.settings.get("downtime-ethck", "crashCompat")) {
       ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
       let crash5eTrainingHtml = html.find(".crash-training");
       crash5eTrainingHtml.append(ethckDowntimeTabHtml);
@@ -431,9 +440,10 @@ async function rollDC(rollable) {
 }
 
 async function rollRollable(actor, activity, rollable) {
-  let abilities = ["str", "dex", "con", "int", "wis", "cha"];
+  const abilities = ["str", "dex", "con", "int", "wis", "cha"];
   const skills = CONFIG.DND5E.skills;
   let res = []
+  const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
 
   if (rollable[0].includes("Check")) {
     let abiAcr = abilities.find((abi) =>
@@ -451,8 +461,23 @@ async function rollRollable(actor, activity, rollable) {
       const dc = await rollDC(rollable);
       res = [r._total, dc._total];
     });
-  } else if (rollable[0].includes("Tool") || rollable[0].includes("Supplies")) {
-    const actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
+  } else if (toolFilters.some((filter) => rollable[0].includes(filter))) {
+    let actorTool;
+    if (rollable[0].includes("Instrument")){
+      const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes("Instrument"))
+      let musicActivity = {
+        rollableGroups: [{
+          group: "",
+          rolls: actorTools.map((tool, index) => [tool.data.name, rollable[1], index])
+        }]
+      }
+      let form = new ChooseRoll(actor, musicActivity)
+      const choice = await form.chooseRollDialog();
+      const toolName = musicActivity.rollableGroups[0].rolls.find((roll) => roll[2] === choice[0])[0]
+      actorTool = actor.items.find((item) => item.data.name === toolName)
+    } else {
+      actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
+    }
 
     if (actorTool !== null) {
       await actorTool.rollToolCheck().then(async (r) => {
@@ -464,7 +489,6 @@ async function rollRollable(actor, activity, rollable) {
       ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
       res = [];
     }
-
   } else {
     let skillAcr = Object.keys(skills).find((key) =>
       skills[key].toLowerCase().includes(rollable[0].toLowerCase())

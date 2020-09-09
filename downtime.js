@@ -40,22 +40,26 @@ export class DWTForm extends FormApplication {
       "Cartographer's Tools",
       "Cobbler's Tools",
       "Cook's Utensils",
+      "Dice Set",
+      "Disguise Kit",
+      "Forgery Kit",
       "Glassblower's Tools",
+      "Herbalism Kit",
       "Jeweler's Tools",
       "Leatherworker's Tools",
       "Mason's Tools",
+      "Musical Instrument(s)",
+      "Navigator's Tools",
       "Painter's Supplies",
+      "Playing Card Set",
       "Poisoner's Kit",
       "Potter's Tools",
       "Smith's Tools",
+      "Thieves' Tools",
       "Tinker's Tools",
       "Weaver's Tools",
-      "Woodcarver's Tools"
+      "Woodcarver's Tools",
     ]
-
-
-    //tools = this.actor.items.filter((item) => item.type === "tool") || []
-    //tools.map((tool) => this.actor.getOwnedItem(tool.data._id))
 
     const activity = this.activity;
     const tables = game.tables;
