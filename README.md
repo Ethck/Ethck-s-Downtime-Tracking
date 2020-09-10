@@ -63,6 +63,16 @@ showing your completion and its result.
 
 
 Based off of Crash's 5e Downtime Tracking https://github.com/crash1115/5e-training
+How is this module different?
+
+From Crash:
+> tldr: [Ethck's] mod automates, [Crash's] tracks.
+> 
+> very long version:
+> 
+> ethck's mod focuses more on the implementation of "skill challenge" type downtime activities like the ones you find in xanathar's guide to everything. it lets you construct activities that are made up of multiple rolls, maybe for different skills/abilities/etc that you have to choose between, creating a sort of branching structure with varying dc's for each one. it gives you different outputs depending on how many successes/failures you get and how the activity is configured
+> 
+> [Crash's] mod is more of a general progress tracking tool. it's a little bit more flexible/less specifically scoped and the activities you can create are nowhere near as complex as his, but it's more useful for tracking things that take multiple days/weeks to complete and things that are less "one and done".
 
 This work is licensed under the 
 ![Foundry Virtual Tabletop EULA - Limited License Agreement for Module Development.](https://foundryvtt.com/article/license/)
