@@ -375,12 +375,17 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
 
   const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg, result: cmsgResult})
 
+  // Determine if we whisper this message, and who to
+  const cmsgVis = activity.private || game.settings.get("core", "rollMode") !== "roll";
+  const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser._id)
+
   ChatMessage.create({
     user: game.user._id,
     speaker: ChatMessage.getSpeaker({ actor }),
     content: cmsgTemplate,
     flavor: "has completed the downtime activity of " + activity.name,
     type: CONST.CHAT_MESSAGE_TYPES.IC,
+    whisper: cmsgVis ? [game.user._id, ...gmUserIds] : []
   });
 
   // Test if complications are being used

@@ -109,9 +109,11 @@ export class DWTForm extends FormApplication {
     }
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
-      this.element.find("#compchance").val(this.activity.complication.chance)
-      this.element.find("#complications").val(this.activity.complication.table)
+      this.element.find("#compchance").val(this.activity.complication.chance);
+      this.element.find("#complications").val(this.activity.complication.table);
     }
+
+    this.element.find("#privateActivity").attr("checked", this.activity.private);
   }
 
   async handleImage(event) {
@@ -255,6 +257,7 @@ export class DWTForm extends FormApplication {
     const actType =
       this.element.find("#succFailActivity:checked").val() ||
       this.element.find("#categoryActivity:checked").val();
+    const actPrivate = this.element.find("#privateActivity").prop("checked");
 
     // Make the complication object with table id and chance
     const complication = {
@@ -288,6 +291,8 @@ export class DWTForm extends FormApplication {
       }
     });
 
+
+
     let activity = {};
     if (!this.edit) {
       activity = {
@@ -300,7 +305,8 @@ export class DWTForm extends FormApplication {
         id: Date.now(),
         type: actType,
         img: this.image,
-        complication: complication
+        complication: complication,
+        private: actPrivate
       };
     } else {
       activity = this.activity;
@@ -312,6 +318,7 @@ export class DWTForm extends FormApplication {
       activity["type"] = actType;
       activity["img"] = this.image;
       activity["complication"] = complication;
+      activity["private"] = actPrivate;
     }
 
     const actor = this.actor;
