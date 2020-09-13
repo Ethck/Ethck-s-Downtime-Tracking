@@ -84,8 +84,8 @@
                <col span="1" style="width: 10%;">
             </colgroup>
             <tr>
-                <th style="text-align:left;">Roll</th>
-                <th style="text-align:left;">DC</th>
+                <th class="resultLeft">Roll</th>
+                <th class="resultLeft">DC</th>
                 <th>Group</th>
                 <th>Delete</th>
             </tr>
@@ -95,7 +95,11 @@
                     <td><label>{{arr.[0]}}</label></td>
                     <td><label>{{arr.[1]}}</label></td>
                     <td><input type="text" id="group" placeholder="group name for rolls" value="{{group.group}}"></td>
-                    <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
+                    <td class="resultCenter">
+                        <a class="item-control training-delete" id="deleteRollable" title="Delete Downtime Activity">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
                 </tr>
             {{/each}}
             {{/each}}
@@ -118,7 +122,7 @@
             <label>Result Text</label>
             <input type="text" id="resultText" name="resultText" placeholder="You win 5 cakes.">
         </div>
-        <div style="margin-right:0px;">
+        <div>
             <button type="submit" name="addResult" value="1" class="addResult"><i class="fas fa-dice"></i>Add Result</button>
         </div>
         <table id="resultsTable" class="ethck-downtime-table">
@@ -129,17 +133,17 @@
                <col span="1" style="width: 10%;">
             </colgroup>
             <tr>
-                <th style="text-align:left; border-bottom: 1px solid black;">Start Value</th>
-                <th style="text-align:left; border-bottom: 1px solid black;">End Value</th>
-                <th style="border-bottom: 1px solid black;">Result</th>
-                <th style="border-bottom: 1px solid black;">Delete</th>
+                <th class="resultHead resultLeft">Start Value</th>
+                <th class="resultHead resultLeft">End Value</th>
+                <th class="resultHead">Result</th>
+                <th class="resultHead">Delete</th>
             </tr>
             {{#each activity.results as |arr|}}
                 <tr id="{{arr.[3]}}" class="result">
-                    <td style="border-right: 1px solid black;"><label style="margin: 5px;">{{arr.[0]}}</label></td>
-                    <td style="border-right: 1px solid black;"><label style="margin: 5px;">{{arr.[1]}}</label></td>
-                    <td style="border-right: 1px solid black; padding:0px 5px 0px 5px;"><label>{{arr.[2]}}</label></td>
-                    <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
+                    <td class="resultBorderright"><label style="margin: 5px;">{{arr.[0]}}</label></td>
+                    <td class="resultBorderright"><label style="margin: 5px;">{{arr.[1]}}</label></td>
+                    <td class="resultBorderright resultPad"><label>{{arr.[2]}}</label></td>
+                    <td class="resultCenter"><a class="item-control training-delete" id="deleteResult" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
                 </tr>
             {{/each}}
         </table>

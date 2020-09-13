@@ -3,12 +3,12 @@
 /*****************************/
 
 /* Tweak some item controls styles to fit the additional buttons*/
-.downtime .item-controls {
+.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-controls {
 	min-width: fit-content;
 	min-width: -moz-fit-content;
 }
 
-.downtime .item-controls a {
+.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-controls a {
 	min-width: fit-content;
 	min-width: -moz-fit-content;
 	flex: 1 !important;
@@ -25,9 +25,37 @@
 	text-align: left;
 }
 
+/*********************************/
+/*         All Forms           */
+/*****************************/
+
 .ethck-downtime-table tr:nth-child(odd) { 
     background-color: #DCDACE; 
-} 
+}
+
+.ethck-downtime-table .resultCenter {
+	text-align: center;
+}
+
+.ethck-downtime-table .resultLeft {
+	text-align: left;
+}
+
+/*********************************/
+/*         Downtime Form       */
+/*****************************/
+
+.ethck-downtime-form .ethck-downtime-table .resultHead {
+	border-bottom: 1px solid black;
+}
+
+.ethck-downtime-form .ethck-downtime-table .resultBorderright {
+	border-right: 1px solid black
+}
+
+.ethck-downtime-form .ethck-downtime-table .resultPad {
+	padding:0px 5px 0px 5px;
+}
 
 
 /*********************************/
