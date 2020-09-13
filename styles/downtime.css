@@ -25,6 +25,10 @@
 	text-align: left;
 }
 
+.ethck-downtime-table tr:nth-child(odd) { 
+    background-color: #DCDACE; 
+} 
+
 
 /*********************************/
 /*         ACTIVITY LOGS          */

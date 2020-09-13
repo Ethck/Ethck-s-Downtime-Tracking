@@ -10,7 +10,7 @@
             <textarea name="desc" id="desc">{{activity.description}}</textarea>
         </div>
     </div>
-    <fieldset>
+    <div>
     <div class="form-group">
         <label>Ability Checks</label>
         <select name="abiCheck" id="abiCheck">
@@ -66,17 +66,17 @@
         </div>
         </select>
     </div>
-
-    <label>DC</label>
-    <input type="text" id="dc" name="dc"/>
-    <div style="margin-right:0px;">
+    <div class="form-group">
+        <label>DC</label>
+        <input type="text" id="dc" name="dc"/>
+    </div>
+    <div>
         <button type="submit" name="addRollableEvent" value="1" class="addRollable"><i class="fas fa-dice"></i>Add Roll</button>
     </div>
-    </fieldset>
-
-    <fieldset>
+    </div>
+    <div>
         <p>Groups give you choices. The same name for group makes you choose between these rolls. Different names for group let's you do both rolls</p>
-        <table id="rollableEventsTable">
+        <table id="rollableEventsTable" class="ethck-downtime-table">
             <colgroup>
                <col span="1" style="width: 35%;">
                <col span="1" style="width: 20%;">
@@ -100,19 +100,28 @@
             {{/each}}
             {{/each}}
         </table>
-    </fieldset>
-    <fieldset>
-        <label>Add Result</label>
-        <label>Start</label>
-        <input type="text" id="resultMin" name="resultMin" placeholder="0">
-        <label>End</label>
-        <input type="text" id="resultMax" name="resultMax" placeholder="5">
-        <label>Result Text</label>
-        <input type="text" id="resultText" name="resultText">
+    </div>
+
+    <hr>
+
+    <div>
+        <label><b>Add Results</b></label>
+        <div class="form-group">
+            <label>Start</label>
+            <input type="text" id="resultMin" name="resultMin" placeholder="0">
+        </div>
+        <div class="form-group">
+            <label>End</label>
+            <input type="text" id="resultMax" name="resultMax" placeholder="5">
+        </div>
+        <div class="form-group">
+            <label>Result Text</label>
+            <input type="text" id="resultText" name="resultText" placeholder="You win 5 cakes.">
+        </div>
         <div style="margin-right:0px;">
             <button type="submit" name="addResult" value="1" class="addResult"><i class="fas fa-dice"></i>Add Result</button>
         </div>
-        <table id="resultsTable">
+        <table id="resultsTable" class="ethck-downtime-table">
             <colgroup>
                <col span="1" style="width: 10%;">
                <col span="1" style="width: 10%;">
@@ -120,49 +129,62 @@
                <col span="1" style="width: 10%;">
             </colgroup>
             <tr>
-                <th style="text-align:left;">Start Value</th>
-                <th style="text-align:left;">End Value</th>
-                <th>Result</th>
-                <th>Delete</th>
+                <th style="text-align:left; border-bottom: 1px solid black;">Start Value</th>
+                <th style="text-align:left; border-bottom: 1px solid black;">End Value</th>
+                <th style="border-bottom: 1px solid black;">Result</th>
+                <th style="border-bottom: 1px solid black;">Delete</th>
             </tr>
             {{#each activity.results as |arr|}}
                 <tr id="{{arr.[3]}}" class="result">
-                    <td><label>{{arr.[0]}}</label></td>
-                    <td><label>{{arr.[1]}}</label></td>
-                    <td><label>{{arr.[2]}}</label></td>
+                    <td style="border-right: 1px solid black;"><label style="margin: 5px;">{{arr.[0]}}</label></td>
+                    <td style="border-right: 1px solid black;"><label style="margin: 5px;">{{arr.[1]}}</label></td>
+                    <td style="border-right: 1px solid black; padding:0px 5px 0px 5px;"><label>{{arr.[2]}}</label></td>
                     <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
                 </tr>
             {{/each}}
         </table>
-        <label>Activity Type</label>
-        <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success/Fail Count</input>
-        <input type="radio" id="categoryActivity" name="activityType" value="categories">Categories</input>
+        <div>
+            <label>Activity Type</label>
+            <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success/Fail Count</input>
+            <input type="radio" id="categoryActivity" name="activityType" value="categories">Categories</input>
+        </div>
+    </div>
 
-        </br>
+    <hr>
 
+    <div>
+        <label><b>Complications</b></label></br>
+        <div class="form-group">
+            <label>Chance of occuring per use</label>
+            <select name="compchance" id="compchance">
+                <option label=" "></option>
+                {{#each compChances as |cc |}}
+                    <option value="{{cc}}" id="{{cc}}">{{cc}}%</option>
+                {{/each}}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>RollTable to use</label>
+            <select name="Complications" id="complications">
+                <option label=" "></option>
+                {{#each tables as |table |}}
+                    <option value="{{table.data._id}}" id="{{table.data._id}}"/>{{table.data.name}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <hr>
+
+    <div>
+        <label><b>Options</b></label></br>
         <input type="checkbox" id="privateActivity" name="privateActivity">Private Roll</input>
         <input type="checkbox" id="privateComp" name="privateComp">Private Complications</input>
+    </div>
 
-    </fieldset>
-    <fieldset>
-        <label>Complications</label></br>
-        <label>Chance of occuring per use</label>
-        <select name="compchance" id="compchance">
-            <option label=" "></option>
-            {{#each compChances as |cc |}}
-                <option value="{{cc}}" id="{{cc}}">{{cc}}%</option>
-            {{/each}}
-        </select></br>
-        <label>RollTable to use</label>
-        <select name="Complications" id="complications">
-            <option label=" "></option>
-            {{#each tables as |table |}}
-                <option value="{{table.data._id}}" id="{{table.data._id}}"/>{{table.data.name}}</option>
-            {{/each}}
-        </select>
-    </fieldset>
+    <hr>
+
     <div>
-
         <button type="submit" name="submit" value="1"><i class="fas fa-dice"></i>Submit</button>
     </div>
 </form>
