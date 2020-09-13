@@ -23,7 +23,7 @@
             </div>
             {{/each}}
         </div>
-    </select>
+        </select>
     </div>
     <div class="form-group">
         <label>Saving Throws</label>
@@ -39,18 +39,18 @@
         </div>
         </select>
     </div>
-        <div class="form-group">
-            <label>Skill Checks</label>
-            <select name="skiCheck" id="skiCheck">
+    <div class="form-group">
+        <label>Skill Checks</label>
+        <select name="skiCheck" id="skiCheck">
+        <div>
+            <option label=" "></option>
+            {{#each skills as |name key|}}
             <div>
-                <option label=" "></option>
-                {{#each skills as |name key|}}
-                <div>
-                    <option value="{{name}}" id="{{key}}" data-dtype="Boolean" />
-                    <label for="{{key}}">{{name}}</label>
-                </div>
-                {{/each}}
+                <option value="{{name}}" id="{{key}}" data-dtype="Boolean" />
+                <label for="{{key}}">{{name}}</label>
             </div>
+            {{/each}}
+        </div>
         </select>
     </div>
     <div class="form-group">
@@ -135,11 +135,13 @@
             {{/each}}
         </table>
         <label>Activity Type</label>
-        <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">
-        <label for="succFailActivity">Success/Fail Count</label>
-        <input type="radio" id="categoryActivity" name="activityType" value="categories">
-        <label for="categoryActivity">Categories</label>
+        <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success/Fail Count</input>
+        <input type="radio" id="categoryActivity" name="activityType" value="categories">Categories</input>
+
+        </br>
+
         <input type="checkbox" id="privateActivity" name="privateActivity">Private Roll</input>
+        <input type="checkbox" id="privateComp" name="privateComp">Private Complications</input>
 
     </fieldset>
     <fieldset>

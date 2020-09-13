@@ -395,7 +395,11 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
       // Complication has occured
       const tableRes = game.tables.get(activity.complication.table);
       // Also outputs chat message, YAY!
-      tableRes.draw()
+      let opts = {};
+      if (activity.compPrivate === true){
+        opts["rollMode"] = "blindroll";
+      }
+      tableRes.draw(opts)
     }
   }
 

@@ -113,7 +113,8 @@ export class DWTForm extends FormApplication {
       this.element.find("#complications").val(this.activity.complication.table);
     }
 
-    this.element.find("#privateActivity").attr("checked", this.activity.private);
+    this.element.find("#privateActivity").attr("checked", this.activity.private || this.activity.actPrivate);
+    this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
   }
 
   async handleImage(event) {
@@ -126,7 +127,6 @@ export class DWTForm extends FormApplication {
             this.image = path;
             $(event.currentTarget).attr("src", path);
         }
-
     }).browse("");
   }
 
@@ -233,10 +233,10 @@ export class DWTForm extends FormApplication {
     this.results.push([parseInt(minV), parseInt(maxV), textV, time]);
     // Add the row that shows in the form (DOM!)
     this.element.find("#resultsTable").append(
-      `<tr id="` +time +`" class="result">
-        <td><label>` +minV + `</label></td>
-        <td><label>` +maxV + `</label></td>
-        <td><label>` +textV + `</label></td>
+      `<tr id="` + time +`" class="result">
+        <td><label>` + minV + `</label></td>
+        <td><label>` + maxV + `</label></td>
+        <td><label>` + textV + `</label></td>
         <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete">
             <i class="fas fa-trash"></i></a>
         </td>
@@ -258,6 +258,7 @@ export class DWTForm extends FormApplication {
       this.element.find("#succFailActivity:checked").val() ||
       this.element.find("#categoryActivity:checked").val();
     const actPrivate = this.element.find("#privateActivity").prop("checked");
+    const compPrivate = this.element.find("#privateComp").prop("checked");
 
     // Make the complication object with table id and chance
     const complication = {
@@ -306,7 +307,8 @@ export class DWTForm extends FormApplication {
         type: actType,
         img: this.image,
         complication: complication,
-        private: actPrivate
+        actPrivate: actPrivate,
+        compPrivate: compPrivate
       };
     } else {
       activity = this.activity;
@@ -318,7 +320,8 @@ export class DWTForm extends FormApplication {
       activity["type"] = actType;
       activity["img"] = this.image;
       activity["complication"] = complication;
-      activity["private"] = actPrivate;
+      activity["actPrivate"] = actPrivate;
+      activity["compPrivate"] = compPrivate;
     }
 
     const actor = this.actor;
