@@ -8,8 +8,8 @@
                <col span="1" style="width: 10%;">
             </colgroup>
             <tr>
-                <th style="text-align:left;">Roll</th>
-                <th style="text-align:left;">DC</th>
+                <th class="resultLeft">Roll</th>
+                <th class="resultLeft">DC</th>
                 <th>Edit</th>
                 <th>Delete</th>
             </tr>
@@ -17,8 +17,8 @@
                 <tr id={{act.id}} class="rollableEvent">
                     <td><label>{{act.name}}</label></td>
                     <td><label>{{act.description}}</label></td>
-                    <td style="text-align:center;"><a class="item-control training-edit" id="{{act.id}}" title="Edit Downtime Activity"><i class="fas fa-edit"></i></a></td>
-                    <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
+                    <td class="resultCenter"><a class="item-control training-edit" id="{{act.id}}" title="Edit Downtime Activity"><i class="fas fa-edit"></i></a></td>
+                    <td class="resultCenter"><a class="item-control training-delete" id="deleteRollable" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
                 </tr>
             {{/each}}
         </table>
