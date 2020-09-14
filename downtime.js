@@ -140,7 +140,7 @@ export class DWTForm extends FormApplication {
     elem.remove();
   }
 
-  handleRollables(event) {
+  async handleRollables(event) {
     // When adding a new roll
     event.preventDefault();
     // Setup DOM references
@@ -187,7 +187,7 @@ export class DWTForm extends FormApplication {
     // Add event
     this.rollableEvents.push([rbl, dc, time]);
     // Add the row that shows in the form (DOM!)
-    this.element.find("#rollableEventsTable").append(
+    this.element.find("#rollableEventsTable > tbody").append(
       `
             <tr id="` + time + `" class="rollableEvent">
                 <td><label>` + rbl + `</label></td>
@@ -198,12 +198,18 @@ export class DWTForm extends FormApplication {
                 </td>
             </tr>`
     );
+    // Attach new listener
+    this.element
+      .find("#rollableEventsTable > tbody > .rollableEvent")
+      .on("click", "#deleteRollable", (event) =>
+        this.handleRollableDelete(event)
+      );
 
     //reset to initial vals
     abiElem.val($("#abiCheck option:first").val());
     saveElem.val($("#saveSelect option:first").val());
     skiElem.val($("#skiCheck option:first").val());
-    skiElem.val($("#toolSelect option:first").val());
+    toolElem.val($("#toolSelect option:first").val());
     formulaElem.val("")
     dcElem.val("");
   }
@@ -242,7 +248,7 @@ export class DWTForm extends FormApplication {
     // Add event
     this.results.push([parseInt(minV), parseInt(maxV), textV, time]);
     // Add the row that shows in the form (DOM!)
-    this.element.find("#resultsTable").append(
+    this.element.find("#resultsTable > tbody").append(
       `<tr id="` + time +`" class="result">
         <td><label>` + minV + `</label></td>
         <td><label>` + maxV + `</label></td>
@@ -252,6 +258,10 @@ export class DWTForm extends FormApplication {
         </td>
       </tr>`
     );
+
+    this.element
+      .find("#resultsTable > tbody > .result")
+      .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
 
     //reset to initial vals
     min.val("");
