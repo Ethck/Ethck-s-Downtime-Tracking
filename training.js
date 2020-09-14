@@ -498,6 +498,12 @@ async function rollRollable(actor, activity, rollable) {
       ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
       res = [];
     }
+  } else if (rollable[0].includes("Formula:")) {
+    const formulaRoll = new Roll(rollable[0].split("Formula: ")[1])
+    const formRoll = await formulaRoll.roll()
+    await formRoll.toMessage()
+    const dc = await rollDC(rollable);
+    res = [formRoll._total, dc._total];
   } else {
     let skillAcr = Object.keys(skills).find((key) =>
       skills[key].toLowerCase().includes(rollable[0].toLowerCase())

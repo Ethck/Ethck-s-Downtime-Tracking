@@ -148,12 +148,14 @@ export class DWTForm extends FormApplication {
     const saveElem = this.element.find("#saveSelect");
     const skiElem = this.element.find("#skiCheck");
     const toolElem = this.element.find("#toolSelect");
+    const formulaElem = this.element.find("#rollFormula");
     const dcElem = this.element.find("#dc");
     // Get Vals
     const abi = abiElem.val();
     const save = saveElem.val();
     const ski = skiElem.val();
     const tool = toolElem.val();
+    const formula = formulaElem.val();
     const dc = dcElem.val();
     // Error Handling
     let rbl = "";
@@ -166,6 +168,13 @@ export class DWTForm extends FormApplication {
       rbl = ski;
     } else if (tool !== ""){
       rbl = tool;
+    } else if (formula !== ""){
+      try {
+        const roll = new Roll(formula) //ensure no error in formula
+        rbl = "Formula: " + formula
+      } catch (e) {
+        ui.notifications.error(e);
+      }
     }
 
     if (dc === "" || rbl === "") {
@@ -195,7 +204,8 @@ export class DWTForm extends FormApplication {
     saveElem.val($("#saveSelect option:first").val());
     skiElem.val($("#skiCheck option:first").val());
     skiElem.val($("#toolSelect option:first").val());
-    dcElem.val($("#dc option:first").val());
+    formulaElem.val("")
+    dcElem.val("");
   }
 
   handleResultDelete(event) {
