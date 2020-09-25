@@ -420,6 +420,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     user: game.user.name,
     activityName: activity.name,
     result: cmsg,
+    timeTaken: activity.timeTaken
   }
 
   let flags = actor.data.flags["downtime-ethck"];

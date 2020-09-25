@@ -279,6 +279,7 @@ export class DWTForm extends FormApplication {
       this.element.find("#categoryActivity:checked").val();
     const actPrivate = this.element.find("#privateActivity").prop("checked");
     const compPrivate = this.element.find("#privateComp").prop("checked");
+    const actTimeTaken = this.element.find("#timeTaken").val();
 
     // Make the complication object with table id and chance
     const complication = {
@@ -328,7 +329,8 @@ export class DWTForm extends FormApplication {
         img: this.image,
         complication: complication,
         actPrivate: actPrivate,
-        compPrivate: compPrivate
+        compPrivate: compPrivate,
+        actTimeTaken: actTimeTaken
       };
     } else {
       activity = this.activity;
@@ -342,6 +344,7 @@ export class DWTForm extends FormApplication {
       activity["complication"] = complication;
       activity["actPrivate"] = actPrivate;
       activity["compPrivate"] = compPrivate;
+      activity["timeTaken"] = actTimeTaken;
     }
 
     const actor = this.actor;

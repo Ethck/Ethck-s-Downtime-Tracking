@@ -9,6 +9,7 @@
         <th>User</th>
         <th>Activity</th>
         <th>Result</th>
+        <th>Days Used</th>
       </tr>
       {{#each changes as |change id|}}
       <tr>
@@ -16,6 +17,7 @@
         <td>{{change.user}}</td>
         <td>{{change.activityName}}</td>
         <td>{{change.result}}</td>
+        <td>{{change.timeTaken}}</td>
       </tr>
       {{/each}}
     </table>
