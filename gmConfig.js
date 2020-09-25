@@ -45,6 +45,9 @@ export class GMConfig extends FormApplication {
     this.element
       .find(".training-edit")
       .click((event) => this.editWorldDowntime(event));
+
+    this.element.find(".import").click((event) => this.importActivities(event));
+    this.element.find(".export").click((event) => this.exportActivities(event));
   }
 
   editWorldDowntime(event) {
@@ -63,6 +66,31 @@ export class GMConfig extends FormApplication {
   addWorldDowntime(event) {
     let form = new DWTForm();
     form.render(true);
+  }
+
+  importActivities(event){
+    const input = $('<input type="file">')
+    input.on("change", this.importWorldActivities);
+    input.trigger('click');
+  }
+
+  importWorldActivities() {
+    const file = this.files[0];
+    if (!file) return;
+
+    readTextFromFile(file).then(async result => {
+      const settings = JSON.parse(result);
+      game.settings.set("downtime-ethck", "activities", JSON.parse(settings.value))
+    });
+
+    //location.reload();
+  }
+
+  exportActivities(event){
+    const data = game.data.settings.find((setting) => setting.key === "downtime-ethck.activities");
+    const jsonData = JSON.stringify(data, null, 2);
+    saveDataToFile(jsonData, 'application/json', "downtime-ethck-world-activities.json");
+    ui.notifications.info("Ethck's Downtime: Saved Activity Data.")
   }
 
   async handleRollableDelete(event, row) {
