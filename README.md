@@ -6,6 +6,10 @@
 Ethck's 5e Downtime Tracking allows you to create a series of rolls with predefined DCs that represent
 downtime activities as detailed in Xanathar's Guide to Everything.
 
+## Recent Changes
+* Allows you to specify the # of days a task takes (this will be shown in the activity log)
+* Import/Export of world downtime activities to other worlds.
+
 ## How to Use
 ### Overview
 ![Overview](images/overview.png)
