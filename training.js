@@ -99,16 +99,18 @@ async function addTrainingTab(app, html, data) {
   if (showTrainingTab) {
     // Get our actor
     let actor = game.actors.entities.find((a) => a.data._id === data.actor._id);
+    console.log(actor.data.flags)
     // Make sure flags exist if they don't already
     if (
       actor.data.flags["downtime-ethck"] === undefined ||
       actor.data.flags["downtime-ethck"] === null
     ) {
       let trainingList = [];
-      const flags = { trainingItems: trainingList };
-      actor.update({ "flags.downtime-ethck": flags });
+      const bareboneFlags = { trainingItems: trainingList, changes: [] };
+      await actor.setFlag("downtime-ethck", bareboneFlags)
     }
-    let flags = actor.data.flags["downtime-ethck"];
+    //let flags = actor.data.flags["downtime-ethck"];
+    let flags = actor.getFlag("downtime-ethck", "trainingItems")
 
     let CRASH_COMPAT = false;
     const crash5eTraining = game.modules.get("5e-training")
@@ -151,12 +153,6 @@ async function addTrainingTab(app, html, data) {
     // Add New Downtime Activity
     html.find(".activity-add").click(async (event) => {
       event.preventDefault();
-
-      // Set up flags if they don't exist
-      if (flags.trainingItems == undefined) {
-        flags.trainingItems = [];
-      }
-
       let form = new DWTForm(actor);
       form.render(true);
     });
@@ -168,7 +164,7 @@ async function addTrainingTab(app, html, data) {
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-edit-", ""));
-      let activity = flags.trainingItems[trainingIdx];
+      let activity = flags[trainingIdx];
       let form = new DWTForm(actor, activity, true);
       form.render(true);
     });
@@ -180,7 +176,7 @@ async function addTrainingTab(app, html, data) {
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-delete-", ""));
-      let activity = flags.trainingItems[trainingIdx];
+      let activity = flags[trainingIdx];
       let del = false;
       let dialogContent = await renderTemplate(
         "modules/downtime-ethck/templates/delete-training-dialog.html"
@@ -203,11 +199,11 @@ async function addTrainingTab(app, html, data) {
           },
         },
         default: "yes",
-        close: (html) => {
+        close: async (html) => {
           if (del) {
             // Delete item and update actor
-            flags.trainingItems.splice(trainingIdx, 1);
-              actor.update({ "flags.downtime-ethck": flags });
+            flags.splice(trainingIdx, 1);
+            await actor.setFlag("downtime-ethck", "trainingItems", flags)
           }
         },
       }).render(true);
@@ -222,7 +218,7 @@ async function addTrainingTab(app, html, data) {
       let activity = {};
 
       if ($(event.currentTarget).hasClass("localRoll")) {
-        activity = flags.trainingItems[trainingIdx];
+        activity = flags[trainingIdx];
       } else if ($(event.currentTarget).hasClass("worldRoll")) {
         activity = game.settings.get("downtime-ethck", "activities")[
           trainingIdx
@@ -270,13 +266,13 @@ async function addTrainingTab(app, html, data) {
     html.find(".activity-toggle-desc").click(async (event) => {
       event.preventDefault();
       // Set up some variables
-      let flags = actor.data.flags["downtime-ethck"];
+      //let flags = actor.data.flags["downtime-ethck"];
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-toggle-desc-", ""));
       let activity = {};
 
       if ($(event.currentTarget).hasClass("localRoll")) {
-        activity = flags.trainingItems[trainingIdx];
+        activity = flags[trainingIdx];
       } else if ($(event.currentTarget).hasClass("worldRoll")) {
         activity = game.settings.get("downtime-ethck", "activities")[
           trainingIdx
@@ -420,14 +416,9 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     timeTaken: activity.timeTaken
   }
 
-  let flags = actor.data.flags["downtime-ethck"];
-
-
-    if (flags.changes === undefined){
-      flags.changes = [];
-    }
-    flags.changes.push(change)
-    actor.update({ "flags.downtime-ethck": flags });
+  let flags = actor.getFlag("downtime-ethck", "changes");
+  flags.push(change)
+  await actor.setFlag("downtime-ethck", "changes", flags)
 }
 
 async function rollDC(rollable) {
