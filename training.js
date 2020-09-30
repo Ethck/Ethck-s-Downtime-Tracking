@@ -105,9 +105,8 @@ async function addTrainingTab(app, html, data) {
       actor.data.flags["downtime-ethck"] === undefined ||
       actor.data.flags["downtime-ethck"] === null
     ) {
-      let trainingList = [];
-      const bareboneFlags = { trainingItems: trainingList, changes: [] };
-      await actor.setFlag("downtime-ethck", bareboneFlags)
+      await actor.setFlag("downtime-ethck", "trainingItems", [])
+      await actor.setFlag("downtime-ethck", "changes", [])
     }
     //let flags = actor.data.flags["downtime-ethck"];
     let flags = actor.getFlag("downtime-ethck", "trainingItems")
@@ -203,6 +202,7 @@ async function addTrainingTab(app, html, data) {
           if (del) {
             // Delete item and update actor
             flags.splice(trainingIdx, 1);
+            await actor.unsetFlag("downtime-ethck", "trainingItems")
             await actor.setFlag("downtime-ethck", "trainingItems", flags)
           }
         },
@@ -418,6 +418,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
 
   let flags = actor.getFlag("downtime-ethck", "changes");
   flags.push(change)
+  await actor.unsetFlag("downtime-ethck", "changes")
   await actor.setFlag("downtime-ethck", "changes", flags)
 }
 

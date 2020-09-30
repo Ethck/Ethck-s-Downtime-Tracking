@@ -356,7 +356,7 @@ export class DWTForm extends FormApplication {
         // Update flags and actor
         flags.push(activity);
       }
-      //await actor.update({'flags.downtime-ethck': flags});
+      await actor.unsetFlag("downtime-ethck", "trainingItems")
       await actor.setFlag("downtime-ethck", "trainingItems", flags)
       console.log("Pushed updates.")
       console.log(actor.getFlag("downtime-ethck", "trainingItems"))
