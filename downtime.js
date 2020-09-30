@@ -350,15 +350,14 @@ export class DWTForm extends FormApplication {
     const actor = this.actor;
     // local scope
     if (!jQuery.isEmptyObject(actor)) {
-      const flags = actor.data.flags["downtime-ethck"];
+      let flags = actor.getFlag("downtime-ethck", "trainingItems");
       if (!this.edit) {
         activity["world"] = false;
         // Update flags and actor
-        flags.trainingItems.push(activity);
+        flags.push(activity);
       }
-      actor.update({ "flags.downtime-ethck": null }).then(function () {
-        actor.update({ "flags.downtime-ethck": flags });
-      });
+      await actor.unsetFlag("downtime-ethck", "trainingItems")
+      await actor.setFlag("downtime-ethck", "trainingItems", flags)
     // World scope
     } else {
       activity["world"] = true;
