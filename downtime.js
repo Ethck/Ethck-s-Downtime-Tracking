@@ -356,9 +356,7 @@ export class DWTForm extends FormApplication {
         // Update flags and actor
         flags.trainingItems.push(activity);
       }
-      actor.update({ "flags.downtime-ethck": null }).then(function () {
         actor.update({ "flags.downtime-ethck": flags });
-      });
     // World scope
     } else {
       activity["world"] = true;

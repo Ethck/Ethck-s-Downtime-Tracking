@@ -106,7 +106,6 @@ async function addTrainingTab(app, html, data) {
     ) {
       let trainingList = [];
       const flags = { trainingItems: trainingList };
-      actor.data.flags["downtime-ethck"] = flags;
       actor.update({ "flags.downtime-ethck": flags });
     }
     let flags = actor.data.flags["downtime-ethck"];
@@ -208,9 +207,7 @@ async function addTrainingTab(app, html, data) {
           if (del) {
             // Delete item and update actor
             flags.trainingItems.splice(trainingIdx, 1);
-            actor.update({ "flags.downtime-ethck": null }).then(function () {
               actor.update({ "flags.downtime-ethck": flags });
-            });
           }
         },
       }).render(true);
@@ -430,9 +427,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
       flags.changes = [];
     }
     flags.changes.push(change)
-    actor.update({ "flags.downtime-ethck": null }).then(function () {
     actor.update({ "flags.downtime-ethck": flags });
-  });
 }
 
 async function rollDC(rollable) {
