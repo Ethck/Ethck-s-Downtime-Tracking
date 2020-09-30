@@ -10,7 +10,7 @@
 	"esmodules": ["training.js", "downtime.js"],
 	"styles": ["styles/downtime.css"],
 	"url": "https://github.com/Ethck/Ethck-s-Downtime-Tracking",
-	"manifest": "https://raw.githubusercontent.com/Ethck/Ethck-s-Downtime-Tracking/develop/module.json",
+	"manifest": "https://raw.githubusercontent.com/Ethck/Ethck-s-Downtime-Tracking/master/module.json",
 	"readme": "https://github.com/Ethck/Ethck-s-Downtime-Tracking/blob/master/README.md",
-	"download": "https://github.com/Ethck/Ethck-s-Downtime-Tracking/releases/download/d0.2.5/downtime-ethck.zip"
+	"download": "https://github.com/Ethck/Ethck-s-Downtime-Tracking/releases/download/0.2.5/downtime-ethck.zip"
 }

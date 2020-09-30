@@ -358,8 +358,6 @@ export class DWTForm extends FormApplication {
       }
       await actor.unsetFlag("downtime-ethck", "trainingItems")
       await actor.setFlag("downtime-ethck", "trainingItems", flags)
-      console.log("Pushed updates.")
-      console.log(actor.getFlag("downtime-ethck", "trainingItems"))
     // World scope
     } else {
       activity["world"] = true;

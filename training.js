@@ -99,7 +99,6 @@ async function addTrainingTab(app, html, data) {
   if (showTrainingTab) {
     // Get our actor
     let actor = game.actors.entities.find((a) => a.data._id === data.actor._id);
-    console.log(actor.data.flags)
     // Make sure flags exist if they don't already
     if (
       actor.data.flags["downtime-ethck"] === undefined ||
