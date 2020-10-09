@@ -114,7 +114,11 @@ async function addTrainingTab(app, html, data) {
     const crash5eTraining = game.modules.get("5e-training")
 
     if (crash5eTraining !== undefined && crash5eTraining.active === true && game.settings.get("downtime-ethck", "crashCompat")) {
-      CRASH_COMPAT = true;
+      if (isNewerVersion(crash5eTraining.data.version, "0.4.6")) { // version must be GREATER to return true.
+        CRASH_COMPAT = true;
+      } else {
+        ui.notifications.warn("Please update Crash's 5e Downtime Tracking to version 0.4.7 or greater to enable compaitbility.")
+      }
     } else {
       // Update the nav menu
       let tabName = game.settings.get("downtime-ethck", "tabName");
@@ -139,24 +143,19 @@ async function addTrainingTab(app, html, data) {
       )
     );
 
-    if (CRASH_COMPAT === true && game.settings.get("downtime-ethck", "crashCompat")) {
-      ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
-      let crash5eTrainingHtml = html.find(".crash-training");
-      crash5eTrainingHtml.append(ethckDowntimeTabHtml);
-      crash5eTrainingHtml.find(".inventory-list").wrapAll('<ol class="inventory-list"></ol>')
-    } else {
-      sheet.append(ethckDowntimeTabHtml);
-    }
+
+    let downtimeHTML = await compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet, html);
 
     // Add New Downtime Activity
-    html.find(".activity-add").click(async (event) => {
+    downtimeHTML.find(".activity-add").click(async (event) => {
       event.preventDefault();
       let form = new DWTForm(actor);
       form.render(true);
+      fixActiveTab(app, CRASH_COMPAT)
     });
 
     // Edit Downtime Activity
-    html.find(".activity-edit").click(async (event) => {
+    downtimeHTML.find(".activity-edit").click(async (event) => {
       event.preventDefault();
 
       // Set up some variables
@@ -165,10 +164,11 @@ async function addTrainingTab(app, html, data) {
       let activity = flags[trainingIdx];
       let form = new DWTForm(actor, activity, true);
       form.render(true);
+      fixActiveTab(app, CRASH_COMPAT)
     });
 
     // Remove Downtime Activity
-    html.find(".activity-delete").click(async (event) => {
+    downtimeHTML.find(".activity-delete").click(async (event) => {
       event.preventDefault();
 
       // Set up some variables
@@ -203,13 +203,14 @@ async function addTrainingTab(app, html, data) {
             flags.splice(trainingIdx, 1);
             await actor.unsetFlag("downtime-ethck", "trainingItems")
             await actor.setFlag("downtime-ethck", "trainingItems", flags)
+            fixActiveTab(app, CRASH_COMPAT)
           }
         },
       }).render(true);
     });
 
     // Roll To Train
-    html.find(".activity-roll").click(async (event) => {
+    downtimeHTML.find(".activity-roll").click(async (event) => {
       event.preventDefault();
 
       let fieldId = event.currentTarget.id;
@@ -253,6 +254,7 @@ async function addTrainingTab(app, html, data) {
         })
         res.push(...await Promise.all(rollRes))
         outputRolls(actor, activity, event, trainingIdx, res);
+        fixActiveTab(app, CRASH_COMPAT)
       } catch (e) {
         console.log(e);
       }
@@ -262,7 +264,7 @@ async function addTrainingTab(app, html, data) {
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in
     // dnd5e/module/actor/sheets/base.js
-    html.find(".activity-toggle-desc").click(async (event) => {
+    downtimeHTML.find(".activity-toggle-desc").click(async (event) => {
       event.preventDefault();
       // Set up some variables
       //let flags = actor.data.flags["downtime-ethck"];
@@ -299,18 +301,18 @@ async function addTrainingTab(app, html, data) {
     });
 
     // Review Changes
-    html.find(".activity-log").click(async (event) => {
+    downtimeHTML.find(".activity-log").click(async (event) => {
       event.preventDefault();
       new AuditLog(actor).render(true);
     });
 
     // Set Training Tab as Active
-    html.find('.tabs .item[data-tab="downtime"]').click((ev) => {
+    downtimeHTML.find('.tabs .item[data-tab="downtime"]').click((ev) => {
       app.activateDowntimeTab = true;
     });
 
     // Unset Training Tab as Active
-    html
+    downtimeHTML
       .find('.tabs .item:not(.tabs .item[data-tab="downtime"])')
       .click((ev) => {
         app.activateDowntimeTab = false;
@@ -507,4 +509,29 @@ async function rollRollable(actor, activity, rollable) {
   }
 
   return res;
+}
+
+
+async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
+  return new Promise((resolve, reject) => {
+    if (CRASH_COMPAT === true && game.settings.get("downtime-ethck", "crashCompat")) {
+        ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
+        Hooks.on(`CrashTrainingTabReady`, async (app2, html2, data2) => {
+            let crash5eTrainingHtml = html2.find(".crash-training");
+            crash5eTrainingHtml.find(".ethck-downtime").remove() //Remove Old
+            crash5eTrainingHtml.append(ethckDowntimeTabHtml); // Add New
+            crash5eTrainingHtml.find(".inventory-list").wrapAll('<ol class="inventory-list"></ol>')
+            resolve(crash5eTrainingHtml);
+        });
+      } else {
+        sheet.append(ethckDowntimeTabHtml)
+        resolve(sheet);
+      }
+  });
+}
+
+function fixActiveTab(app, CRASH_COMPAT) {
+  if (!CRASH_COMPAT) {
+    app.activateDowntimeTab = true;
+  }
 }
