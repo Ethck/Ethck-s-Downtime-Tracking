@@ -7,6 +7,7 @@ Ethck's 5e Downtime Tracking allows you to create a series of rolls with predefi
 downtime activities as detailed in Xanathar's Guide to Everything.
 
 ## Recent Changes
+* Fixed errors with Crash's Downtime version 0.4.6 and above.
 * Allows you to specify the # of days a task takes (this will be shown in the activity log)
 * Import/Export of world downtime activities to other worlds.
 
