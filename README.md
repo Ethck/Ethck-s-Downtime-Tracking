@@ -1,12 +1,14 @@
 # Ethck's 5e Downtime Tracking
 ![All Downloads](https://img.shields.io/github/downloads/ethck/Ethck-s-Downtime-Tracking/total?style=for-the-badge)
 ![Latest Downloads](https://img.shields.io/github/downloads/ethck/Ethck-s-Downtime-Tracking/latest/total?style=for-the-badge)
+![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fdowntime-ethck&style=for-the-badge)
 
 ## Summary
 Ethck's 5e Downtime Tracking allows you to create a series of rolls with predefined DCs that represent
 downtime activities as detailed in Xanathar's Guide to Everything.
 
 ## Recent Changes
+* 0.7.X Compatibility!
 * Fixed errors with Crash's Downtime version 0.4.6 and above.
 * Allows you to specify the # of days a task takes (this will be shown in the activity log)
 * Import/Export of world downtime activities to other worlds.
@@ -79,5 +81,5 @@ From Crash:
 > 
 > [Crash's] mod is more of a general progress tracking tool. it's a little bit more flexible/less specifically scoped and the activities you can create are nowhere near as complex as his, but it's more useful for tracking things that take multiple days/weeks to complete and things that are less "one and done".
 
-This work is licensed under the 
+This work is also licensed under the 
 ![Foundry Virtual Tabletop EULA - Limited License Agreement for Module Development.](https://foundryvtt.com/article/license/)
