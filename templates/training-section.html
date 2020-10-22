@@ -34,6 +34,13 @@
     </ol>
     <li class="inventory-header flexrow">
       <h3 class="item-name flexrow">World Downtimes</h3>
+      {{#if isGM}}
+      <div class="item-controls">
+        <a class="item-control edit-world" title="Edit World Downtime Activities">
+          <i class="fas fa-edit"></i> Edit World
+        </a>
+      </div>
+      {{/if}}
     </li>
     <ol class="item-list">
       {{#each activities as |training tid| }}

@@ -133,6 +133,7 @@ async function addTrainingTab(app, html, data) {
 
     // Create the tab content
     let sheet = html.find(".sheet-body");
+    console.log(game.user.isGM)
 
     let ethckDowntimeTabHtml = $(
       await renderTemplate(
@@ -140,6 +141,7 @@ async function addTrainingTab(app, html, data) {
         {
           activities: game.settings.get("downtime-ethck", "activities"),
           actorAct: data,
+          isGM: game.user.isGM,
         }
       )
     );
@@ -306,6 +308,11 @@ async function addTrainingTab(app, html, data) {
       event.preventDefault();
       new AuditLog(actor).render(true);
     });
+
+    downtimeHTML.find(".edit-world").click(async (event) => {
+      event.preventDefault();
+      new GMConfig().render(true);
+    })
 
     // Set Training Tab as Active
     downtimeHTML.find('.tabs .item[data-tab="downtime"]').click((ev) => {
