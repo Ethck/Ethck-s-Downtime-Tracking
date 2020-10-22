@@ -371,6 +371,8 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
         cmsgResult = result[2];
       }
     });
+  } else if (activity.type === "noRoll") {
+    // Do Nothing
   }
 
   const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg, result: cmsgResult})

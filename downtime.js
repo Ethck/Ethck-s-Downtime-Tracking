@@ -106,6 +106,8 @@ export class DWTForm extends FormApplication {
     // Not really a listener, but update the state of this.
     if (this.activity.type === "categories"){
         this.element.find("#categoryActivity").attr("checked", true);
+    } else if (this.activity.type === "noRoll"){
+      this.element.find("#noRollActivity").attr("checked", true);
     }
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
@@ -278,7 +280,8 @@ export class DWTForm extends FormApplication {
     console.log(actRollImage);
     const actType =
       this.element.find("#succFailActivity:checked").val() ||
-      this.element.find("#categoryActivity:checked").val();
+      this.element.find("#categoryActivity:checked").val() ||
+      this.element.find("#noRollActivity:checked").val();
     const actPrivate = this.element.find("#privateActivity").prop("checked");
     const compPrivate = this.element.find("#privateComp").prop("checked");
     const actTimeTaken = this.element.find("#timeTaken").val();
