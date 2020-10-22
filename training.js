@@ -133,6 +133,7 @@ async function addTrainingTab(app, html, data) {
 
     // Create the tab content
     let sheet = html.find(".sheet-body");
+
     let ethckDowntimeTabHtml = $(
       await renderTemplate(
         "modules/downtime-ethck/templates/training-section.html",

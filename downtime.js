@@ -101,7 +101,7 @@ export class DWTForm extends FormApplication {
       .find("#resultsTable > tbody > .result")
       .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
     // Picture picker
-    this.element.find(".file-picker").click((event) => this.handleImage(event));
+    this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
     // Not really a listener, but update the state of this.
     if (this.activity.type === "categories"){
@@ -274,6 +274,8 @@ export class DWTForm extends FormApplication {
     // Get vals from form
     const actName = this.element.find("#name").val();
     const actDesc = this.element.find("#desc").val();
+    const actRollImage = this.element.find('[name="rollIcon"]').val() || "icons/svg/d20.svg";
+    console.log(actRollImage);
     const actType =
       this.element.find("#succFailActivity:checked").val() ||
       this.element.find("#categoryActivity:checked").val();
@@ -330,7 +332,8 @@ export class DWTForm extends FormApplication {
         complication: complication,
         actPrivate: actPrivate,
         compPrivate: compPrivate,
-        actTimeTaken: actTimeTaken
+        actTimeTaken: actTimeTaken,
+        rollIcon: actRollImage
       };
     } else {
       activity = this.activity;
@@ -345,6 +348,7 @@ export class DWTForm extends FormApplication {
       activity["actPrivate"] = actPrivate;
       activity["compPrivate"] = compPrivate;
       activity["timeTaken"] = actTimeTaken;
+      activity["rollIcon"] = actRollImage;
     }
 
     const actor = this.actor;

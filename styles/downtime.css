@@ -61,6 +61,12 @@
 	padding: 0px 5px 0px 5px;
 }
 
+.ethck-downtime-form .path {
+    display: flex;
+    flex: 1;
+    margin: 0px 3px 3px 0px;
+}
+
 
 /*********************************/
 /*         ACTIVITY LOGS          */
