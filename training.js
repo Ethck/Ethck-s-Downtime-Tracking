@@ -133,7 +133,6 @@ async function addTrainingTab(app, html, data) {
 
     // Create the tab content
     let sheet = html.find(".sheet-body");
-    console.log(game.user.isGM)
 
     let ethckDowntimeTabHtml = $(
       await renderTemplate(
@@ -369,7 +368,6 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
   } else if (activity.type === "categories") {
     activity.results.forEach((result) => {
       if (res[0][0] >= result[0] && res[0][0] <= result[1]) {
-        cmsg = "Result: ";
         cmsgResult = result[2];
       }
     });
@@ -421,17 +419,19 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     timestamp: timestamp,
     user: game.user.name,
     activityName: activity.name,
-    result: cmsg,
+    result: cmsgResult,
     timeTaken: activity.timeTaken
   }
 
   let flags = actor.getFlag("downtime-ethck", "changes");
+  if (!flags) flags = [];
   flags.push(change)
   await actor.unsetFlag("downtime-ethck", "changes")
   await actor.setFlag("downtime-ethck", "changes", flags)
 }
 
 async function rollDC(rollable) {
+  if (!rollable[1]) return {_total: 0}; // If no DC, return fake total (it doesn't matter...)
   const rdc = new Roll(rollable[1]);
   const dcRoll = rdc.roll();
   dcRoll.toMessage(

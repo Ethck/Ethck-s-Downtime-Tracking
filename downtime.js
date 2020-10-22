@@ -156,7 +156,7 @@ export class DWTForm extends FormApplication {
     const ski = skiElem.val();
     const tool = toolElem.val();
     const formula = formulaElem.val();
-    const dc = dcElem.val();
+    const dc = dcElem.val() || "";
     // Error Handling
     let rbl = "";
 
@@ -177,8 +177,8 @@ export class DWTForm extends FormApplication {
       }
     }
 
-    if (dc === "" || rbl === "") {
-      ui.notifications.error("ERROR! Select roll and DC first!");
+    if (rbl === "") {
+      ui.notifications.error("ERROR! Select a roll first!");
       return;
     }
     // End Errors
