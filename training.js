@@ -448,77 +448,86 @@ async function rollDC(rollable) {
 }
 
 async function rollRollable(actor, activity, rollable) {
-  const abilities = ["str", "dex", "con", "int", "wis", "cha"];
-  const skills = CONFIG.DND5E.skills;
-  let res = []
-  const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
+  return new Promise(async (resolve, reject) => {
+    const abilities = ["str", "dex", "con", "int", "wis", "cha"];
+    const skills = CONFIG.DND5E.skills;
+    let res = []
+    const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
 
-  if (rollable[0].includes("Check")) {
-    let abiAcr = abilities.find((abi) =>
-      rollable[0].toLowerCase().includes(abi)
-    );
-    await actor.rollAbilityTest(abiAcr).then(async (r) => {
-      const dc = await rollDC(rollable);
-      res = [r._total, dc._total];
-    });
-  } else if (rollable[0].includes("Saving Throw")) {
-    let abiAcr = abilities.find((abi) =>
-      rollable[0].toLowerCase().includes(abi)
-    );
-    await actor.rollAbilitySave(abiAcr).then(async (r) => {
-      const dc = await rollDC(rollable);
-      res = [r._total, dc._total];
-    });
-  } else if (toolFilters.some((filter) => rollable[0].includes(filter))) {
-    let actorTool;
-    if (rollable[0].includes("Instrument")){
-      const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes("Instrument"))
-      let musicActivity = {
-        rollableGroups: [{
-          group: "",
-          rolls: actorTools.map((tool, index) => [tool.data.name, rollable[1], index])
-        }]
-      }
-      let form = new ChooseRoll(actor, musicActivity)
-      const choice = await form.chooseRollDialog();
-      const toolName = musicActivity.rollableGroups[0].rolls.find((roll) => roll[2] === choice[0])[0]
-      actorTool = actor.items.find((item) => item.data.name === toolName)
-    } else {
-      actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
-    }
-
-    if (actorTool !== null) {
-      await actorTool.rollToolCheck().then(async (r) => {
+    if (rollable[0].includes("Check")) {
+      let abiAcr = abilities.find((abi) =>
+        rollable[0].toLowerCase().includes(abi)
+      );
+      await actor.rollAbilityTest(abiAcr).then(async (r) => {
         const dc = await rollDC(rollable);
         res = [r._total, dc._total];
-      })
-    } else {
-      // No tool of that name found.
-      ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
-      res = [];
-    }
-  } else if (rollable[0].includes("Formula:")) {
-    const formulaRoll = new Roll(rollable[0].split("Formula: ")[1])
-    const formRoll = await formulaRoll.roll()
-    await formRoll.toMessage()
-    const dc = await rollDC(rollable);
-    res = [formRoll._total, dc._total];
-  } else {
-    let skillAcr = Object.keys(skills).find((key) =>
-      skills[key].toLowerCase().includes(rollable[0].toLowerCase())
-    );
-    await actor.rollSkill(skillAcr).then(async (r) => {
+      });
+    } else if (rollable[0].includes("Saving Throw")) {
+      let abiAcr = abilities.find((abi) =>
+        rollable[0].toLowerCase().includes(abi)
+      );
+      await actor.rollAbilitySave(abiAcr).then(async (r) => {
+        const dc = await rollDC(rollable);
+        res = [r._total, dc._total];
+      });
+    } else if (toolFilters.some((filter) => rollable[0].includes(filter))) {
+      let actorTool;
+      if (rollable[0].includes("Instrument")){
+        const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes("Instrument"))
+        let musicActivity = {
+          rollableGroups: [{
+            group: "",
+            rolls: actorTools.map((tool, index) => [tool.data.name, rollable[1], index])
+          }]
+        }
+        let form = new ChooseRoll(actor, musicActivity)
+        const choice = await form.chooseRollDialog();
+        const toolName = musicActivity.rollableGroups[0].rolls.find((roll) => roll[2] === choice[0])[0]
+        actorTool = actor.items.find((item) => item.data.name === toolName)
+      } else {
+        actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
+      }
+
+      if (actorTool !== null) {
+        await actorTool.rollToolCheck().then(async (r) => {
+          const dc = await rollDC(rollable);
+          res = [r._total, dc._total];
+        })
+      } else {
+        // No tool of that name found.
+        ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
+        res = [];
+      }
+    } else if (rollable[0].includes("Formula:")) {
+      const formulaRoll = new Roll(rollable[0].split("Formula: ")[1])
+      const formRoll = await formulaRoll.roll()
+      await formRoll.toMessage()
       const dc = await rollDC(rollable);
-      res = [r._total, dc._total];
-    });
-  }
+      res = [formRoll._total, dc._total];
+    } else {
+      let skillAcr = Object.keys(skills).find((key) =>
+        skills[key].toLowerCase().includes(rollable[0].toLowerCase())
+      );
+      await actor.rollSkill(skillAcr).then(async (r) => {
+        const dc = await rollDC(rollable);
+        res = [r._total, dc._total];
+      });
+    }
 
-  if (res.length === 0) {
-    throw "Error on rolling ability/tool/skill check/save."
+    if (res.length === 0) {
+      throw "Error on rolling ability/tool/skill check/save."
+      reject();
 
-  }
+    }
 
-  return res;
+    if (game.dice3d) {
+      Hooks.once('diceSoNiceRollComplete', (messageId) => {
+        resolve(res);
+      });
+    } else {
+      resolve(res);
+    }
+  });
 }
 
 
