@@ -101,11 +101,13 @@ export class DWTForm extends FormApplication {
       .find("#resultsTable > tbody > .result")
       .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
     // Picture picker
-    this.element.find(".file-picker").click((event) => this.handleImage(event));
+    this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
     // Not really a listener, but update the state of this.
     if (this.activity.type === "categories"){
         this.element.find("#categoryActivity").attr("checked", true);
+    } else if (this.activity.type === "noRoll"){
+      this.element.find("#noRollActivity").attr("checked", true);
     }
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
@@ -156,7 +158,7 @@ export class DWTForm extends FormApplication {
     const ski = skiElem.val();
     const tool = toolElem.val();
     const formula = formulaElem.val();
-    const dc = dcElem.val();
+    const dc = dcElem.val() || "";
     // Error Handling
     let rbl = "";
 
@@ -177,8 +179,8 @@ export class DWTForm extends FormApplication {
       }
     }
 
-    if (dc === "" || rbl === "") {
-      ui.notifications.error("ERROR! Select roll and DC first!");
+    if (rbl === "") {
+      ui.notifications.error("ERROR! Select a roll first!");
       return;
     }
     // End Errors
@@ -274,9 +276,12 @@ export class DWTForm extends FormApplication {
     // Get vals from form
     const actName = this.element.find("#name").val();
     const actDesc = this.element.find("#desc").val();
+    const actRollImage = this.element.find('[name="rollIcon"]').val() || "icons/svg/d20.svg";
+    console.log(actRollImage);
     const actType =
       this.element.find("#succFailActivity:checked").val() ||
-      this.element.find("#categoryActivity:checked").val();
+      this.element.find("#categoryActivity:checked").val() ||
+      this.element.find("#noRollActivity:checked").val();
     const actPrivate = this.element.find("#privateActivity").prop("checked");
     const compPrivate = this.element.find("#privateComp").prop("checked");
     const actTimeTaken = this.element.find("#timeTaken").val();
@@ -330,7 +335,8 @@ export class DWTForm extends FormApplication {
         complication: complication,
         actPrivate: actPrivate,
         compPrivate: compPrivate,
-        actTimeTaken: actTimeTaken
+        actTimeTaken: actTimeTaken,
+        rollIcon: actRollImage
       };
     } else {
       activity = this.activity;
@@ -345,6 +351,7 @@ export class DWTForm extends FormApplication {
       activity["actPrivate"] = actPrivate;
       activity["compPrivate"] = compPrivate;
       activity["timeTaken"] = actTimeTaken;
+      activity["rollIcon"] = actRollImage;
     }
 
     const actor = this.actor;

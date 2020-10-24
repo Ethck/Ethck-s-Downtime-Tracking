@@ -1,13 +1,22 @@
 <form autocomplete="off" onsubmit="event.preventDefault();" class="ethck-downtime-form">
-    <div style="display:flex; flex-direction:row">
-        <div style="width:160px; margin-right: 5px;">
-            <img style="height: 160px; width: 160px;" class="file-picker" src="{{activity.img}}" data-type="image"></img>
+    <div style="display:flex; flex-direction:row;">
+        <div style="width:160px; border-right: 1px solid #b5b3a4; border-bottom: 1px solid #b5b3a4; box-shadow: 0px 1px 1px 0px #f0f0e0; padding-right: 5px;">
+            <span style="text-align: center; width: 160px; display: block;">Icon in Chat</span>
+            <img style="height: 140px; width: 160px;" class="file-picker-cust" src="{{activity.img}}" data-type="image"></img>
         </div>
-        <div>
+        <div style="padding:0px 0px 0px 5px;">
             <label>Name:</label>
             <input type="text" id="name" name="name" value="{{activity.name}}"/>
             <label>Description:</label>
             <textarea name="desc" id="desc">{{activity.description}}</textarea>
+            <!-- Thank you CUB Condition Lab (errational!) -->
+            <label>Icon in Character Sheet</label>
+            <div class="path">
+                <input type="text" name="rollIcon" title="Status Icon Path" class="icon-path" value="{{activity.rollIcon}}" placeholder="/icons/example.svg" data-dtype="String">
+                <button type="button" name="file-picker" class="file-picker" data-type="image" data-target="rollIcon" title="Browse Files" tabindex="-1">
+                    <i class="fas fa-file-import fa-fw"></i>
+                </button>
+            </div>
         </div>
     </div>
     <div>
@@ -155,6 +164,7 @@
             <label>Activity Type</label>
             <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success/Fail Count</input>
             <input type="radio" id="categoryActivity" name="activityType" value="categories">Categories</input>
+            <input type="radio" id="noRollActivity" name="activityType" value="noRoll">No Roll</input>
         </div>
     </div>
 
