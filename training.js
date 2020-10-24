@@ -308,6 +308,7 @@ async function addTrainingTab(app, html, data) {
       new AuditLog(actor).render(true);
     });
 
+    // Edit world level downtime activities
     downtimeHTML.find(".edit-world").click(async (event) => {
       event.preventDefault();
       new GMConfig().render(true);
@@ -517,10 +518,9 @@ async function rollRollable(actor, activity, rollable) {
     if (res.length === 0) {
       throw "Error on rolling ability/tool/skill check/save."
       reject();
-
     }
 
-    if (game.dice3d) {
+    if (game.dice3d) { // If dice so nice is being used, wait till animation is over.
       Hooks.once('diceSoNiceRollComplete', (messageId) => {
         resolve(res);
       });
@@ -533,6 +533,7 @@ async function rollRollable(actor, activity, rollable) {
 
 async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
   return new Promise((resolve, reject) => {
+    // Add our HTML nicely...
     if (CRASH_COMPAT === true && game.settings.get("downtime-ethck", "crashCompat")) {
         ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
         Hooks.on(`CrashTrainingTabReady`, async (app2, html2, data2) => {
@@ -549,6 +550,7 @@ async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
   });
 }
 
+// Weird bug with our tab not being activated after submitting forms.
 function fixActiveTab(app, CRASH_COMPAT) {
   if (!CRASH_COMPAT) {
     app.activateDowntimeTab = true;
