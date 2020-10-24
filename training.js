@@ -107,13 +107,14 @@ async function addTrainingTab(app, html, data) {
       await actor.setFlag("downtime-ethck", "trainingItems", [])
       await actor.setFlag("downtime-ethck", "changes", [])
     }
-    //let flags = actor.data.flags["downtime-ethck"];
+
     let flags = actor.getFlag("downtime-ethck", "trainingItems")
 
     let CRASH_COMPAT = false;
     const crash5eTraining = game.modules.get("5e-training")
 
     if (crash5eTraining !== undefined && crash5eTraining.active === true && game.settings.get("downtime-ethck", "crashCompat")) {
+      // 0.4.6 changed how the tab is rendered, so our new logic requires this (10/23/2020)
       if (isNewerVersion(crash5eTraining.data.version, "0.4.6")) { // version must be GREATER to return true.
         CRASH_COMPAT = true;
       } else {
@@ -134,6 +135,7 @@ async function addTrainingTab(app, html, data) {
     // Create the tab content
     let sheet = html.find(".sheet-body");
 
+    // Compile our template
     let ethckDowntimeTabHtml = $(
       await renderTemplate(
         "modules/downtime-ethck/templates/training-section.html",
@@ -145,8 +147,8 @@ async function addTrainingTab(app, html, data) {
       )
     );
 
-
-    let downtimeHTML = await compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet, html);
+    // attach to sheet
+    let downtimeHTML = await compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet);
 
     // Add New Downtime Activity
     downtimeHTML.find(".activity-add").click(async (event) => {
@@ -211,7 +213,7 @@ async function addTrainingTab(app, html, data) {
       }).render(true);
     });
 
-    // Roll To Train
+    // Roll Downtime Activity
     downtimeHTML.find(".activity-roll").click(async (event) => {
       event.preventDefault();
 
@@ -219,12 +221,11 @@ async function addTrainingTab(app, html, data) {
       let trainingIdx = parseInt(fieldId.replace("ethck-roll-", ""));
       let activity = {};
 
+      // Get our activity given the selected roll
       if ($(event.currentTarget).hasClass("localRoll")) {
         activity = flags[trainingIdx];
       } else if ($(event.currentTarget).hasClass("worldRoll")) {
-        activity = game.settings.get("downtime-ethck", "activities")[
-          trainingIdx
-        ];
+        activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
       }
 
       let res = [];
@@ -251,11 +252,14 @@ async function addTrainingTab(app, html, data) {
       }
 
       try {
+        // wait for rollRollable to roll these
         let rollRes = rolls.map(async (roll) => {
           return await rollRollable(actor, activity, roll);
         })
         res.push(...await Promise.all(rollRes))
+        // output results
         outputRolls(actor, activity, event, trainingIdx, res);
+        // return back to our tab
         fixActiveTab(app, CRASH_COMPAT)
       } catch (e) {
         console.log(e);
@@ -320,8 +324,7 @@ async function addTrainingTab(app, html, data) {
     });
 
     // Unset Training Tab as Active
-    downtimeHTML
-      .find('.tabs .item:not(.tabs .item[data-tab="downtime"])')
+    downtimeHTML.find('.tabs .item:not(.tabs .item[data-tab="downtime"])')
       .click((ev) => {
         app.activateDowntimeTab = false;
       });
@@ -382,12 +385,14 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
   const cmsgVis = activity.private || game.settings.get("core", "rollMode") !== "roll";
   const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser._id)
 
+  // Results message
   ChatMessage.create({
     user: game.user._id,
-    speaker: ChatMessage.getSpeaker({ actor }),
+    speaker: ChatMessage.getSpeaker({actor}),
     content: cmsgTemplate,
     flavor: "has completed the downtime activity of " + activity.name,
     type: CONST.CHAT_MESSAGE_TYPES.IC,
+    // Current user + all gm users
     whisper: cmsgVis ? [game.user._id, ...gmUserIds] : []
   });
 
@@ -408,7 +413,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
 
   let timestamp = Date.now()
 
-  // About Time Compat
+  // About Time Compat TIME
   if (game.settings.get("downtime-ethck", "aboutTimeCompat")) {
     const aboutTime = game.modules.get("about-time")
     if (aboutTime !== undefined && aboutTime.active === true){
@@ -418,6 +423,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     timestamp = new Date(timestamp).toDateString()
   }
 
+  // Activity log format
   const change = {
     timestamp: timestamp,
     user: game.user.name,
@@ -426,6 +432,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     timeTaken: activity.timeTaken
   }
 
+  // Handle flags
   let flags = actor.getFlag("downtime-ethck", "changes");
   if (!flags) flags = [];
   flags.push(change)
@@ -433,6 +440,11 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
   await actor.setFlag("downtime-ethck", "changes", flags)
 }
 
+/*
+  Just make a quick simple roll (typically hidden) to find the DC, if needed. 
+
+  return: Roll()
+*/
 async function rollDC(rollable) {
   if (!rollable[1]) return {_total: 0}; // If no DC, return fake total (it doesn't matter...)
   const rdc = new Roll(rollable[1]);
@@ -448,6 +460,14 @@ async function rollDC(rollable) {
   return dcRoll;
 }
 
+/*
+  For each given roll, determine the type (check, save, formula, tool, skill)
+  then construct our roll, roll it, then roll the DC. res is [rollTotal, dcTotal]
+  and used to calculate the overall results. This is wrapped in a promise mainly for
+  enabling awaits of Dice So Nice animations (see diceSoNiceRollComplete hook).
+
+  return: [rollTotal, dcTotal]
+*/
 async function rollRollable(actor, activity, rollable) {
   return new Promise(async (resolve, reject) => {
     const abilities = ["str", "dex", "con", "int", "wis", "cha"];
@@ -455,6 +475,7 @@ async function rollRollable(actor, activity, rollable) {
     let res = []
     const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
 
+    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA CHECK
     if (rollable[0].includes("Check")) {
       let abiAcr = abilities.find((abi) =>
         rollable[0].toLowerCase().includes(abi)
@@ -463,6 +484,7 @@ async function rollRollable(actor, activity, rollable) {
         const dc = await rollDC(rollable);
         res = [r._total, dc._total];
       });
+    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA SAVING THROW
     } else if (rollable[0].includes("Saving Throw")) {
       let abiAcr = abilities.find((abi) =>
         rollable[0].toLowerCase().includes(abi)
@@ -471,6 +493,7 @@ async function rollRollable(actor, activity, rollable) {
         const dc = await rollDC(rollable);
         res = [r._total, dc._total];
       });
+    // includes ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"] in name
     } else if (toolFilters.some((filter) => rollable[0].includes(filter))) {
       let actorTool;
       if (rollable[0].includes("Instrument")){
@@ -499,12 +522,14 @@ async function rollRollable(actor, activity, rollable) {
         ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
         res = [];
       }
+    // Special formulas
     } else if (rollable[0].includes("Formula:")) {
       const formulaRoll = new Roll(rollable[0].split("Formula: ")[1])
       const formRoll = await formulaRoll.roll()
       await formRoll.toMessage()
       const dc = await rollDC(rollable);
       res = [formRoll._total, dc._total];
+    // We must be at skills...
     } else {
       let skillAcr = Object.keys(skills).find((key) =>
         skills[key].toLowerCase().includes(rollable[0].toLowerCase())
@@ -515,8 +540,9 @@ async function rollRollable(actor, activity, rollable) {
       });
     }
 
+    // For some reason, we don't have a roll or a dc roll...
     if (res.length === 0) {
-      throw "Error on rolling ability/tool/skill check/save."
+      throw "Ethck's Downtime Tracking | Error on rolling."
       reject();
     }
 
@@ -524,6 +550,7 @@ async function rollRollable(actor, activity, rollable) {
       Hooks.once('diceSoNiceRollComplete', (messageId) => {
         resolve(res);
       });
+    // no DSN, just normal.
     } else {
       resolve(res);
     }
