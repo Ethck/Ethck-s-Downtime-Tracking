@@ -228,6 +228,8 @@ async function addTrainingTab(app, html, data) {
         activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
       }
 
+      const materials = await materialsPrompt(activity);
+
       let res = [];
 
       let rolls = [];
@@ -258,7 +260,7 @@ async function addTrainingTab(app, html, data) {
         })
         res.push(...await Promise.all(rollRes))
         // output results
-        outputRolls(actor, activity, event, trainingIdx, res);
+        outputRolls(actor, activity, event, trainingIdx, res, materials);
         // return back to our tab
         fixActiveTab(app, CRASH_COMPAT)
       } catch (e) {
@@ -339,7 +341,7 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
   });
 });
 
-async function outputRolls(actor, activity, event, trainingIdx, res){
+async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   let cmsg = "";
   let cmsgResult = "";
 
@@ -378,6 +380,9 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
   } else if (activity.type === "noRoll") {
     // Do Nothing
   }
+
+  // Add in materials, if any.
+  cmsg = materials ? cmsg + "\n Used " + materials : cmsg;
 
   const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg, result: cmsgResult})
 
@@ -429,7 +434,8 @@ async function outputRolls(actor, activity, event, trainingIdx, res){
     user: game.user.name,
     activityName: activity.name,
     result: cmsgResult,
-    timeTaken: activity.timeTaken
+    timeTaken: activity.timeTaken,
+    materials: materials
   }
 
   // Handle flags
@@ -582,4 +588,27 @@ function fixActiveTab(app, CRASH_COMPAT) {
   if (!CRASH_COMPAT) {
     app.activateDowntimeTab = true;
   }
+}
+
+async function materialsPrompt(activity) {
+  return new Promise((resolve, reject) => {
+    if (!("useMaterials" in activity) || !activity.useMaterials) {
+      resolve("");
+    } else {
+      new Dialog({
+            title: `Enter Material Costs`,
+            content: `<input type="text" placeholder="20gp" id="materials"/>`,
+            buttons: {
+              submit: {
+                icon: "<i class='fas fa-check'></i>",
+                label:"Submit",
+              },
+            },
+            default: "submit",
+            close: async (html) => {
+              resolve(html.find("#materials").val());
+            },
+          }).render(true);
+    }
+    });
 }

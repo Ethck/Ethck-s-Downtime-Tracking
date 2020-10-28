@@ -8,6 +8,8 @@ Ethck's 5e Downtime Tracking allows you to create a series of rolls with predefi
 downtime activities as detailed in Xanathar's Guide to Everything.
 
 ## Recent Changes
+* Added input fields to modify existing rolls/results
+* Added material usage dialog
 * Now allows for editing world-level items from actor sheets
 * Added in the No Roll type for downtime activites
 * Delay output results until after Dice So Nice is finished (if installed)

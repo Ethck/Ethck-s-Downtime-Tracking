@@ -117,6 +117,7 @@ export class DWTForm extends FormApplication {
 
     this.element.find("#privateActivity").attr("checked", this.activity.private || this.activity.actPrivate);
     this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
+    this.element.find("#materials").attr("checked", this.activity.useMaterials)
   }
 
   async handleImage(event) {
@@ -230,21 +231,9 @@ export class DWTForm extends FormApplication {
     // Add result to table
     event.preventDefault();
 
-    const min = this.element.find("#resultMin");
-    const max = this.element.find("#resultMax");
-    const text = this.element.find("#resultText");
-
-    const minV = min.val();
-    const maxV = max.val();
-    const textV = text.val();
-    // Errors...
-    if (minV === "" || maxV === "" || textV === "") {
-      ui.notifications.error("Fill in min, max, and text before submission.");
-      return;
-    } else if (isNaN(minV) || isNaN(maxV)) {
-      ui.notifications.error("Min and Max only accept numbers.");
-      return;
-    }
+    const minV = "0";
+    const maxV = "5";
+    const textV = "You win 5 cakes."
     // ID
     const time = Date.now();
     // Add event
@@ -252,9 +241,9 @@ export class DWTForm extends FormApplication {
     // Add the row that shows in the form (DOM!)
     this.element.find("#resultsTable > tbody").append(
       `<tr id="` + time +`" class="result">
-        <td><label>` + minV + `</label></td>
-        <td><label>` + maxV + `</label></td>
-        <td><label>` + textV + `</label></td>
+        <td><input style="margin: 5px;" value="`+ minV +`" type="text" id="rollStart"></input></td>
+        <td><input style="margin: 5px;" value="` + maxV + `" type="text" id="rollEnd"></input></td>
+        <td><input style="margin: 5px;" value="` + textV + `" type="text" id="rollDesc"></input></td>
         <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete">
             <i class="fas fa-trash"></i></a>
         </td>
@@ -262,13 +251,8 @@ export class DWTForm extends FormApplication {
     );
 
     this.element
-      .find("#resultsTable > tbody > .result")
+      .find("#resultsTable > tbody > #" + time)
       .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
-
-    //reset to initial vals
-    min.val("");
-    max.val("");
-    text.val("");
   }
 
   async _updateObject(event, formData) {
@@ -277,7 +261,6 @@ export class DWTForm extends FormApplication {
     const actName = this.element.find("#name").val();
     const actDesc = this.element.find("#desc").val();
     const actRollImage = this.element.find('[name="rollIcon"]').val() || "icons/svg/d20.svg";
-    console.log(actRollImage);
     const actType =
       this.element.find("#succFailActivity:checked").val() ||
       this.element.find("#categoryActivity:checked").val() ||
@@ -285,6 +268,7 @@ export class DWTForm extends FormApplication {
     const actPrivate = this.element.find("#privateActivity").prop("checked");
     const compPrivate = this.element.find("#privateComp").prop("checked");
     const actTimeTaken = this.element.find("#timeTaken").val();
+    const useMaterials = this.element.find("#materials").prop("checked");
 
     // Make the complication object with table id and chance
     const complication = {
@@ -292,16 +276,25 @@ export class DWTForm extends FormApplication {
       chance: parseInt(this.element.find("#compchance").val())
     }
 
+
+    // Override value of this.rollableEvents with the input in the form.
+    this.rollableEvents = this.rollableEvents.map((rollableEvent) => {
+      return [
+        rollableEvent[0],
+        this.element.find("#" + rollableEvent[2] + " > td > #dc").val(),
+        rollableEvent[2]
+      ];
+    });
+
     // Handle OR grouping of rollableEvents
     let rollableGroups = [{ group: "", rolls: [] }];
-    this.rollableEvents.map((rollableEvent) => {
+    this.rollableEvents.forEach((rollableEvent) => {
       const groupVal = this.element
         .find("#" + rollableEvent[2] + " > td > #group")
         .val();
-      rollableGroups.map((groupDict) => {
+      rollableGroups.forEach((groupDict) => {
         if (groupDict["group"] == groupVal) {
           groupDict["rolls"].push(rollableEvent);
-          return;
         }
       });
 
@@ -318,8 +311,18 @@ export class DWTForm extends FormApplication {
       }
     });
 
+    // Add "new" values from the input fields so that changes are reflected.
+    this.results = this.results.map((result) => {
+      return[
+        parseInt(this.element.find("#" + result[3] + " > td > #rollStart").val()),
+        parseInt(this.element.find("#" + result[3] + " > td > #rollEnd").val()),
+        this.element.find("#" + result[3] + " > td > #rollDesc").val(),
+        result[3]
+      ];
+    });
 
 
+    // Setup or update the values of our activity
     let activity = {};
     if (!this.edit) {
       activity = {
@@ -336,7 +339,8 @@ export class DWTForm extends FormApplication {
         actPrivate: actPrivate,
         compPrivate: compPrivate,
         actTimeTaken: actTimeTaken,
-        rollIcon: actRollImage
+        rollIcon: actRollImage,
+        useMaterials: useMaterials
       };
     } else {
       activity = this.activity;
@@ -352,6 +356,7 @@ export class DWTForm extends FormApplication {
       activity["compPrivate"] = compPrivate;
       activity["timeTaken"] = actTimeTaken;
       activity["rollIcon"] = actRollImage;
+      activity["useMaterials"] = useMaterials;
     }
 
     const actor = this.actor;
