@@ -117,6 +117,7 @@ export class DWTForm extends FormApplication {
 
     this.element.find("#privateActivity").attr("checked", this.activity.private || this.activity.actPrivate);
     this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
+    this.element.find("#materials").attr("checked", this.activity.useMaterials)
   }
 
   async handleImage(event) {
@@ -260,7 +261,6 @@ export class DWTForm extends FormApplication {
     const actName = this.element.find("#name").val();
     const actDesc = this.element.find("#desc").val();
     const actRollImage = this.element.find('[name="rollIcon"]').val() || "icons/svg/d20.svg";
-    console.log(actRollImage);
     const actType =
       this.element.find("#succFailActivity:checked").val() ||
       this.element.find("#categoryActivity:checked").val() ||
@@ -268,6 +268,7 @@ export class DWTForm extends FormApplication {
     const actPrivate = this.element.find("#privateActivity").prop("checked");
     const compPrivate = this.element.find("#privateComp").prop("checked");
     const actTimeTaken = this.element.find("#timeTaken").val();
+    const useMaterials = this.element.find("#materials").prop("checked");
 
     // Make the complication object with table id and chance
     const complication = {
@@ -338,7 +339,8 @@ export class DWTForm extends FormApplication {
         actPrivate: actPrivate,
         compPrivate: compPrivate,
         actTimeTaken: actTimeTaken,
-        rollIcon: actRollImage
+        rollIcon: actRollImage,
+        useMaterials: useMaterials
       };
     } else {
       activity = this.activity;
@@ -354,6 +356,7 @@ export class DWTForm extends FormApplication {
       activity["compPrivate"] = compPrivate;
       activity["timeTaken"] = actTimeTaken;
       activity["rollIcon"] = actRollImage;
+      activity["useMaterials"] = useMaterials;
     }
 
     const actor = this.actor;
