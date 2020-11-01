@@ -114,9 +114,10 @@ export class DWTForm extends FormApplication {
       this.element.find("#compchance").val(this.activity.complication.chance);
       this.element.find("#complications").val(this.activity.complication.table);
     }
-
+    // Set initial values of our options                        OLD                      NEW
     this.element.find("#privateActivity").attr("checked", this.activity.private || this.activity.actPrivate);
     this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
+    this.element.find("#timeTaken").val(this.activity.timeTaken);
     this.element.find("#materials").attr("checked", this.activity.useMaterials)
   }
 
