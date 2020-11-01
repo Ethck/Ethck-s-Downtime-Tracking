@@ -406,7 +406,12 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
     const num = Math.floor(Math.random() * 100) + 1 // 1-100
     if (num <= activity.complication.chance){
       // Complication has occured
-      const tableRes = game.tables.get(activity.complication.table);
+      let tableRes = null;
+      if ("id" in activity.complication.table) { // New Style
+        tableRes = game.tables.get(activity.complication.table.id);
+      } else { // Old Style
+        tableRes = game.tables.get(activity.complication.table);
+      }
       // Also outputs chat message, YAY!
       let opts = {};
       if (activity.compPrivate === true){
