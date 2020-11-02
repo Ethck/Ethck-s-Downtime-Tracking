@@ -127,7 +127,10 @@ async function addTrainingTab(app, html, data) {
         '<a class="item" data-tab="downtime">' + tabName + "</a>"
       );
       let tabs = html.find('.tabs[data-group="primary"]');
-      tabs.append(trainingTabBtn);
+
+      if(!(tabs.find('.item[data-tab="downtime"]').length)){ //Prevent addition of tab more than once
+        tabs.append(trainingTabBtn);
+      }
     }
 
     const skills = CONFIG.DND5E.skills;
