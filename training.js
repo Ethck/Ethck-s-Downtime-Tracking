@@ -618,40 +618,49 @@ async function materialsPrompt(activity) {
             close: async (html) => {
               resolve(html.find("#materials").val());
             },
-          }).render(true);
+      }).render(true);
     }
-    });
-}
-
-async function formulaRoll(formula) {
-  return new Promise(async (resolve, reject) => {
-    console.log(formula)
-    let [dRoll, dForm] = await _formulaDialog(formula);
-    console.log(dRoll, dForm);
-    let bonus = $(dForm).find('input[name="bonus"]').val();
-    formula.push(...bonus.split(" + "))
-
-    let mods = "";
-    if (dRoll !== 0) {
-      if (dRoll === 1) {
-        mods += "kh"; // Advantage
-      } else {
-        mods += "kl"; // Disadvantage
-      }
-
-      let firstTerms = formula[0].split("d");
-      let newFirst = parseInt(firstTerms[0]) + 1 + "d" + firstTerms[1];
-      formula[0] = newFirst + mods;
-
-    }
-    console.log(formula.join(" + "));
-    let myRoll = new Roll(formula.join(" + "));
-    myRoll.roll();
-    myRoll.toMessage();
-
   });
 }
 
+// Roll our custom formula
+async function formulaRoll(formula) {
+  return new Promise(async (resolve, reject) => {
+    // dRoll is the type (adv., norm, disadv.)
+    // dForm is the HTML of the dialog.
+    let [dRoll, dForm] = await _formulaDialog(formula);
+    // get our bonus
+    let bonus = $(dForm).find('input[name="bonus"]').val();
+    if (bonus) {
+      // destructure our array
+      formula.push(...bonus.split(" + "));
+    }
+    // only supports 1dX rolls by making them 2dX
+    if (parseInt(formula[0].split("d")[0]) === 1){
+      let mods = "";
+      if (dRoll !== 0) {
+        if (dRoll === 1) {
+          mods += "kh"; // Advantage
+        } else {
+          mods += "kl"; // Disadvantage
+        }
+
+        let firstTerms = formula[0].split("d");
+        let newFirst = "2d" + firstTerms[1];
+        formula[0] = newFirst + mods;
+      }
+    }
+    // make the roll
+    let myRoll = new Roll(formula.join(" + "));
+    myRoll.roll();
+    await myRoll.toMessage();
+    // we're done!
+    resolve(myRoll);
+  });
+}
+
+// slightly reworked _d20RollDialog from the d&d5e system
+// formula is an array of parts
 async function _formulaDialog(formula) {
   return new Promise(async (resolve, reject) => {
     let rollTemplate = await renderTemplate("systems/dnd5e/templates/chat/roll-dialog.html", {
