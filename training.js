@@ -346,7 +346,6 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
 });
 
 async function outputRolls(actor, activity, event, trainingIdx, res, materials){
-  console.log(res);
   let cmsg = "";
   let cmsgResult = "";
 

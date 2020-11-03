@@ -24,7 +24,23 @@
         <th>Result</th>
         <th>Days Used</th>
         <th>Materials Used</th>
+        {{#if isGM}}
+          <th></th>
+        {{/if}}
       </tr>
+      {{#if isGM}}
+      {{#each changes as |change id|}}
+      <tr id="changeRow">
+        <td id="timestamp">{{change.timestamp}}</td>
+        <td id="user">{{change.user}}</td>
+        <td id="activityName">{{change.activityName}}</td>
+        <td id="result">{{change.result}}</td>
+        <td id="timeTaken">{{change.timeTaken}}</td>
+        <td id="materials">{{change.materials}}</td>
+        <td id="delete"><a class="item-control change-delete" id="ethck-delete-{{id}}" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
+      </tr>
+      {{/each}}
+      {{else}}
       {{#each changes as |change id|}}
       <tr id="changeRow">
         <td id="timestamp">{{change.timestamp}}</td>
@@ -35,6 +51,7 @@
         <td id="materials">{{change.materials}}</td>
       </tr>
       {{/each}}
+      {{/if}}
     </table>
   </div>
 
