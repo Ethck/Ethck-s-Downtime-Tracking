@@ -550,10 +550,19 @@ async function rollRollable(actor, activity, rollable) {
       let skillAcr = Object.keys(skills).find((key) =>
         skills[key].toLowerCase().includes(rollable[0].toLowerCase())
       );
-      await actor.rollSkill(skillAcr).then(async (r) => {
-        const dc = await rollDC(rollable);
-        res = [r._total, dc._total];
-      });
+
+      // The Skill Custimization 5e module patches actor.rollSkill and makes it NOT be a promise
+      // so we have to handle it differently.
+      let skillCust = game.modules.get("skill-customization-5e");
+      let r = null;
+      if (skillCust && skillCust.active){
+        r = await _skillCustHandler(skillAcr, actor, rollable[0]);
+      } else {
+        r = await actor.rollSkill(skillAcr)
+      }
+
+      const dc = await rollDC(rollable);
+      res = [r._total, dc._total];
     }
 
     // For some reason, we don't have a roll or a dc roll...
@@ -688,4 +697,21 @@ async function _formulaDialog(formula) {
         close: () => resolve(null)
       }).render(true);
   });
+}
+
+async function _skillCustHandler(skillAcr, actor, skiname){
+  return new Promise(async (resolve, reject) => {
+    actor.rollSkill(skillAcr); // call the patched function
+    // only way to know it's done is by the final chat message, so listen for it
+    Hooks.on("createChatMessage", async (message, options, id) => {
+      // discard if not a roll
+      if (message.isRoll) {
+        // make sure it's our expected Skill Check
+        if ((getProperty(message, "data.flavor") && getProperty(message, "data.flavor").includes(skiname + " Skill Check"))) {
+          // return the roll
+          resolve(message._roll);
+        }
+      }
+    });
+  })
 }
