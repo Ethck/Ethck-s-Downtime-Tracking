@@ -3,6 +3,7 @@ import AuditLog from "./audit-log.js";
 import { DWTForm } from "./downtime.js";
 import { GMConfig } from "./gmConfig.js";
 import { ChooseRoll } from "./chooseRoll.js";
+import { d20Roll } from "../../systems/dnd5e/module/dice.js";
 
 // Register Game Settings
 Hooks.once("init", () => {
@@ -345,6 +346,7 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
 });
 
 async function outputRolls(actor, activity, event, trainingIdx, res, materials){
+  console.log(res);
   let cmsg = "";
   let cmsgResult = "";
 
@@ -538,11 +540,11 @@ async function rollRollable(actor, activity, rollable) {
       }
     // Special formulas
     } else if (rollable[0].includes("Formula:")) {
-      const formulaRoll = new Roll(rollable[0].split("Formula: ")[1])
-      const formRoll = await formulaRoll.roll()
-      await formRoll.toMessage()
+      
+      //let dRoll = await d20Roll({parts: rollable[0].split("Formula: ")[1].split(" + ")});
+      let dRoll = await formulaRoll(rollable[0].split("Formula: ")[1].split(" + "))
       const dc = await rollDC(rollable);
-      res = [formRoll._total, dc._total];
+      res = [dRoll._total, dc._total];
     // We must be at skills...
     } else {
       let skillAcr = Object.keys(skills).find((key) =>
@@ -560,7 +562,7 @@ async function rollRollable(actor, activity, rollable) {
       reject();
     }
 
-    if (game.dice3d) { // If dice so nice is being used, wait till animation is over.
+    if (game.dice3d) { // If dice so nice is being used, wait till 1st animation is over.
       Hooks.once('diceSoNiceRollComplete', (messageId) => {
         resolve(res);
       });
@@ -619,4 +621,62 @@ async function materialsPrompt(activity) {
           }).render(true);
     }
     });
+}
+
+async function formulaRoll(formula) {
+  return new Promise(async (resolve, reject) => {
+    console.log(formula)
+    let [dRoll, dForm] = await _formulaDialog(formula);
+    console.log(dRoll, dForm);
+    let bonus = $(dForm).find('input[name="bonus"]').val();
+    formula.push(...bonus.split(" + "))
+
+    let mods = "";
+    if (dRoll !== 0) {
+      if (dRoll === 1) {
+        mods += "kh"; // Advantage
+      } else {
+        mods += "kl"; // Disadvantage
+      }
+
+      let firstTerms = formula[0].split("d");
+      let newFirst = parseInt(firstTerms[0]) + 1 + "d" + firstTerms[1];
+      formula[0] = newFirst + mods;
+
+    }
+    console.log(formula.join(" + "));
+    let myRoll = new Roll(formula.join(" + "));
+    myRoll.roll();
+    myRoll.toMessage();
+
+  });
+}
+
+async function _formulaDialog(formula) {
+  return new Promise(async (resolve, reject) => {
+    let rollTemplate = await renderTemplate("systems/dnd5e/templates/chat/roll-dialog.html", {
+      formula: formula.join(" + "),
+      rollModes: CONFIG.Dice.rollModes,
+    })
+    new Dialog({
+        title: "Custom Formula Roll",
+        content: rollTemplate,
+        buttons: {
+          advantage: {
+            label: game.i18n.localize("DND5E.Advantage"),
+            callback: event => resolve([1, event])
+          },
+          normal: {
+            label: game.i18n.localize("DND5E.Normal"),
+            callback: event => resolve([0, event])
+          },
+          disadvantage: {
+            label: game.i18n.localize("DND5E.Disadvantage"),
+            callback: event => resolve([-1, event])
+          }
+        },
+        default: "normal",
+        close: () => resolve(null)
+      }).render(true);
+  });
 }
