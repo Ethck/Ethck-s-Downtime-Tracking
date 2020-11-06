@@ -2,6 +2,19 @@
   <input type="hidden" name="actorId" value="{{object._id}}"/>
 
   <h1 class="title">{{object.name}}'s Downtime Activity Log</h1>
+  <div class="flexrow">
+    <span style="flex-basis: 10%"> Activity Type </span>
+    <select name="filterActivity" id="filterActivity" style="flex-basis: 90%;">
+      <div>
+          <option label=" "></option>
+          {{#each activities as |name key|}}
+          <div>
+              <option value="{{name}}" id="{{key}}" data-dtype="Boolean">{{name}}</option>
+          </div>
+          {{/each}}
+      </div>
+    </select>
+  </div>
   <div class="action-table">
     <table>
       <tr>
@@ -11,17 +24,34 @@
         <th>Result</th>
         <th>Days Used</th>
         <th>Materials Used</th>
+        {{#if isGM}}
+          <th></th>
+        {{/if}}
       </tr>
+      {{#if isGM}}
       {{#each changes as |change id|}}
-      <tr>
-        <td>{{change.timestamp}}</td>
-        <td>{{change.user}}</td>
-        <td>{{change.activityName}}</td>
-        <td>{{change.result}}</td>
-        <td>{{change.timeTaken}}</td>
-        <td>{{change.materials}}</td>
+      <tr id="changeRow">
+        <td id="timestamp">{{change.timestamp}}</td>
+        <td id="user">{{change.user}}</td>
+        <td id="activityName">{{change.activityName}}</td>
+        <td id="result">{{change.result}}</td>
+        <td id="timeTaken">{{change.timeTaken}}</td>
+        <td id="materials">{{change.materials}}</td>
+        <td id="delete"><a class="item-control change-delete" id="ethck-delete-{{id}}" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
       </tr>
       {{/each}}
+      {{else}}
+      {{#each changes as |change id|}}
+      <tr id="changeRow">
+        <td id="timestamp">{{change.timestamp}}</td>
+        <td id="user">{{change.user}}</td>
+        <td id="activityName">{{change.activityName}}</td>
+        <td id="result">{{change.result}}</td>
+        <td id="timeTaken">{{change.timeTaken}}</td>
+        <td id="materials">{{change.materials}}</td>
+      </tr>
+      {{/each}}
+      {{/if}}
     </table>
   </div>
 

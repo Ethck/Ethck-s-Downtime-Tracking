@@ -112,11 +112,12 @@ export class DWTForm extends FormApplication {
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
       this.element.find("#compchance").val(this.activity.complication.chance);
-      this.element.find("#complications").val(this.activity.complication.table);
+      this.element.find("#complications").val(this.activity.complication.table.id);
     }
-
+    // Set initial values of our options                        OLD                      NEW
     this.element.find("#privateActivity").attr("checked", this.activity.private || this.activity.actPrivate);
     this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
+    this.element.find("#timeTaken").val(this.activity.timeTaken);
     this.element.find("#materials").attr("checked", this.activity.useMaterials)
   }
 
@@ -270,9 +271,13 @@ export class DWTForm extends FormApplication {
     const actTimeTaken = this.element.find("#timeTaken").val();
     const useMaterials = this.element.find("#materials").prop("checked");
 
-    // Make the complication object with table id and chance
+    // Make the complication object with table and chance
+
     const complication = {
-      table: this.element.find("#complications").val(),
+      table: {
+        id: this.element.find("#complications").val(),
+        name: this.element.find("#complications").text().trim()
+      },
       chance: parseInt(this.element.find("#compchance").val())
     }
 

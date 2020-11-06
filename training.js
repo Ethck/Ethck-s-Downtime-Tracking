@@ -3,6 +3,7 @@ import AuditLog from "./audit-log.js";
 import { DWTForm } from "./downtime.js";
 import { GMConfig } from "./gmConfig.js";
 import { ChooseRoll } from "./chooseRoll.js";
+import { d20Roll } from "../../systems/dnd5e/module/dice.js";
 
 // Register Game Settings
 Hooks.once("init", () => {
@@ -127,7 +128,10 @@ async function addTrainingTab(app, html, data) {
         '<a class="item" data-tab="downtime">' + tabName + "</a>"
       );
       let tabs = html.find('.tabs[data-group="primary"]');
-      tabs.append(trainingTabBtn);
+
+      if(!(tabs.find('.item[data-tab="downtime"]').length)){ //Prevent addition of tab more than once
+        tabs.append(trainingTabBtn);
+      }
     }
 
     const skills = CONFIG.DND5E.skills;
@@ -406,7 +410,12 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
     const num = Math.floor(Math.random() * 100) + 1 // 1-100
     if (num <= activity.complication.chance){
       // Complication has occured
-      const tableRes = game.tables.get(activity.complication.table);
+      let tableRes = null;
+      if ("id" in activity.complication.table) { // New Style
+        tableRes = game.tables.get(activity.complication.table.id);
+      } else { // Old Style
+        tableRes = game.tables.get(activity.complication.table);
+      }
       // Also outputs chat message, YAY!
       let opts = {};
       if (activity.compPrivate === true){
@@ -530,20 +539,28 @@ async function rollRollable(actor, activity, rollable) {
       }
     // Special formulas
     } else if (rollable[0].includes("Formula:")) {
-      const formulaRoll = new Roll(rollable[0].split("Formula: ")[1])
-      const formRoll = await formulaRoll.roll()
-      await formRoll.toMessage()
+      
+      let dRoll = await formulaRoll(rollable[0].split("Formula: ")[1].split(" + "))
       const dc = await rollDC(rollable);
-      res = [formRoll._total, dc._total];
+      res = [dRoll._total, dc._total];
     // We must be at skills...
     } else {
       let skillAcr = Object.keys(skills).find((key) =>
         skills[key].toLowerCase().includes(rollable[0].toLowerCase())
       );
-      await actor.rollSkill(skillAcr).then(async (r) => {
-        const dc = await rollDC(rollable);
-        res = [r._total, dc._total];
-      });
+
+      // The Skill Custimization 5e module patches actor.rollSkill and makes it NOT be a promise
+      // so we have to handle it differently.
+      let skillCust = game.modules.get("skill-customization-5e");
+      let r = null;
+      if (skillCust && skillCust.active){
+        r = await _skillCustHandler(skillAcr, actor, rollable[0]);
+      } else {
+        r = await actor.rollSkill(skillAcr)
+      }
+
+      const dc = await rollDC(rollable);
+      res = [r._total, dc._total];
     }
 
     // For some reason, we don't have a roll or a dc roll...
@@ -552,7 +569,7 @@ async function rollRollable(actor, activity, rollable) {
       reject();
     }
 
-    if (game.dice3d) { // If dice so nice is being used, wait till animation is over.
+    if (game.dice3d) { // If dice so nice is being used, wait till 1st animation is over.
       Hooks.once('diceSoNiceRollComplete', (messageId) => {
         resolve(res);
       });
@@ -608,7 +625,91 @@ async function materialsPrompt(activity) {
             close: async (html) => {
               resolve(html.find("#materials").val());
             },
-          }).render(true);
+      }).render(true);
     }
+  });
+}
+
+// Roll our custom formula
+async function formulaRoll(formula) {
+  return new Promise(async (resolve, reject) => {
+    // dRoll is the type (adv., norm, disadv.)
+    // dForm is the HTML of the dialog.
+    let [dRoll, dForm] = await _formulaDialog(formula);
+    // get our bonus
+    let bonus = $(dForm).find('input[name="bonus"]').val();
+    if (bonus) {
+      // destructure our array
+      formula.push(...bonus.split(" + "));
+    }
+    // only supports 1dX rolls by making them 2dX
+    if (parseInt(formula[0].split("d")[0]) === 1){
+      let mods = "";
+      if (dRoll !== 0) {
+        if (dRoll === 1) {
+          mods += "kh"; // Advantage
+        } else {
+          mods += "kl"; // Disadvantage
+        }
+
+        let firstTerms = formula[0].split("d");
+        let newFirst = "2d" + firstTerms[1];
+        formula[0] = newFirst + mods;
+      }
+    }
+    // make the roll
+    let myRoll = new Roll(formula.join(" + "));
+    myRoll.roll();
+    await myRoll.toMessage();
+    // we're done!
+    resolve(myRoll);
+  });
+}
+
+// slightly reworked _d20RollDialog from the d&d5e system
+// formula is an array of parts
+async function _formulaDialog(formula) {
+  return new Promise(async (resolve, reject) => {
+    let rollTemplate = await renderTemplate("systems/dnd5e/templates/chat/roll-dialog.html", {
+      formula: formula.join(" + "),
+      rollModes: CONFIG.Dice.rollModes,
+    })
+    new Dialog({
+        title: "Custom Formula Roll",
+        content: rollTemplate,
+        buttons: {
+          advantage: {
+            label: game.i18n.localize("DND5E.Advantage"),
+            callback: event => resolve([1, event])
+          },
+          normal: {
+            label: game.i18n.localize("DND5E.Normal"),
+            callback: event => resolve([0, event])
+          },
+          disadvantage: {
+            label: game.i18n.localize("DND5E.Disadvantage"),
+            callback: event => resolve([-1, event])
+          }
+        },
+        default: "normal",
+        close: () => resolve(null)
+      }).render(true);
+  });
+}
+
+async function _skillCustHandler(skillAcr, actor, skiname){
+  return new Promise(async (resolve, reject) => {
+    actor.rollSkill(skillAcr); // call the patched function
+    // only way to know it's done is by the final chat message, so listen for it
+    Hooks.on("createChatMessage", async (message, options, id) => {
+      // discard if not a roll
+      if (message.isRoll) {
+        // make sure it's our expected Skill Check
+        if ((getProperty(message, "data.flavor") && getProperty(message, "data.flavor").includes(skiname + " Skill Check"))) {
+          // return the roll
+          resolve(message._roll);
+        }
+      }
     });
+  })
 }

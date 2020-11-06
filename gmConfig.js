@@ -79,11 +79,22 @@ export class GMConfig extends FormApplication {
     if (!file) return;
 
     readTextFromFile(file).then(async result => {
-      const settings = JSON.parse(result);
-      game.settings.set("downtime-ethck", "activities", JSON.parse(settings.value))
+      let settings = JSON.parse(JSON.parse(result).value);
+      // Ensure that linked objects are rebound if imported into another world
+      for (let activity of settings){
+        // If a table with the same id exists, skip
+        let table = game.tables.get(activity.complication.table.id);
+        if (!table){
+          // Is there a table with the same name?
+          table = game.tables.getName(activity.complication.table.name);
+          if (table) {
+            // If so, change id to reflect that.
+            activity.complication.table.id = getProperty(table, "_id");
+          }
+        }
+      }
+      game.settings.set("downtime-ethck", "activities", settings)
     });
-
-    //location.reload();
   }
 
   exportActivities(event){
