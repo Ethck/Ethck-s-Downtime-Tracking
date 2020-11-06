@@ -540,7 +540,6 @@ async function rollRollable(actor, activity, rollable) {
     // Special formulas
     } else if (rollable[0].includes("Formula:")) {
       
-      //let dRoll = await d20Roll({parts: rollable[0].split("Formula: ")[1].split(" + ")});
       let dRoll = await formulaRoll(rollable[0].split("Formula: ")[1].split(" + "))
       const dc = await rollDC(rollable);
       res = [dRoll._total, dc._total];
