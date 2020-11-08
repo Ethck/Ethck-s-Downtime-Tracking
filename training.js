@@ -265,8 +265,6 @@ async function addTrainingTab(app, html, data) {
         res.push(...await Promise.all(rollRes))
         // output results
         outputRolls(actor, activity, event, trainingIdx, res, materials);
-        // return back to our tab
-        fixActiveTab(app, CRASH_COMPAT)
       } catch (e) {
         console.log(e);
       }
