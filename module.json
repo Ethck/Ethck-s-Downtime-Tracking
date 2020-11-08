@@ -5,7 +5,7 @@
 	"version": "0.3.1",
 	"author": "Ethck",
 	"minimumCoreVersion": "0.6.0",
-	"compatibleCoreVersion": "0.7.5",
+	"compatibleCoreVersion": "0.7.6",
 	"systems": ["dnd5e"],
 	"esmodules": ["training.js", "downtime.js"],
 	"styles": ["styles/downtime.css"],
