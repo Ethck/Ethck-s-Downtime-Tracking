@@ -1,8 +1,8 @@
 <div class="tab downtime flexrow" data-group="primary" data-tab="downtime">
-  <ol class="inventory-list ethck-downtime">
-    <li class="inventory-header flexrow">
+  <ol class="inventory-list items-list ethck-downtime">
+    <li class="items-header flexrow">
       <h3 class="item-name flexrow">Custom Downtime Activities</h3>
-      <div class="item-controls">
+      <div class="item-controls flexrow">
         <a class="item-control item-create activity-log" title="Review Changes">
           <i class="fas fa-clipboard"></i> Activity Log
         </a>
@@ -14,13 +14,13 @@
     <ol class="item-list">
       {{#each actorAct.actor.flags.downtime-ethck.trainingItems as |training tid| }}
         <li class="item flexrow">
-          <div class="item-name flexrow">
+          <div class="item-name flexrow rollable">
             {{#if training.rollIcon}}
-            <div class="item-image rollable activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.rollIcon}});"></div>
+            <div class="item-image activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.rollIcon}});"></div>
             {{else}}
-            <div class="item-image rollable activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
+            <div class="item-image activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
             {{/if}}
-            <h4 class="rollable activity-toggle-desc localRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
+            <h4 class="activity-toggle-desc localRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
           </div>
           <div class="item-detail type">
             {{training.description}}
@@ -32,7 +32,7 @@
         </li>
       {{/each}}
     </ol>
-    <li class="inventory-header flexrow">
+    <li class="items-header flexrow">
       <h3 class="item-name flexrow">World Downtimes</h3>
       {{#if isGM}}
       <div class="item-controls">
@@ -45,13 +45,13 @@
     <ol class="item-list">
       {{#each activities as |training tid| }}
         <li class="item flexrow">
-          <div class="item-name flexrow">
+          <div class="item-name flexrow rollable">
             {{#if training.rollIcon}}
-            <div class="item-image rollable activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.rollIcon}});"></div>
+            <div class="item-image activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.rollIcon}});"></div>
             {{else}}
-            <div class="item-image rollable activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
+            <div class="item-image activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
             {{/if}}
-            <h4 class="rollable activity-toggle-desc worldRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
+            <h4 class="activity-toggle-desc worldRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
           </div>
           <div class="item-detail type">
             {{training.description}}
