@@ -22,7 +22,7 @@ jobs:
         download: https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/downtime-ethck.zip
 
     # create a zip file with all files required by the module to add to the release
-    - run: zip -r ./downtime-ethck.zip module.json styles/ templates/ audit-log.js chooseRoll.js downtime.js training.js README.md LICENSE
+    - run: zip -r ./downtime-ethck.zip module.json styles/ templates/ audit-log.js chooseRoll.js downtime.js gmConfig.js training.js README.md LICENSE EXAMPLES.md 
 
     # Create a release for this specific version
     - name: Update Release with Files
