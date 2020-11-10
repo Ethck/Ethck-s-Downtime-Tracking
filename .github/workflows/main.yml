@@ -58,9 +58,6 @@ jobs:
       id: commit_updated_files
       uses: EndBug/add-and-commit@v5 # You can change this to use a specific version
       with:
-        # The arguments for the `git add` command (see the paragraph below for more info)
-        # Default: '.'
-        add: 'module.json'
 
         # The name of the user that will be displayed as the author of the commit
         # Default: author of the commit that triggered the run
