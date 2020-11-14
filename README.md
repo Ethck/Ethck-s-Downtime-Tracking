@@ -84,7 +84,7 @@ If you want to find more properties, you can use the following methods:
 2) Select the token whose properties you want to see
 3) Type in `_token.actor.data.data` to the console and hit enter.
 4) Navigate through the list in the console. All of those are options!
-
+![SMART Rolls](images/smartRolls.png)
 
 ### Using Downtime Activities
 In order to roll these downtime activities, just navigate to an actor's character sheet, go in the
