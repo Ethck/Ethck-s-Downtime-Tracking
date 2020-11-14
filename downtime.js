@@ -161,6 +161,7 @@ export class DWTForm extends FormApplication {
     const tool = toolElem.val();
     const formula = formulaElem.val();
     const dc = dcElem.val() || "";
+
     // Error Handling
     let rbl = "";
 
@@ -173,12 +174,28 @@ export class DWTForm extends FormApplication {
     } else if (tool !== ""){
       rbl = tool;
     } else if (formula !== ""){
-      try {
-        const roll = new Roll(formula) //ensure no error in formula
+      const context = {actor: this.actor}
+      if (Roll.validate(formula, context)){//ensure no error in formula
+        let fail = false;
+        formula.split(" + ").forEach((formu) => {
+          // If we're accessing a property
+          if (formu.startsWith("@")) {
+            // Remove either "@actor." or just "@"
+            let testProp = formu.startsWith("@actor.") ? formu.slice(7) : formu.slice(1);
+            // Test if property does not exist (i.e. if not a valid property)
+            if (!(getProperty(this.actor, testProp))) {
+              ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in actor. Make sure to use actor.data.data to access actor properties.");
+              fail = true; // Set fail condition
+            }
+          }
+        })
+        if (fail) return;
         rbl = "Formula: " + formula
-      } catch (e) {
-        ui.notifications.error(e);
+      } else {
+        ui.notifications.warn("Ethck's Downtime Tracking | This is not a valid roll formula.");
+        return;
       }
+      
     }
 
     if (rbl === "") {

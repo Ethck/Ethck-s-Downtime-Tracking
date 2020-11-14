@@ -538,7 +538,7 @@ async function rollRollable(actor, activity, rollable) {
     // Special formulas
     } else if (rollable[0].includes("Formula:")) {
       
-      let dRoll = await formulaRoll(rollable[0].split("Formula: ")[1].split(" + "))
+      let dRoll = await formulaRoll(rollable[0].split("Formula: ")[1].split(" + "), actor)
       const dc = await rollDC(rollable);
       res = [dRoll._total, dc._total];
     // We must be at skills...
@@ -629,7 +629,7 @@ async function materialsPrompt(activity) {
 }
 
 // Roll our custom formula
-async function formulaRoll(formula) {
+async function formulaRoll(formula, actor) {
   return new Promise(async (resolve, reject) => {
     // dRoll is the type (adv., norm, disadv.)
     // dForm is the HTML of the dialog.
@@ -655,8 +655,8 @@ async function formulaRoll(formula) {
         formula[0] = newFirst + mods;
       }
     }
-    // make the roll
-    let myRoll = new Roll(formula.join(" + "));
+    // make the roll, providing a reference to actor
+    let myRoll = new Roll(formula.join(" + "), {actor: actor});
     myRoll.roll();
     await myRoll.toMessage();
     // we're done!
