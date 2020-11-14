@@ -8,6 +8,10 @@ Ethck's 5e Downtime Tracking allows you to create a series of rolls with predefi
 downtime activities as detailed in Xanathar's Guide to Everything.
 
 ## Recent Changes
+* Added in SMART formula rolls. On a formula roll you can now add in @actor.data.data.abilities.str.mod and so on to your formula rolls!
+* Advantage/Disadvantage + situational bonuses on formula rolls
+* Skill Custimization 5e Compatibility
+* Activity filter in downtime log
 * Added input fields to modify existing rolls/results
 * Added material usage dialog
 * Now allows for editing world-level items from actor sheets
