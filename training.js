@@ -85,7 +85,17 @@ Hooks.once("init", () => {
     config: false,
     default: {},
   });
+
+  game.settings.register("downtime-ethck", "migrated", {
+    scope: "world",
+    config: false,
+    default: {status: false, version: "0.3.3"}
+  })
 });
+
+Hooks.once("ready", () => {
+  _downtimeMigrate();
+})
 
 // The Meat And Potatoes
 async function addTrainingTab(app, html, data) {
@@ -389,7 +399,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg, result: cmsgResult})
 
   // Determine if we whisper this message, and who to
-  const cmsgVis = activity.private || game.settings.get("core", "rollMode") !== "roll";
+  const cmsgVis = activity.actPrivate || game.settings.get("core", "rollMode");
   const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser._id)
 
   // Results message
@@ -710,4 +720,87 @@ async function _skillCustHandler(skillAcr, actor, skiname){
       }
     });
   })
+}
+
+async function _downtimeMigrate(){
+  if (!game.user.isGM) return;
+  await game.settings.set("downtime-ethck", "migrated", false);
+  const NEEDS_MIGRATION_VERSION = "0.3.3";
+  // Updating from old install -> Migrated
+  // Fresh install -> No migration CHECK
+  // Skipped multiple versions and upgrading in 0.4.X or higher
+  // X round of migrations (bound to happen again, right?)
+  let migrated = game.settings.get("downtime-ethck", "migrated");
+  // If we have migrated before
+  if (migrated.status) {
+    // If our version is newer than the NEEDS_MIGRATION_VERSION
+    if (isNewerVersion(game.modules.get("downtime-ethck").data.version, NEEDS_MIGRATION_VERSION)) return;
+    // If we are on the same version, but have migrated.
+    if (migrated.version === NEEDS_MIGRATION_VERSION) return;
+  }
+
+  ui.notifications.notify("Ethck's 5e Downtime Tracking | Beginning Migration to updated schema.")
+
+  // Update Actor Flags
+  game.actors.forEach(async (actor) => {
+    // If it doesn't have our flags, idc
+    let downtimes = actor.getFlag("downtime-ethck", "trainingItems");
+    if (!downtimes) return;
+    let changed = false;
+    [downtimes, changed] = await _updateDowntimes(downtimes);
+    if (changed){
+      let update = {
+        id: actor._id,
+        "flags.downtime-ethck": {trainingItems: downtimes}
+      }
+
+      await actor.update(update, {enforceTypes: false})
+    }
+  })
+  // BUG: Table link awkward with solely the id
+  let worldDowntimes = game.settings.get("downtime-ethck", "activities");
+  if (worldDowntimes) {
+    let changed = false;
+    [worldDowntimes, changed] = await _updateDowntimes(worldDowntimes);
+    await game.settings.set("downtime-ethck", "activities", worldDowntimes);
+  }
+  
+  ui.notifications.notify("Ethck's 5e Downtime Tracking | Migration Complete.")
+  await game.settings.set("downtime-ethck", "migrated", {status: true, version: NEEDS_MIGRATION_VERSION});
+}
+
+async function _updateDowntimes(downtimes) {
+  let changed = false;
+  downtimes.forEach(async (downtime) => {
+    const oldDowntime = duplicate(downtime);
+    // Handle old private
+    if ("private" in downtime) {
+      // If previously updated, the "new" value might be here
+      if (!("actPrivate" in downtime)) {
+        downtime.actPrivate = downtime.private;
+      }
+
+      delete downtime.private;
+      changed = true;
+    }
+
+    // Update tables, might not be present?
+    if ("complication" in downtime) {
+      if ("table" in downtime.complication) {
+        // Old format where table was the string name of the table
+        if (typeof downtime.complication.table === "string" || downtime.complication.table instanceof String) {
+          let tid = "";
+          if (downtime.complication.table !== "") {
+            let table = game.tables.getName(downtime.complication.table);
+            if (!table) table = game.tables.get(downtime.complication.table);
+            tid = table._id;
+          }
+          downtime.complication.table = {id: tid};
+          changed = true;
+        }
+      }
+    }
+  })
+
+  return [downtimes, changed];
 }

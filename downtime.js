@@ -292,8 +292,7 @@ export class DWTForm extends FormApplication {
 
     const complication = {
       table: {
-        id: this.element.find("#complications").val(),
-        name: this.element.find("#complications").text().trim()
+        id: this.element.find("#complications").val()
       },
       chance: parseInt(this.element.find("#compchance").val())
     }
