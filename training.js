@@ -421,8 +421,6 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
       let tableRes = null;
       if ("id" in activity.complication.table) { // New Style
         tableRes = game.tables.get(activity.complication.table.id);
-      } else { // Old Style
-        tableRes = game.tables.get(activity.complication.table);
       }
       // Also outputs chat message, YAY!
       let opts = {};
@@ -757,7 +755,7 @@ async function _downtimeMigrate(){
       await actor.update(update, {enforceTypes: false})
     }
   })
-  // BUG: Table link awkward with solely the id
+
   let worldDowntimes = game.settings.get("downtime-ethck", "activities");
   if (worldDowntimes) {
     let changed = false;
@@ -787,7 +785,7 @@ async function _updateDowntimes(downtimes) {
     // Update tables, might not be present?
     if ("complication" in downtime) {
       if ("table" in downtime.complication) {
-        // Old format where table was the string name of the table
+        // Old format where table was the string id of the table
         if (typeof downtime.complication.table === "string" || downtime.complication.table instanceof String) {
           let tid = "";
           if (downtime.complication.table !== "") {
