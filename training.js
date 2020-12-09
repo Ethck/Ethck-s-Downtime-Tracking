@@ -664,7 +664,8 @@ async function formulaRoll(formula, actor) {
       }
     }
     // make the roll, providing a reference to actor
-    let myRoll = new Roll(formula.join(" + "), {actor: actor});
+    let context = mergeObject({actor: actor}, actor.getRollData());
+    let myRoll = new Roll(formula.join(" + "), context);
     myRoll.roll();
     await myRoll.toMessage();
     // we're done!
@@ -722,7 +723,7 @@ async function _skillCustHandler(skillAcr, actor, skiname){
 
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
-  await game.settings.set("downtime-ethck", "migrated", false);
+  //await game.settings.set("downtime-ethck", "migrated", false);
   const NEEDS_MIGRATION_VERSION = "0.3.3";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
@@ -770,7 +771,6 @@ async function _downtimeMigrate(){
 async function _updateDowntimes(downtimes) {
   let changed = false;
   downtimes.forEach(async (downtime) => {
-    const oldDowntime = duplicate(downtime);
     // Handle old private
     if ("private" in downtime) {
       // If previously updated, the "new" value might be here

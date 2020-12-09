@@ -183,9 +183,9 @@ export class DWTForm extends FormApplication {
             // Remove either "@actor." or just "@"
             let testProp = formu.startsWith("@actor.") ? formu.slice(7) : formu.slice(1);
             // Test if property does not exist (i.e. if not a valid property)
-            if (!(getProperty(this.actor, testProp))) {
-              ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in actor. Make sure to use actor.data.data to access actor properties.");
-              fail = true; // Set fail condition
+            if (!(getProperty(this.actor, testProp)) && !(getProperty(this.actor.getRollData(), testProp))) {
+              ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in the context.");
+              fail = true;
             }
           }
         })
