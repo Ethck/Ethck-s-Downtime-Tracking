@@ -1,0 +1,198 @@
+<form class="ethck-downtime-form roll-table-config" autocomplete="off">
+    <header class="">
+        <div style="display:flex; flex-direction:row;">
+            <div style="width:160px; border-right: 1px solid #b5b3a4; border-bottom: 1px solid #b5b3a4; box-shadow: 0px 1px 1px 0px #f0f0e0; padding-right: 5px;">
+                <span style="text-align: center; width: 160px; display: block;">Icon in Chat</span>
+                <img style="height: 140px; width: 160px;" class="file-picker-cust" src="{{activity.img}}" data-type="image"></img>
+            </div>
+            <div style="padding:0px 0px 0px 5px;">
+                <label>Name:</label>
+                <input type="text" id="name" name="name" value="{{activity.name}}"/>
+                <label>Description:</label>
+                <textarea name="desc" id="desc">{{activity.description}}</textarea>
+                <!-- Thank you CUB Condition Lab (errational!) -->
+                <label>Icon in Character Sheet</label>
+                <div class="path">
+                    <input type="text" name="rollIcon" title="Status Icon Path" class="icon-path" value="{{activity.rollIcon}}" placeholder="/icons/example.svg" data-dtype="String">
+                    <button type="button" name="file-picker" class="file-picker" data-type="image" data-target="rollIcon" title="Browse Files" tabindex="-1">
+                        <i class="fas fa-file-import fa-fw"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <p/>
+    <body>
+
+        <h2>Rolls</h2>
+
+        <!-- Roll Table Results Loop -->
+        <section class="results">
+            <ol class="table-results" id="rollableEventsTable">
+                <li class="table-result table-header flexrow">
+                    <div class="result-type">
+                        <label>Roll Type</label>
+                    </div>
+
+                    <div class="result-type">
+                        <label>Roll</label>
+                    </div>
+
+                    <div class="result-details">
+                        <label>Custom</label>
+                    </div>
+
+                    <div class="result-details">
+                        <label>Group Name</label>
+                    </div>
+
+                    <div class="result-weight">
+                        <label>DC</label>
+                    </div>
+
+                    <div class="result-controls">
+                        <a name="addRollableEvent" value="1" class="addRollable"title="Add New Roll">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>
+                </li>
+                {{#each activity.rollableGroups as |group|}}
+                    {{#each group.rolls as |arr|}}
+                        <li class="table-result flexrow" data-id="{{arr.[2]}}" id="rollable">
+
+                            <div class="result-type" id="roll-type" data-id="{{arr.[2]}}">
+                                <select name="rolls.{{arr.[2]}}.type" data-dtype="Number">
+                                    <option value="0" selected="">Ability Check</option>
+                                    <option value="1">Saving Throw</option>
+                                    <option value="2">Skill Check</option>
+                                    <option value="3">Tool Check</option>
+                                    <option value="4">None</option>
+                                </select>
+                            </div>
+
+                            <div class="result-type" id="roll-val">
+                                <select name="rolls.{{arr.[2]}}.type" data-dtype="Number">
+                                    <option value="0" selected="">Intelligence</option>
+                                    <option value="1">Wisdom</option>
+                                    <option value="2">Charisma</option>
+                                    <option value="3">Strength</option>
+                                    <option value="4">Consitution</option>
+                                    <option value="5">Dexterity</option>
+                                </select>
+                            </div>
+
+                            <div class="result-details">
+                                <input type="text" name="rolls.{{arr.[2]}}.custom" value="" placeholder="5">
+                            </div>
+
+                            <div class="result-details">
+                                <input type="text" name="rolls.{{arr.[2]}}.group" value="{{group.group}}" placeholder="5">
+                            </div>
+
+                            <div class="result-weight">
+                                <input type="text" name="rolls.{{arr.[2]}}.dc" value="{{arr.[1]}}" placeholder="1" data-dtype="Number">
+                            </div>
+
+                            <div class="result-controls">
+                                <a class="delete-roll" title="Delete Roll">
+                                    <i class="fas fa-trash fa-fw"></i>
+                                </a>
+                            </div>
+
+                        </li>
+                    {{/each}}
+                {{/each}}
+            </ol>
+        </section>
+
+        <h2>Results</h2>
+
+    <!-- Roll Table Results Loop -->
+        <section class="results">
+            <ol class="table-results">
+                <li class="table-result table-header flexrow">
+
+                    <div class="result-range">
+                        <label>Range</label>
+                    </div>
+
+                    <div class="result-details">
+                        <label>Result Details</label>
+                    </div>
+
+                    <div class="result-controls">
+                        <a class="normalize-results" title="Add New Result">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>
+                </li>
+
+                <li class="table-result flexrow" data-result-id="BXbC5QaD7IayxJZR">
+                    <input type="hidden" name="results.0._id" value="BXbC5QaD7IayxJZR">
+
+                    <div class="result-range">
+                        <input type="text" name="results.0.rangeL" value="1" placeholder="L" data-dtype="Number">
+                        <span> - </span>
+                        <input type="text" name="results.0.rangeH" value="1" placeholder="H" data-dtype="Number">
+                    </div>
+
+                    <div class="result-details">
+                        <input type="hidden" name="results.0.resultId" value="">
+
+                        <input type="text" name="results.0.text" value="" placeholder="Result description">
+
+                    </div>
+
+                    <div class="result-controls">
+                        <a class="delete-result" title="Delete Result">
+                            <i class="fas fa-trash fa-fw"></i>
+                        </a>
+                    </div>
+                </li>
+            </ol>
+        </section>
+    </body>
+
+    <h2>Complications</h2>
+   <div>
+        <div class="form-group">
+            <label>Chance of occuring per use</label>
+            <select name="compchance" id="compchance">
+                <option label=" "></option>
+                {{#each compChances as | cc |}}
+                    <option value="{{cc}}" id="{{cc}}">{{cc}}%</option>
+                {{/each}}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>RollTable to use</label>
+            <select name="Complications" id="complications">
+                <option label=" "></option>
+                {{#each tables as |table |}}
+                    <option value="{{table.data._id}}" id="{{table.data._id}}"/>{{table.data.name}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <h2>Options</h2>
+
+    <div class="ethck-downtime-options">
+        <input type="checkbox" id="privateActivity" name="privateActivity">Private Roll</input>
+        <input type="checkbox" id="privateComp" name="privateComp">Private Complications</input>
+        <input style="width: 2em;"type="text" id="timeTaken" name="timeTaken" value="5"> Days Used</input>
+        <input type="checkbox" id="materials" name="materialUse">Use Materials?</input>
+        <div>
+            <label>Activity Type</label>
+            <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success/Fail Count
+            <input type="radio" id="categoryActivity" name="activityType" value="categories" checked="checked">Categories
+            <input type="radio" id="noRollActivity" name="activityType" value="noRoll">No Roll
+        </div>
+    </div>
+
+    <hr>
+
+    <footer>
+        <button type="submit" name="submit" value="1"><i class="fas fa-dice"></i>Submit</button>
+    </footer>
+</form>
