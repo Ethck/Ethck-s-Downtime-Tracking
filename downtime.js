@@ -4,6 +4,7 @@ export class DWTForm extends FormApplication {
     game.users.apps.push(this);
     this.activity = activity;
     this.rollableEvents = activity["rollableEvents"] || [];
+    this.rolls = activity["rolls"];
     this.results = activity["results"] || [];
     this.actor = actor;
     this.edit = editMode;
@@ -19,10 +20,10 @@ export class DWTForm extends FormApplication {
     }
     options.id = "downtime-ethck";
     options.template =
-      "modules/downtime-ethck/templates/add-downtime-form.html";
+      "modules/downtime-ethck/templates/add-downtime-form2.html";
     options.closeOnSubmit = true;
     options.popOut = true;
-    options.width = 600;
+    options.width = 800;
     options.height = "auto";
     return options;
   }
@@ -62,6 +63,9 @@ export class DWTForm extends FormApplication {
     ]
 
     const activity = this.activity;
+
+    console.log(activity.rolls);
+
     const tables = game.tables;
     const compChances = [10, 25, 50, 75, 100]
 
@@ -84,23 +88,16 @@ export class DWTForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
-    // Add Rollable
-    this.element
-      .find(".addRollable")
-      .click((event) => this.handleRollables(event));
-    // Handle deletes in table
-    this.element
-      .find("#rollableEventsTable > tbody > .rollableEvent")
-      .on("click", "#deleteRollable", (event) =>
-        this.handleRollableDelete(event)
-      );
-    // Add results
-    this.element.find(".addResult").click((event) => this.handleResults(event));
-    // Deletes on result(s)
-    this.element
-      .find("#resultsTable > tbody > .result")
-      .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
+    // // Add results
+    // this.element.find(".addResult").click((event) => this.handleResults(event));
+    // // Deletes on result(s)
+    // this.element
+    //   .find("#resultsTable > tbody > .result")
+    //   .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
     // Picture picker
+    // 
+    this.element.find(".addRollable").click(() => this.addRollable());
+    this.element.find("#rollableEventsTable > li > .result-controls > .delete-roll").click((event) => this.deleteRollable(event));
     this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
     // Not really a listener, but update the state of this.
@@ -119,6 +116,45 @@ export class DWTForm extends FormApplication {
     this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
     this.element.find("#timeTaken").val(this.activity.timeTaken);
     this.element.find("#materials").attr("checked", this.activity.useMaterials)
+
+    // Set initial values of rollables
+    this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
+      let id = $(roll).attr("data-id");
+      if (id === "blank") return;
+      let event = this.rolls.find((rble) => rble.id == id);
+      let type = event.type;
+      let newVal = event.val || "";
+      $(roll).find("#roll-type > select").val(type);
+      $(roll).find("#roll-val > select").val(newVal);
+    })
+  }
+
+  /**
+   * Adds a new rollable <li> to the list of rollables. Accomplishes
+   * this by copying a hidden template and activating it.
+   */
+  addRollable(){
+    // Copy our template roll
+    let newRoll = this.element.find('#rollableEventsTable > li[data-id ="blank"]').clone();
+    // Assign temporary id
+    newRoll.attr("data-id", randomID());
+    // Show it!
+    newRoll.css("display", "");
+    // Append
+    this.element.find("#rollableEventsTable").append(newRoll);
+    // Attach new listener
+    newRoll.find(".result-controls > .delete-roll").click((event) => this.deleteRollable(event));
+  }
+
+  /**
+   * Deletes a <li> from the rollalbe list.
+   * @param  {[jQuery object]} event Click event from clicking the delete-roll button
+   */
+  deleteRollable(event){
+    // Retrieve the row we are in
+    let row = $(event.currentTarget).parent().parent();
+    // Remove it from DOM
+    row.remove();
   }
 
   async handleImage(event) {
@@ -134,105 +170,51 @@ export class DWTForm extends FormApplication {
     }).browse("");
   }
 
-  handleRollableDelete(event) {
-    // In the rollable table, handle removing elements
-    event.preventDefault();
-    const elem = $(event.currentTarget).parent().parent();
-    const toDel = this.rollableEvents.find((rbl) => rbl[2] == elem.attr("id"));
-    const idx = this.rollableEvents.indexOf(toDel);
-    this.rollableEvents.splice(idx, 1);
-    elem.remove();
-  }
+  handleRollables() {
 
-  async handleRollables(event) {
-    // When adding a new roll
-    event.preventDefault();
-    // Setup DOM references
-    const abiElem = this.element.find("#abiCheck");
-    const saveElem = this.element.find("#saveSelect");
-    const skiElem = this.element.find("#skiCheck");
-    const toolElem = this.element.find("#toolSelect");
-    const formulaElem = this.element.find("#rollFormula");
-    const dcElem = this.element.find("#dc");
-    // Get Vals
-    const abi = abiElem.val();
-    const save = saveElem.val();
-    const ski = skiElem.val();
-    const tool = toolElem.val();
-    const formula = formulaElem.val();
-    const dc = dcElem.val() || "";
+    let rollables = [];
 
-    // Error Handling
-    let rbl = "";
+    this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
 
-    if (abi !== "") {
-      rbl = abi;
-    } else if (save !== "") {
-      rbl = save;
-    } else if (ski !== "") {
-      rbl = ski;
-    } else if (tool !== ""){
-      rbl = tool;
-    } else if (formula !== ""){
-      const context = {actor: this.actor}
-      if (Roll.validate(formula, context)){//ensure no error in formula
-        let fail = false;
-        formula.split(" + ").forEach((formu) => {
-          // If we're accessing a property
-          if (formu.startsWith("@")) {
-            // Remove either "@actor." or just "@"
-            let testProp = formu.startsWith("@actor.") ? formu.slice(7) : formu.slice(1);
-            // Test if property does not exist (i.e. if not a valid property)
-            if (!(getProperty(this.actor, testProp)) && !(getProperty(this.actor.getRollData(), testProp))) {
-              ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in the context.");
-              fail = true;
+      let typeRoll = $(roll).find("#roll-type > select").val();
+      let rollVal = $(roll).find("#roll-val > select").val();
+      let group = $(roll).find("#roll-group > input").val();
+      let dc = $(roll).find("#roll-dc > input").val();
+
+
+      if (typeRoll === "custForm"){
+        let custom = $(roll).find("#roll-val > input").val();
+        let context = mergeObject({actor: this.actor}, this.actor.getRollData());
+        if (Roll.validate(custom, context)){//ensure no error in custom
+          let fail = false;
+          custom.split(" + ").forEach((formu) => {
+            // If we're accessing a property
+            if (formu.startsWith("@")) {
+              // Remove either "@actor." or just "@"
+              let testProp = formu.startsWith("@actor.") ? formu.slice(7) : formu.slice(1);
+              // Test if property does not exist (i.e. if not a valid property)
+              if (!(getProperty(this.actor, testProp)) && !(getProperty(this.actor.getRollData(), testProp))) {
+                ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in the context.");
+                fail = true;
+              }
             }
-          }
-        })
-        if (fail) return;
-        rbl = "Formula: " + formula
-      } else {
-        ui.notifications.warn("Ethck's Downtime Tracking | This is not a valid roll formula.");
-        return;
+          })
+          if (fail) throw "Error in context for rolling.";
+          rollVal = custom;
+        } else {
+          ui.notifications.warn("Ethck's Downtime Tracking | This is not a valid roll formula.");
+          return;
+        }
+        
       }
-      
-    }
 
-    if (rbl === "") {
-      ui.notifications.error("ERROR! Select a roll first!");
-      return;
-    }
-    // End Errors
-    // Get a unique ID
-    const time = Date.now();
-    // Add event
-    this.rollableEvents.push([rbl, dc, time]);
-    // Add the row that shows in the form (DOM!)
-    this.element.find("#rollableEventsTable > tbody").append(
-      `
-            <tr id="` + time + `" class="rollableEvent">
-                <td><label>` + rbl + `</label></td>
-                <td><input value="` + dc + `" type="text" id="dc"></input></td>
-                <td><input type="text" id="group" placeholder="group name for rolls"></td>
-                <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="Delete">
-                    <i class="fas fa-trash"></i></a>
-                </td>
-            </tr>`
-    );
-    // Attach new listener
-    this.element
-      .find("#rollableEventsTable > tbody > .rollableEvent")
-      .on("click", "#deleteRollable", (event) =>
-        this.handleRollableDelete(event)
-      );
-
-    //reset to initial vals
-    abiElem.val($("#abiCheck option:first").val());
-    saveElem.val($("#saveSelect option:first").val());
-    skiElem.val($("#skiCheck option:first").val());
-    toolElem.val($("#toolSelect option:first").val());
-    formulaElem.val("")
-    dcElem.val("");
+      // Get a unique ID
+      let id = randomID();
+      // Add event
+      rollables.push({type: typeRoll, dc: dc, id: id, group: group, val: rollVal})
+      // Add the row that shows in the form (DOM!)
+    });
+    this.rolls = rollables;
   }
 
   handleResultDelete(event) {
@@ -298,39 +280,47 @@ export class DWTForm extends FormApplication {
     }
 
 
-    // Override value of this.rollableEvents with the input in the form.
-    this.rollableEvents = this.rollableEvents.map((rollableEvent) => {
-      return [
-        rollableEvent[0],
-        this.element.find("#" + rollableEvent[2] + " > td > #dc").val(),
-        rollableEvent[2]
-      ];
-    });
+    // // Override value of this.rollableEvents with the input in the form.
+    // this.rollableEvents = this.rollableEvents.map((rollableEvent) => {
+    //   return [
+    //     rollableEvent[0],
+    //     this.element.find("#" + rollableEvent[2] + " > td > #dc").val(),
+    //     rollableEvent[2]
+    //   ];
+    // });
 
-    // Handle OR grouping of rollableEvents
-    let rollableGroups = [{ group: "", rolls: [] }];
-    this.rollableEvents.forEach((rollableEvent) => {
-      const groupVal = this.element
-        .find("#" + rollableEvent[2] + " > td > #group")
-        .val();
-      rollableGroups.forEach((groupDict) => {
-        if (groupDict["group"] == groupVal) {
-          groupDict["rolls"].push(rollableEvent);
-        }
-      });
+    // // Handle OR grouping of rollableEvents
+    // let rollableGroups = [{ group: "", rolls: [] }];
+    // this.rollableEvents.forEach((rollableEvent) => {
+    //   const groupVal = this.element
+    //     .find("#" + rollableEvent[2] + " > td > #group")
+    //     .val();
+    //   rollableGroups.forEach((groupDict) => {
+    //     if (groupDict["group"] == groupVal) {
+    //       groupDict["rolls"].push(rollableEvent);
+    //     }
+    //   });
 
-      if (
-        rollableGroups.find((group) => group["group"] === groupVal) ===
-        undefined
-      ) {
-        const groupDict = {
-          group: groupVal,
-          rolls: [rollableEvent],
-        };
+    //   if (
+    //     rollableGroups.find((group) => group["group"] === groupVal) ===
+    //     undefined
+    //   ) {
+    //     const groupDict = {
+    //       group: groupVal,
+    //       rolls: [rollableEvent],
+    //     };
 
-        rollableGroups.push(groupDict);
-      }
-    });
+    //     rollableGroups.push(groupDict);
+    //   }
+    // });
+
+    try {
+      this.handleRollables();
+    } catch (e) {
+      console.log(e);
+      throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
+    }
+
 
     // Add "new" values from the input fields so that changes are reflected.
     this.results = this.results.map((result) => {
@@ -351,7 +341,6 @@ export class DWTForm extends FormApplication {
         description: actDesc || "",
         changes: [],
         rollableEvents: this.rollableEvents,
-        rollableGroups: rollableGroups,
         results: this.results,
         id: Date.now(),
         type: actType,
@@ -361,14 +350,14 @@ export class DWTForm extends FormApplication {
         compPrivate: compPrivate,
         actTimeTaken: actTimeTaken,
         rollIcon: actRollImage,
-        useMaterials: useMaterials
+        useMaterials: useMaterials,
+        rolls: this.rolls
       };
     } else {
       activity = this.activity;
       activity["name"] = actName;
       activity["description"] = actDesc;
       activity["rollableEvents"] = this.rollableEvents;
-      activity["rollableGroups"] = rollableGroups;
       activity["results"] = this.results;
       activity["type"] = actType;
       activity["img"] = this.image;
@@ -378,6 +367,7 @@ export class DWTForm extends FormApplication {
       activity["timeTaken"] = actTimeTaken;
       activity["rollIcon"] = actRollImage;
       activity["useMaterials"] = useMaterials;
+      activity["rolls"] = this.rolls;
     }
 
     const actor = this.actor;

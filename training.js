@@ -723,8 +723,8 @@ async function _skillCustHandler(skillAcr, actor, skiname){
 
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
-  //await game.settings.set("downtime-ethck", "migrated", false);
-  const NEEDS_MIGRATION_VERSION = "0.3.3";
+  await game.settings.set("downtime-ethck", "migrated", false);
+  const NEEDS_MIGRATION_VERSION = "0.3.4";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
   // Skipped multiple versions and upgrading in 0.4.X or higher
@@ -798,7 +798,70 @@ async function _updateDowntimes(downtimes) {
         }
       }
     }
+
+    let newRolls = downtime.rollableGroups?.flatMap((group) => {
+      if (group.rolls.length === 0) return;
+      let g = group.group;
+      let rolls = group.rolls.map((roll) => {
+        // new format is an object
+        if (!Array.isArray(roll)) return;
+        let typeRoll = determineOldType(roll); // Determine type
+        let dc = roll[1] || 0; // Use old DC, or default to 0
+        let id = randomID(); // generate new ID
+        let rollVal = roll[0];
+
+        if (typeRoll === "custForm") {
+          rollVal = rollVal.split("Formula: ")[1];
+        } else if (typeRoll === "skiCheck") {
+          let skills = CONFIG.DND5E.skills;
+          // returns shorthand of skill
+          rollVal = Object.keys(skills).find((key) => skills[key] === rollVal);
+        } else if (typeRoll === "toolCheck"){
+
+        } else { //abiCheck, save
+          if (typeRoll === "abiCheck") {
+            rollVal = rollVal.split(" Check")[0];
+          } else {
+            rollVal = rollVal.split(" Saving Throw")[0];
+          }
+          let abilities = CONFIG.DND5E.abilities;
+          // Returns shorthand of ability
+          rollVal = Object.keys(abilities).find((key) => abilities[key] === rollVal).toLowerCase();
+        }
+        changed = true;
+        return {type: typeRoll, dc: dc, id: id, group: g, val: rollVal}
+      });
+
+      return rolls;
+
+    });
+    newRolls = newRolls.filter(Boolean);
+
+    downtime.rolls = newRolls;
   })
 
   return [downtimes, changed];
 }
+
+function determineOldType(roll) {
+    const abilities = ["str", "dex", "con", "int", "wis", "cha"];
+    const skills = CONFIG.DND5E.skills;
+    const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
+
+    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA CHECK
+    if (roll[0].includes("Check")) {
+      return "abiCheck";
+    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA SAVING THROW
+    } else if (roll[0].includes("Saving Throw")) {
+      return "save";
+    // includes ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"] in name
+    } else if (toolFilters.some((filter) => roll[0].includes(filter))) {
+      return "toolCheck";
+    // Special formulas
+    } else if (roll[0].includes("Formula:")) {
+      return "custForm";
+    // We must be at skills...
+    } else {
+      return "skiCheck";
+    }
+  }
