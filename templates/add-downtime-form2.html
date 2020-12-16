@@ -18,6 +18,12 @@
             <i class="fas fa-file-import fa-fw"></i>
           </button>
         </div>
+        <div>
+          <label>Activity Type</label>
+          <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success Count
+          <input type="radio" id="categoryActivity" name="activityType" value="categories" checked="checked">Roll Total
+          <input type="radio" id="noRollActivity" name="activityType" value="noRoll">No Roll
+        </div>
       </div>
     </div>
   </header>
@@ -38,7 +44,7 @@
             <label>Roll</label>
           </div>
 
-          <div class="result-weight">
+          <div class="result-type">
             <label>Group Name</label>
           </div>
 
@@ -47,16 +53,16 @@
           </div>
 
           <div class="result-controls">
-            <a name="addRollableEvent" value="1" class="addRollable"title="Add New Roll">
+            <a name="addRollableEvent" value="1" class="addRollable" title="Add New Roll">
               <i class="fas fa-plus"></i>
             </a>
           </div>
         </li>
 
-        <li class="table-result flexrow" data-id="blank" id="rollable" style="display: none;">
+        <li class="table-result flexrow" data-id="template" id="rollable" style="display: none;">
 
-              <div class="result-type" id="roll-type" data-id="blank">
-                <select data-dtype="Number">
+              <div class="result-type" id="roll-type" data-id="template">
+                <select>
                   <option value="abiCheck" selected="">Ability Check</option>
                   <option value="save">Saving Throw</option>
                   <option value="skiCheck">Skill Check</option>
@@ -66,14 +72,30 @@
               </div>
 
               <div class="result-details" id="roll-val">
-                <select data-dtype="Number">
-                    {{#each abilities}}
-                      <option value="{{@key}}">{{this}}</option>
-                    {{/each}}
+                <select id="abiCheck">
+                  {{#each abilities}}
+                    <option value="{{@key}}">{{this}}</option>
+                  {{/each}}
                 </select>
+                <select id="save" style="display: none;">
+                  {{#each saves}}
+                    <option value="{{@key}}">{{this}}</option>
+                  {{/each}}
+                </select>
+                <select id="skiCheck" style="display: none;">
+                  {{#each skills}}
+                    <option value="{{@key}}">{{this}}</option>
+                  {{/each}}
+                </select>
+                <select id="toolCheck" style="display: none;">
+                  {{#each tools as | tool |}}
+                    <option value="{{tool}}">{{tool}}</option>
+                  {{/each}}
+                </select>
+                <input type="text" id="custForm" value="{{roll.val}}" placeholder="@attributes.str.mod" style="display: none;"/>
               </div>
 
-              <div class="result-weight" id="roll-group">
+              <div class="result-type" id="roll-group">
                 <input type="text" value="" placeholder="a">
               </div>
 
@@ -92,7 +114,7 @@
             <li class="table-result flexrow" data-id="{{roll.id}}" id="rollable">
 
               <div class="result-type" id="roll-type" data-id="{{roll.id}}">
-                <select  data-dtype="Number">
+                <select>
                   <option value="abiCheck" selected="">Ability Check</option>
                   <option value="save">Saving Throw</option>
                   <option value="skiCheck">Skill Check</option>
@@ -102,33 +124,35 @@
               </div>
 
               <div class="result-details" id="roll-val">
-                {{#unless (eq roll.type "custForm")}}
-                <select data-dtype="Number">
-                  {{#if (eq roll.type "skiCheck")}}
-                    {{#each ../skills}}
-                      <option value="{{@key}}">{{this}}</option>
-                    {{/each}}
-                  {{else if (eq roll.type "toolCheck")}}
-                    {{#each ../tools as | tool |}}
-                      <option value="{{tool}}">{{tool}}</option>
-                    {{/each}}
-                  {{else}}
-                    {{#each ../abilities}}
-                      <option value="{{@key}}">{{this}}</option>
-                    {{/each}}
-                  {{/if}}
+                <select id="abiCheck">
+                  {{#each ../abilities}}
+                    <option value="{{@key}}">{{this}}</option>
+                  {{/each}}
                 </select>
-                {{else}}
-                  <input type="text" value="{{roll.val}}" placeholder="@attributes.str.mod"/>
-                {{/unless}}
+                <select id="save" style="display: none;">
+                  {{#each ../saves}}
+                    <option value="{{@key}}">{{this}}</option>
+                  {{/each}}
+                </select>
+                <select id="skiCheck" style="display: none;">
+                  {{#each ../skills}}
+                    <option value="{{@key}}">{{this}}</option>
+                  {{/each}}
+                </select>
+                <select id="toolCheck" style="display: none;">
+                  {{#each ../tools as | tool |}}
+                    <option value="{{tool}}">{{tool}}</option>
+                  {{/each}}
+                </select>
+                <input type="text" id="custForm" value="{{roll.val}}" placeholder="@attributes.str.mod" style="display: none;"/>
               </div>
 
-              <div class="result-weight" id="roll-group">
-                <input type="text" value="{{roll.group}}" placeholder="5">
+              <div class="result-type" id="roll-group">
+                <input type="text" value="{{roll.group}}" placeholder="a">
               </div>
 
               <div class="result-weight" id="roll-dc">
-                <input type="text" value="{{roll.dc}}" placeholder="1" data-dtype="Number">
+                <input type="text" value="{{roll.dc}}" placeholder="1d20">
               </div>
 
               <div class="result-controls">
@@ -146,7 +170,7 @@
 
   <!-- Roll Table Results Loop -->
     <section class="results">
-      <ol class="table-results">
+      <ol class="table-results" id="resultsTable">
         <li class="table-result table-header flexrow">
 
           <div class="result-range">
@@ -158,26 +182,22 @@
           </div>
 
           <div class="result-controls">
-            <a class="normalize-results" title="Add New Result">
+            <a class="addResult" title="Add New Result">
               <i class="fas fa-plus"></i>
             </a>
           </div>
         </li>
 
-        <li class="table-result flexrow" data-result-id="BXbC5QaD7IayxJZR">
-          <input type="hidden" name="results.0._id" value="BXbC5QaD7IayxJZR">
+        <li class="table-result flexrow" id="result" data-id="template" style="display:none;">
 
           <div class="result-range">
-            <input type="text" name="results.0.rangeL" value="1" placeholder="L" data-dtype="Number">
+            <input type="text" id="low" value="" placeholder="0">
             <span> - </span>
-            <input type="text" name="results.0.rangeH" value="1" placeholder="H" data-dtype="Number">
+            <input type="text" id="high" value="" placeholder="5">
           </div>
 
           <div class="result-details">
-            <input type="hidden" name="results.0.resultId" value="">
-
-            <input type="text" name="results.0.text" value="" placeholder="Result description">
-
+            <input type="text" id="desc" value="" placeholder="Result description">
           </div>
 
           <div class="result-controls">
@@ -186,6 +206,27 @@
             </a>
           </div>
         </li>
+
+        {{#each activity.results as | result |}}
+          <li class="table-result flexrow" id="result" data-id="{{result.id}}">
+
+          <div class="result-range">
+            <input type="text" id="low" value="{{result.low}}" placeholder="0">
+            <span> - </span>
+            <input type="text" id="high" value="{{result.high}}" placeholder="5">
+          </div>
+
+          <div class="result-details">
+            <input type="text" id="desc" value="{{result.desc}}" placeholder="Result description">
+          </div>
+
+          <div class="result-controls">
+            <a class="delete-result" title="Delete Result">
+              <i class="fas fa-trash fa-fw"></i>
+            </a>
+          </div>
+        </li>
+      {{/each}}
       </ol>
     </section>
   </body>
@@ -217,14 +258,8 @@
   <div class="ethck-downtime-options">
     <input type="checkbox" id="privateActivity" name="privateActivity">Private Roll</input>
     <input type="checkbox" id="privateComp" name="privateComp">Private Complications</input>
+    <input type="checkbox" id="materials" name="materialUse">Ask for Materials?</input>
     <input style="width: 2em;"type="text" id="timeTaken" name="timeTaken" value="5"> Days Used</input>
-    <input type="checkbox" id="materials" name="materialUse">Use Materials?</input>
-    <div>
-      <label>Activity Type</label>
-      <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success/Fail Count
-      <input type="radio" id="categoryActivity" name="activityType" value="categories" checked="checked">Categories
-      <input type="radio" id="noRollActivity" name="activityType" value="noRoll">No Roll
-    </div>
   </div>
 
   <hr>

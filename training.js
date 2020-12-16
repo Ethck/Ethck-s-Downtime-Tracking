@@ -723,7 +723,7 @@ async function _skillCustHandler(skillAcr, actor, skiname){
 
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
-  await game.settings.set("downtime-ethck", "migrated", false);
+  //await game.settings.set("downtime-ethck", "migrated", false);
   const NEEDS_MIGRATION_VERSION = "0.3.4";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
@@ -799,45 +799,66 @@ async function _updateDowntimes(downtimes) {
       }
     }
 
-    let newRolls = downtime.rollableGroups?.flatMap((group) => {
-      if (group.rolls.length === 0) return;
-      let g = group.group;
-      let rolls = group.rolls.map((roll) => {
-        // new format is an object
-        if (!Array.isArray(roll)) return;
-        let typeRoll = determineOldType(roll); // Determine type
-        let dc = roll[1] || 0; // Use old DC, or default to 0
-        let id = randomID(); // generate new ID
-        let rollVal = roll[0];
+    if ("rollableGroups" in downtime){
+      let newRolls = downtime.rollableGroups.flatMap((group) => {
+        if (group.rolls.length === 0) return;
+        let g = group.group;
+        let rolls = group.rolls.map((roll) => {
+          // new format is an object
+          if (!Array.isArray(roll)) return;
+          let typeRoll = determineOldType(roll); // Determine type
+          let dc = roll[1] || 0; // Use old DC, or default to 0
+          let id = randomID(); // generate new ID
+          let rollVal = roll[0];
 
-        if (typeRoll === "custForm") {
-          rollVal = rollVal.split("Formula: ")[1];
-        } else if (typeRoll === "skiCheck") {
-          let skills = CONFIG.DND5E.skills;
-          // returns shorthand of skill
-          rollVal = Object.keys(skills).find((key) => skills[key] === rollVal);
-        } else if (typeRoll === "toolCheck"){
+          if (typeRoll === "custForm") {
+            rollVal = rollVal.split("Formula: ")[1];
+          } else if (typeRoll === "skiCheck") {
+            let skills = CONFIG.DND5E.skills;
+            // returns shorthand of skill
+            rollVal = Object.keys(skills).find((key) => skills[key] === rollVal);
+          } else if (typeRoll === "toolCheck"){
 
-        } else { //abiCheck, save
-          if (typeRoll === "abiCheck") {
-            rollVal = rollVal.split(" Check")[0];
-          } else {
-            rollVal = rollVal.split(" Saving Throw")[0];
+          } else { //abiCheck, save
+            if (typeRoll === "abiCheck") {
+              rollVal = rollVal.split(" Check")[0];
+            } else {
+              rollVal = rollVal.split(" Saving Throw")[0];
+            }
+            let abilities = CONFIG.DND5E.abilities;
+            // Returns shorthand of ability
+            rollVal = Object.keys(abilities).find((key) => abilities[key] === rollVal).toLowerCase();
           }
-          let abilities = CONFIG.DND5E.abilities;
-          // Returns shorthand of ability
-          rollVal = Object.keys(abilities).find((key) => abilities[key] === rollVal).toLowerCase();
-        }
-        changed = true;
-        return {type: typeRoll, dc: dc, id: id, group: g, val: rollVal}
+          changed = true;
+          return {type: typeRoll, dc: dc, id: id, group: g, val: rollVal}
+        });
+
+        return rolls;
+
       });
+      newRolls = newRolls.filter(Boolean);
+      downtime.rolls = newRolls;
+    }
 
-      return rolls;
+    if ("results" in downtime) {
+      // downtime.results[0] old format is an array
+      // new format is object
+      if (Array.isArray(downtime.results[0])) {
+        let res = duplicate(downtime.results);
 
-    });
-    newRolls = newRolls.filter(Boolean);
+        let newRes = res.map((result) => {
+          return {
+            low: result[0], // lower bound
+            high: result[1], // high bound
+            desc: result[2], // description
+            id: randomID() //some unique thingamabob
+          }
+        });
 
-    downtime.rolls = newRolls;
+        downtime.results = newRes;
+        changed = true;
+      }
+    }
   })
 
   return [downtimes, changed];

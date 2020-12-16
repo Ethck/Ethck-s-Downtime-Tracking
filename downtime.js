@@ -62,10 +62,9 @@ export class DWTForm extends FormApplication {
       "Woodcarver's Tools",
     ]
 
+    this.tools = tools;
+
     const activity = this.activity;
-
-    console.log(activity.rolls);
-
     const tables = game.tables;
     const compChances = [10, 25, 50, 75, 100]
 
@@ -98,6 +97,13 @@ export class DWTForm extends FormApplication {
     // 
     this.element.find(".addRollable").click(() => this.addRollable());
     this.element.find("#rollableEventsTable > li > .result-controls > .delete-roll").click((event) => this.deleteRollable(event));
+
+    this.element.find(".addResult").click(() => this.addResult());
+    this.element.find("#resultsTable > li > .result-controls > .delete-result").click((event) => this.deleteResult(event));
+
+    this.element.find("#rollableEventsTable > #rollable > #roll-type > select").change((event) => this.changeValSelect(event));
+
+
     this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
     // Not really a listener, but update the state of this.
@@ -120,41 +126,16 @@ export class DWTForm extends FormApplication {
     // Set initial values of rollables
     this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
       let id = $(roll).attr("data-id");
-      if (id === "blank") return;
+      if (id === "template") return;
       let event = this.rolls.find((rble) => rble.id == id);
       let type = event.type;
       let newVal = event.val || "";
       $(roll).find("#roll-type > select").val(type);
-      $(roll).find("#roll-val > select").val(newVal);
-    })
-  }
 
-  /**
-   * Adds a new rollable <li> to the list of rollables. Accomplishes
-   * this by copying a hidden template and activating it.
-   */
-  addRollable(){
-    // Copy our template roll
-    let newRoll = this.element.find('#rollableEventsTable > li[data-id ="blank"]').clone();
-    // Assign temporary id
-    newRoll.attr("data-id", randomID());
-    // Show it!
-    newRoll.css("display", "");
-    // Append
-    this.element.find("#rollableEventsTable").append(newRoll);
-    // Attach new listener
-    newRoll.find(".result-controls > .delete-roll").click((event) => this.deleteRollable(event));
-  }
-
-  /**
-   * Deletes a <li> from the rollalbe list.
-   * @param  {[jQuery object]} event Click event from clicking the delete-roll button
-   */
-  deleteRollable(event){
-    // Retrieve the row we are in
-    let row = $(event.currentTarget).parent().parent();
-    // Remove it from DOM
-    row.remove();
+      $(roll).find("#roll-val").find("select, input").css("display", "none");
+      $(roll).find("#roll-val").find("#" + type).css("display", "");
+      $(roll).find("#roll-val > select #" + type).val(newVal);
+    });
   }
 
   async handleImage(event) {
@@ -170,11 +151,43 @@ export class DWTForm extends FormApplication {
     }).browse("");
   }
 
+  /**
+   * Adds a new rollable <li> to the list of rollables. Accomplishes
+   * this by copying a hidden template and activating it.
+   */
+  addRollable(){
+    // Copy our template roll
+    let newRoll = this.element.find('#rollableEventsTable > li[data-id ="template"]').clone();
+    // Assign temporary id
+    newRoll.attr("data-id", randomID());
+    // Show it!
+    newRoll.css("display", "");
+    // Append
+    this.element.find("#rollableEventsTable").append(newRoll);
+    // Attach new listener
+    newRoll.find(".result-controls > .delete-roll").click((event) => this.deleteRollable(event));
+    newRoll.find("#roll-type > select").change((event) => this.changeValSelect(event));
+  }
+
+  /**
+   * Deletes a <li> from the rollalbe list.
+   * @param  {[jQuery object]} event Click event from clicking the delete-roll button
+   */
+  deleteRollable(event){
+    event.preventDefault();
+    // Retrieve the row we are in
+    let row = $(event.currentTarget).parent().parent();
+    // Remove it from DOM
+    row.remove();
+  }
+
   handleRollables() {
 
     let rollables = [];
 
     this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
+      // Skip the template
+      if ($(roll).attr("data-id") === "template") return;
 
       let typeRoll = $(roll).find("#roll-type > select").val();
       let rollVal = $(roll).find("#roll-val > select").val();
@@ -208,51 +221,49 @@ export class DWTForm extends FormApplication {
         
       }
 
-      // Get a unique ID
-      let id = randomID();
-      // Add event
+      let id = $(roll).attr("data-id");
+      // Add roll
       rollables.push({type: typeRoll, dc: dc, id: id, group: group, val: rollVal})
-      // Add the row that shows in the form (DOM!)
     });
     this.rolls = rollables;
   }
 
-  handleResultDelete(event) {
-    // Delete result
+  /**
+   * Handle changes of the "Roll Type" to dynamically change the "Roll"
+   * options. For all except type "custForm" we unhide a <select> with
+   * dynamic options. "custForm" maintains a simple input.
+   * 
+   * @param  {[jQuery object]} event triggering change event from a "Roll Type" select.
+   */
+  changeValSelect(event) {
     event.preventDefault();
-    const elem = $(event.currentTarget).parent().parent();
-    const toDel = this.results.find((res) => res[3] == elem.attr("id"));
-    const idx = this.results.indexOf(toDel);
-    this.results.splice(idx, 1);
-    elem.remove();
+
+    let valSelect = $(event.currentTarget).parent().parent().find("#roll-val");
+    let type = $(event.currentTarget).val();
+
+    valSelect.find("select, input").css("display", "none");
+    valSelect.find("#" + type).css("display", "");
+  }
+  
+  addResult() {
+    // Copy our template result
+    let newResult = this.element.find('#resultsTable > li[data-id ="template"]').clone();
+    // Assign temporary id
+    newResult.attr("data-id", randomID());
+    // Show it!
+    newResult.css("display", "");
+    // Append
+    this.element.find("#resultsTable").append(newResult);
+    // Attach new listener
+    newResult.find(".result-controls > .delete-result").click((event) => this.deleteResult(event));
   }
 
-  handleResults(event) {
-    // Add result to table
+  deleteResult(event) {
     event.preventDefault();
-
-    const minV = "0";
-    const maxV = "5";
-    const textV = "You win 5 cakes."
-    // ID
-    const time = Date.now();
-    // Add event
-    this.results.push([parseInt(minV), parseInt(maxV), textV, time]);
-    // Add the row that shows in the form (DOM!)
-    this.element.find("#resultsTable > tbody").append(
-      `<tr id="` + time +`" class="result">
-        <td><input style="margin: 5px;" value="`+ minV +`" type="text" id="rollStart"></input></td>
-        <td><input style="margin: 5px;" value="` + maxV + `" type="text" id="rollEnd"></input></td>
-        <td><input style="margin: 5px;" value="` + textV + `" type="text" id="rollDesc"></input></td>
-        <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete">
-            <i class="fas fa-trash"></i></a>
-        </td>
-      </tr>`
-    );
-
-    this.element
-      .find("#resultsTable > tbody > #" + time)
-      .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
+    // Retrieve the row we are in
+    let row = $(event.currentTarget).parent().parent();
+    // Remove it from DOM
+    row.remove();
   }
 
   async _updateObject(event, formData) {
@@ -279,58 +290,32 @@ export class DWTForm extends FormApplication {
       chance: parseInt(this.element.find("#compchance").val())
     }
 
-
-    // // Override value of this.rollableEvents with the input in the form.
-    // this.rollableEvents = this.rollableEvents.map((rollableEvent) => {
-    //   return [
-    //     rollableEvent[0],
-    //     this.element.find("#" + rollableEvent[2] + " > td > #dc").val(),
-    //     rollableEvent[2]
-    //   ];
-    // });
-
-    // // Handle OR grouping of rollableEvents
-    // let rollableGroups = [{ group: "", rolls: [] }];
-    // this.rollableEvents.forEach((rollableEvent) => {
-    //   const groupVal = this.element
-    //     .find("#" + rollableEvent[2] + " > td > #group")
-    //     .val();
-    //   rollableGroups.forEach((groupDict) => {
-    //     if (groupDict["group"] == groupVal) {
-    //       groupDict["rolls"].push(rollableEvent);
-    //     }
-    //   });
-
-    //   if (
-    //     rollableGroups.find((group) => group["group"] === groupVal) ===
-    //     undefined
-    //   ) {
-    //     const groupDict = {
-    //       group: groupVal,
-    //       rolls: [rollableEvent],
-    //     };
-
-    //     rollableGroups.push(groupDict);
-    //   }
-    // });
-
     try {
       this.handleRollables();
     } catch (e) {
-      console.log(e);
+      console.error(e);
       throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
     }
 
+    let newResults = [];
+    this.element.find("#resultsTable > #result").each((i, result) => {
+      // Skip the template
+      if ($(result).attr("data-id") === "template") return;
 
-    // Add "new" values from the input fields so that changes are reflected.
-    this.results = this.results.map((result) => {
-      return[
-        parseInt(this.element.find("#" + result[3] + " > td > #rollStart").val()),
-        parseInt(this.element.find("#" + result[3] + " > td > #rollEnd").val()),
-        this.element.find("#" + result[3] + " > td > #rollDesc").val(),
-        result[3]
-      ];
-    });
+      let low = $(result).find("#low").val();
+      let high = $(result).find("#high").val();
+      let desc = $(result).find("#desc").val();
+      let id = $(result).attr("data-id");
+
+      newResults.push({
+        low: low,
+        high: high,
+        desc: desc,
+        id: id
+      })
+    })
+
+    this.results = newResults;
 
 
     // Setup or update the values of our activity
@@ -340,7 +325,7 @@ export class DWTForm extends FormApplication {
         name: actName || "New Downtime Activity",
         description: actDesc || "",
         changes: [],
-        rollableEvents: this.rollableEvents,
+        //rollableEvents: this.rollableEvents,
         results: this.results,
         id: Date.now(),
         type: actType,
@@ -357,7 +342,7 @@ export class DWTForm extends FormApplication {
       activity = this.activity;
       activity["name"] = actName;
       activity["description"] = actDesc;
-      activity["rollableEvents"] = this.rollableEvents;
+      //activity["rollableEvents"] = this.rollableEvents;
       activity["results"] = this.results;
       activity["type"] = actType;
       activity["img"] = this.image;
