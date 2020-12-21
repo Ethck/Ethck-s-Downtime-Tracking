@@ -171,13 +171,15 @@ export class DWTForm extends FormApplication {
       if (id === "template") return;
       let event = this.rolls.find((rble) => rble.id == id);
       let type = event.type;
-      let newVal = event.val || "";
-      $(roll).find("#roll-type > select").val(type);
+      let newVal = event.roll || "";
 
+      $(roll).find("#roll-type > select").val(type);
+      // Set all roll-val to off
       $(roll).find("#roll-val").find("select, input").css("display", "none");
       $(roll).find("#roll-val").find("select, input").prop("disabled", true);
+      // Turn on the correct select based on type
       $(roll).find("#roll-val").find("#" + type).css("display", "");
-      $(roll).find("#roll-val > select #" + type).val(newVal);
+      $(roll).find("#roll-val > #" + type).val(newVal);
       $(roll).find("#roll-val").find("#" + type).prop("disabled", false);
     });
   }
@@ -206,6 +208,8 @@ export class DWTForm extends FormApplication {
     newRoll.attr("data-id", randomID());
     // Show it!
     newRoll.css("display", "");
+    // Enable it
+    newRoll.find("#roll-val > select, #roll-type > select").prop("disabled", false)
     // Append
     this.element.find("#rollableEventsTable").append(newRoll);
     // Attach new listener
@@ -225,22 +229,10 @@ export class DWTForm extends FormApplication {
     row.remove();
   }
 
-  handleRollables() {
-
-    let rollables = [];
-
-    this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
-      // Skip the template
-      if ($(roll).attr("data-id") === "template") return;
-
-      let typeRoll = $(roll).find("#roll-type > select").val();
-      let rollVal = $(roll).find("#roll-val > select").val();
-      let group = $(roll).find("#roll-group > input").val();
-      let dc = $(roll).find("#roll-dc > input").val();
-
-
-      if (typeRoll === "custForm"){
-        let custom = $(roll).find("#roll-val > input").val();
+  validateCustom() {
+    this.activity.rolls.forEach((roll) => {
+      if (roll.type === "CUSTOM"){
+        let custom = roll.roll;
         let context = mergeObject({actor: this.actor}, this.actor.getRollData());
         if (Roll.validate(custom, context)){//ensure no error in custom
           let fail = false;
@@ -257,19 +249,12 @@ export class DWTForm extends FormApplication {
             }
           })
           if (fail) throw "Error in context for rolling.";
-          rollVal = custom;
         } else {
           ui.notifications.warn("Ethck's Downtime Tracking | This is not a valid roll formula.");
           return;
         }
-        
       }
-
-      let id = $(roll).attr("data-id");
-      // Add roll
-      rollables.push({type: typeRoll, dc: dc, id: id, group: group, val: rollVal})
     });
-    this.rolls = rollables;
   }
 
   /**
@@ -313,14 +298,16 @@ export class DWTForm extends FormApplication {
   }
 
   loadArrayModel(entries, model, formData, dataPrefix){
-    for (const [key, value] of Object.entries(model)){
-      console.log(key)
+    for (const key of Object.keys(model)){
       const data = formData[dataPrefix + "." + key].filter(x => x);
-      console.log(data)
+      console.log(entries.length, data.length);
 
-      // Option 1A
+
       const midpoint = Math.min(data.length, entries.length);
       const end = Math.max(data.length, entries.length);
+
+      entries.length = data.length;
+      console.log(entries.length);
 
       let i = 0;
       for (; i < midpoint; i++) {
@@ -330,9 +317,11 @@ export class DWTForm extends FormApplication {
       for (; i < end; i++) {
         const entry   = {}
         entry[key]    = data[i];
-        entries[i][key] = entry;
+        entries[i] = entry;
       }
     }
+
+    console.log(entries);
   }
 
   async _updateObject(event, formData) {
@@ -353,7 +342,6 @@ export class DWTForm extends FormApplication {
     const actTimeTaken = this.element.find("#timeTaken").val();
     const useMaterials = this.element.find("#materials").prop("checked");
 
-    const {rolls} = this.activity;
     console.log(formData);
     this.loadArrayModel(this.activity.rolls, ACTIVITY_ROLL_MODEL, formData, "roll");
     this.loadArrayModel(this.activity.results, ACTIVITY_RESULT_MODEL, formData, "result");
@@ -368,7 +356,7 @@ export class DWTForm extends FormApplication {
     }
 
     try {
-      this.handleRollables();
+      this.validateCustom();
     } catch (e) {
       console.error(e);
       throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
