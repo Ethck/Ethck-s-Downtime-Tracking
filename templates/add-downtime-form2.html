@@ -3,26 +3,26 @@
     <div style="display:flex; flex-direction:row;">
       <div style="width:160px; border-right: 1px solid #b5b3a4; border-bottom: 1px solid #b5b3a4; box-shadow: 0px 1px 1px 0px #f0f0e0; padding-right: 5px;">
         <span style="text-align: center; width: 160px; display: block;">Icon in Chat</span>
-        <img style="height: 140px; width: 160px;" class="file-picker-cust" src="{{activity.img}}" data-type="image"></img>
+        <img style="height: 140px; width: 160px;" class="file-picker-cust" src="{{activity.chat_icon}}" data-type="image"></img>
       </div>
       <div style="padding:0px 0px 0px 5px;">
         <label>Name:</label>
         <input type="text" id="name" name="name" value="{{activity.name}}"/>
         <label>Description:</label>
-        <textarea name="desc" id="desc">{{activity.description}}</textarea>
+        <textarea name="description" id="desc">{{activity.description}}</textarea>
         <!-- Thank you CUB Condition Lab (errational!) -->
         <label>Icon in Character Sheet</label>
         <div class="path">
-          <input type="text" name="rollIcon" title="Status Icon Path" class="icon-path" value="{{activity.rollIcon}}" placeholder="/icons/example.svg" data-dtype="String">
-          <button type="button" name="file-picker" class="file-picker" data-type="image" data-target="rollIcon" title="Browse Files" tabindex="-1">
+          <input type="text" name="sheet_icon" title="Status Icon Path" class="icon-path" value="{{activity.sheet_icon}}" placeholder="/icons/example.svg" data-dtype="String">
+          <button type="button" name="file-picker" class="file-picker" data-type="image" data-target="sheet_icon" title="Browse Files" tabindex="-1">
             <i class="fas fa-file-import fa-fw"></i>
           </button>
         </div>
         <div>
           <label>Activity Type</label>
-          <input type="radio" id="succFailActivity" name="activityType" value="succFail" checked="checked">Success Count
-          <input type="radio" id="categoryActivity" name="activityType" value="categories" checked="checked">Roll Total
-          <input type="radio" id="noRollActivity" name="activityType" value="noRoll">No Roll
+          <input type="radio" id="SUCCESS_COUNT" name="type" value="SUCCESS_COUNT" checked="checked">Success Count
+          <input type="radio" id="ROLL_TOTAL" name="type" value="ROLL_TOTAL">Roll Total
+          <input type="radio" id="NO_ROLL" name="type" value="NO_ROLL">No Roll
         </div>
       </div>
     </div>
@@ -110,7 +110,7 @@
               </div>
 
         </li>
-        {{#each activity.rolls as | roll |}}
+        {{#each activity.roll as | roll |}}
             <li class="table-result flexrow" data-id="{{roll.id}}" id="rollable">
 
               <div class="result-type" id="roll-type" data-id="{{roll.id}}">
@@ -197,7 +197,7 @@
           </div>
 
           <div class="result-details">
-            <input type="text" id="desc" name="result.details" value="" placeholder="Result description">
+            <input type="text" id="details" name="result.details" value="" placeholder="Result description">
           </div>
 
           <div class="result-controls">
@@ -207,7 +207,7 @@
           </div>
         </li>
 
-        {{#each activity.results as | result i |}}
+        {{#each activity.result as | result i |}}
           <li class="table-result flexrow" id="result" data-id="{{result.id}}">
 
           <div class="result-range">
@@ -217,7 +217,7 @@
           </div>
 
           <div class="result-details">
-            <input type="text" id="desc" name="result.details" value="{{result.details}}" placeholder="Result description">
+            <input type="text" id="details" name="result.details" value="{{result.details}}" placeholder="Result description">
           </div>
 
           <div class="result-controls">
@@ -235,7 +235,7 @@
    <div>
     <div class="form-group">
       <label>Chance of occuring per use</label>
-      <select name="compchance" id="compchance">
+      <select name="complication.chance" id="compchance">
         <option label=" "></option>
         {{#each compChances as | cc |}}
           <option value="{{cc}}" id="{{cc}}">{{cc}}%</option>
@@ -244,7 +244,7 @@
     </div>
     <div class="form-group">
       <label>RollTable to use</label>
-      <select name="complications" id="complications">
+      <select name="complication.roll_table" id="complications">
         <option label=" "></option>
         {{#each tables as |table |}}
           <option value="{{table.data._id}}" id="{{table.data._id}}"/>{{table.data.name}}</option>
@@ -256,10 +256,10 @@
   <h2>Options</h2>
 
   <div class="ethck-downtime-options">
-    <input type="checkbox" id="privateActivity" name="privateActivity">Private Roll</input>
-    <input type="checkbox" id="privateComp" name="privateComp">Private Complications</input>
-    <input type="checkbox" id="materials" name="materialUse">Ask for Materials?</input>
-    <input style="width: 2em;"type="text" id="timeTaken" name="timeTaken" value="5"> Days Used</input>
+    <input type="checkbox" id="privateActivity" name="options.rolls_are_private">Private Roll</input>
+    <input type="checkbox" id="privateComp" name="options.complications_are_private">Private Complications</input>
+    <input type="checkbox" id="materials" name="options.ask_for_materials">Ask for Materials?</input>
+    <input style="width: 2em;"type="text" id="timeTaken" name="options.days_used" value="5"> Days Used</input>
   </div>
 
   <hr>

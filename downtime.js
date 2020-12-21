@@ -32,22 +32,21 @@ const DND5E_TOOLS = [
   "Woodcarver's Tools",
 ];
 
-//* Perhaps this should be changed to a number input?
 const COMPLETION_CHANCES = [10, 25, 50, 75, 100];
 
-const ACTIVITY_TYPES = {
-  SUCCESS_COUNT: 1,
-  ROLL_TOTAL   : 2,
-  NO_ROLL      : 3,
-};
+/*
+ACTIVITY_TYPES:
+  SUCCESS_COUNT
+  ROLL_TOTAL
+  NO_ROLL
 
-const ROLL_TYPES = {
-  ABILITY_CHECK: 1,
-  SAVING_THROW : 2,
-  SKILL_CHECK  : 3,
-  TOOL_CHECK   : 4,
-  CUSTOM       : 5,
-};
+ROLL_TYPES:
+  ABILITY_CHECK
+  SAVING_THROW
+  SKILL_CHECK
+  TOOL_CHECK
+  CUSTOM
+ */
 
 const ACTIVITY_ROLL_MODEL = {
   type : 0, //* ROLL_TYPES
@@ -89,7 +88,7 @@ export class DWTForm extends FormApplication {
     this.activity = activity;
     this.actor = actor;
     this.edit = editMode;
-    this.image = activity["img"] || ""
+    this.image = activity.chat_icon || ""
   }
 
   static get defaultOptions() {
@@ -126,14 +125,7 @@ export class DWTForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
-    // // Add results
-    // this.element.find(".addResult").click((event) => this.handleResults(event));
-    // // Deletes on result(s)
-    // this.element
-    //   .find("#resultsTable > tbody > .result")
-    //   .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
-    // Picture picker
-    // 
+
     this.element.find(".addRollable").click(() => this.addRollable());
     this.element.find("#rollableEventsTable > li > .result-controls > .delete-roll").click((event) => this.deleteRollable(event));
 
@@ -146,27 +138,30 @@ export class DWTForm extends FormApplication {
     this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
     // Not really a listener, but update the state of this.
-    if (this.activity.type === "categories"){
-        this.element.find("#categoryActivity").attr("checked", true);
-    } else if (this.activity.type === "noRoll"){
-      this.element.find("#noRollActivity").attr("checked", true);
-    }
+    // if (this.activity.type === "categories"){
+    //     this.element.find("#categoryActivity").attr("checked", true);
+    // } else if (this.activity.type === "noRoll"){
+    //   this.element.find("#noRollActivity").attr("checked", true);
+    // }
+    // 
+    this.element.find('#' + this.activity.type).attr("checked", true);
+    console.log(this.element.find('#' + this.activity.type), this.activity.type)
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
       this.element.find("#compchance").val(this.activity.complication.chance);
-      this.element.find("#complications").val(this.activity.complication.table.id);
+      this.element.find("#complications").val(this.activity.complication.roll_table);
     }
-    // Set initial values of our options                        OLD                      NEW
-    this.element.find("#privateActivity").attr("checked", this.activity.private || this.activity.actPrivate);
-    this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
-    this.element.find("#timeTaken").val(this.activity.timeTaken);
-    this.element.find("#materials").attr("checked", this.activity.useMaterials)
+    // Set initial values of our options
+    this.element.find("#privateActivity").attr("checked", this.activity.options.rolls_are_private);
+    this.element.find("#privateComp").attr("checked", this.activity.options.complications_are_private)
+    this.element.find("#timeTaken").val(this.activity.options.days_used);
+    this.element.find("#materials").attr("checked", this.activity.options.ask_for_materials)
 
     // Set initial values of rollables
     this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
       let id = $(roll).attr("data-id");
       if (id === "template") return;
-      let event = this.activity.rolls[i - 1]
+      let event = this.activity.roll[i - 1]
       let type = event.type;
       let newVal = event.roll || "";
 
@@ -227,7 +222,7 @@ export class DWTForm extends FormApplication {
   }
 
   validateCustom() {
-    this.activity.rolls.forEach((roll) => {
+    this.activity.roll.forEach((roll) => {
       if (roll.type === "CUSTOM"){
         let custom = roll.roll;
         let context = mergeObject({actor: this.actor}, this.actor.getRollData());
@@ -294,6 +289,11 @@ export class DWTForm extends FormApplication {
     row.remove();
   }
 
+  /*
+  Iterate over all keys in a model, then find the relevant
+  entry in formData and combine them. `entires` grows 
+  dependent on the formData.
+   */
   loadArrayModel(model, formData, dataPrefix){
     let entries = [];
     for (const key of Object.keys(model)){
@@ -306,107 +306,57 @@ export class DWTForm extends FormApplication {
         entries[i][key] = data[i];
       }
     }
-
-    console.log(entries);
     return entries;
   }
 
   async _updateObject(event, formData) {
-    //console.log(event, expandObject(formData));
-
-    //console.log(Object.values(expandObject(formData).results)[0])
-    // create/edit activity to show
-    // Get vals from form
-    const actName = this.element.find("#name").val();
-    const actDesc = this.element.find("#desc").val();
-    const actRollImage = this.element.find('[name="rollIcon"]').val() || "icons/svg/d20.svg";
-    const actType =
-      this.element.find("#succFailActivity:checked").val() ||
-      this.element.find("#categoryActivity:checked").val() ||
-      this.element.find("#noRollActivity:checked").val();
-    const actPrivate = this.element.find("#privateActivity").prop("checked");
-    const compPrivate = this.element.find("#privateComp").prop("checked");
-    const actTimeTaken = this.element.find("#timeTaken").val();
-    const useMaterials = this.element.find("#materials").prop("checked");
-
-    console.log(formData);
-    this.activity.rolls = this.loadArrayModel(ACTIVITY_ROLL_MODEL, formData, "roll");
-    this.activity.results = this.loadArrayModel(ACTIVITY_RESULT_MODEL, formData, "result");
-
-    // Make the complication object with table and chance
-
-    const complication = {
-      table: {
-        id: this.element.find("#complications").val()
-      },
-      chance: parseInt(this.element.find("#compchance").val())
+    // preserve old ID or make new one
+    let id = 0;
+    if ("id" in this.activity) {
+      id = this.activity.id;
+    } else {
+      id = randomID();
     }
+    // recreate activity
+    this.activity = expandObject(formData);
+    this.activity.id = id;
 
+    this.activity.chat_icon = this.image;
+    this.activity.roll = this.loadArrayModel(ACTIVITY_ROLL_MODEL, formData, "roll");
+    this.activity.result = this.loadArrayModel(ACTIVITY_RESULT_MODEL, formData, "result");
+
+    // extra validate on custom formulas...
     try {
       this.validateCustom();
     } catch (e) {
       console.error(e);
       throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
     }
-
-    // Setup or update the values of our activity
-    let activity = {};
-    if (!this.edit) {
-      activity = {
-        name: actName || "New Downtime Activity",
-        description: actDesc || "",
-        changes: [],
-        //rollableEvents: this.rollableEvents,
-        results: this.activity.results,
-        id: Date.now(),
-        type: actType,
-        img: this.image,
-        complication: complication,
-        actPrivate: actPrivate,
-        compPrivate: compPrivate,
-        actTimeTaken: actTimeTaken,
-        rollIcon: actRollImage,
-        useMaterials: useMaterials,
-        rolls: this.activity.rolls
-      };
-    } else {
-      activity = this.activity;
-      activity["name"] = actName;
-      activity["description"] = actDesc;
-      //activity["rollableEvents"] = this.rollableEvents;
-      activity["results"] = this.activity.results;
-      activity["type"] = actType;
-      activity["img"] = this.image;
-      activity["complication"] = complication;
-      activity["actPrivate"] = actPrivate;
-      activity["compPrivate"] = compPrivate;
-      activity["timeTaken"] = actTimeTaken;
-      activity["rollIcon"] = actRollImage;
-      activity["useMaterials"] = useMaterials;
-      activity["rolls"] = this.activity.rolls;
-    }
-
+    // Update!!!
     const actor = this.actor;
     // local scope
     if (!jQuery.isEmptyObject(actor)) {
       let flags = actor.getFlag("downtime-ethck", "trainingItems");
-      if (!this.edit) {
-        activity["world"] = false;
-        // Update flags and actor
-        flags.push(activity);
+
+      if (this.edit) {
+        let act = flags.find((act) => act.id == this.activity.id);
+        let idx = flags.indexOf(act);
+        flags[idx] = this.activity;
+      } else {
+        flags.push(this.activity);
       }
       await actor.unsetFlag("downtime-ethck", "trainingItems")
       await actor.setFlag("downtime-ethck", "trainingItems", flags)
     // World scope
     } else {
-      activity["world"] = true;
+      this.activity["world"] = true;
       const settings = game.settings.get("downtime-ethck", "activities");
       if (this.edit) {
-        let act = settings.find((act) => act.id == activity.id);
+        let act = settings.find((act) => act.id == this.activity.id);
         let idx = settings.indexOf(act);
-        settings[idx] = activity;
+        settings[idx] = this.activity;
       } else {
-        settings.push(activity);
+        settings.push(this.activity);
       }
       await game.settings.set("downtime-ethck", "activities", settings);
     }
