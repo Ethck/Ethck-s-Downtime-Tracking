@@ -848,9 +848,9 @@ async function _updateDowntimes(downtimes) {
 
         let newRes = res.map((result) => {
           return {
-            low: result[0], // lower bound
-            high: result[1], // high bound
-            desc: result[2], // description
+            min: result[0], // lower bound
+            max: result[1], // high bound
+            details: result[2], // description
             id: randomID() //some unique thingamabob
           }
         });

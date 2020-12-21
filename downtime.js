@@ -1,3 +1,87 @@
+const FORM_TEMPLATE = "modules/downtime-ethck/templates/add-downtime-form2.html";
+
+const EDIT_DOWNTIME_TITLE = "Edit a Downtime Activity";
+const ADD_DOWNTIME_TITLE = "Add a Downtime Event";
+
+const DND5E_TOOLS = [
+  "Alchemist's Supplies",
+  "Brewer's Supplies",
+  "Calligrapher's Supplies",
+  "Carpenter's Tools",
+  "Cartographer's Tools",
+  "Cobbler's Tools",
+  "Cook's Utensils",
+  "Dice Set",
+  "Disguise Kit",
+  "Forgery Kit",
+  "Glassblower's Tools",
+  "Herbalism Kit",
+  "Jeweler's Tools",
+  "Leatherworker's Tools",
+  "Mason's Tools",
+  "Musical Instrument(s)",
+  "Navigator's Tools",
+  "Painter's Supplies",
+  "Playing Card Set",
+  "Poisoner's Kit",
+  "Potter's Tools",
+  "Smith's Tools",
+  "Thieves' Tools",
+  "Tinker's Tools",
+  "Weaver's Tools",
+  "Woodcarver's Tools",
+];
+
+//* Perhaps this should be changed to a number input?
+const COMPLETION_CHANCES = [10, 25, 50, 75, 100];
+
+const ACTIVITY_TYPES = {
+  SUCCESS_COUNT: 1,
+  ROLL_TOTAL   : 2,
+  NO_ROLL      : 3,
+};
+
+const ROLL_TYPES = {
+  ABILITY_CHECK: 1,
+  SAVING_THROW : 2,
+  SKILL_CHECK  : 3,
+  TOOL_CHECK   : 4,
+  CUSTOM       : 5,
+};
+
+const ACTIVITY_ROLL_MODEL = {
+  type : 0, //* ROLL_TYPES
+  roll : "",
+  group: "",
+  dc   : 0,
+}
+
+const ACTIVITY_RESULT_MODEL = {
+  min    : 0,
+  max    : 0,
+  details: ""
+}
+
+const ACTIVITY_MODEL = {
+  name       : "New Downtime Activity",
+  description: "",
+  chat_icon  : "icons/svg/d20.svg",
+  sheet_icon : "icons/svg/d20.svg",
+  type       : 0,  //* ACTIVITY_TYPES
+  rolls      : [], //* ACTIVITY_ROLL_MODEL
+  results    : [], //* ACTIVITY_RESULT_MODEL
+  complications: {
+    chance    : "",
+    roll_table: ""
+  },
+  options: {
+    rolls_are_private        : false,
+    complications_are_private: false,
+    ask_for_materials        : false,
+    days_used                : 0,
+  }
+}
+
 export class DWTForm extends FormApplication {
   constructor(actor = {}, activity = {}, editMode = false, ...args) {
     super(...args);
@@ -12,70 +96,28 @@ export class DWTForm extends FormApplication {
   }
 
   static get defaultOptions() {
-    const options = super.defaultOptions;
-    if (this.edit) {
-      options.title = "Edit a Downtime Activity";
-    } else {
-      options.title = "Add a Downtime Event";
-    }
-    options.id = "downtime-ethck";
-    options.template =
-      "modules/downtime-ethck/templates/add-downtime-form2.html";
-    options.closeOnSubmit = true;
-    options.popOut = true;
-    options.width = 800;
-    options.height = "auto";
-    return options;
+    let title = this.editing ? EDIT_DOWNTIME_TITLE : ADD_DOWNTIME_TITLE;
+
+    return mergeObject(super.defaultOptions, {
+      id           : "downtime-ethck",
+      template     : FORM_TEMPLATE,
+      title        : title,
+      closeOnSubmit: true,
+      popOut       : true,
+      width        : 800,
+      height       : "auto",
+    })
   }
 
   async getData() {
-    // Return data to the template
-    const abilities = CONFIG.DND5E.abilities;
-    const saves = CONFIG.DND5E.abilities;
-    const skills = CONFIG.DND5E.skills;
-    const tools = [
-      "Alchemist's Supplies",
-      "Brewer's Supplies",
-      "Calligrapher's Supplies",
-      "Carpenter's Tools",
-      "Cartographer's Tools",
-      "Cobbler's Tools",
-      "Cook's Utensils",
-      "Dice Set",
-      "Disguise Kit",
-      "Forgery Kit",
-      "Glassblower's Tools",
-      "Herbalism Kit",
-      "Jeweler's Tools",
-      "Leatherworker's Tools",
-      "Mason's Tools",
-      "Musical Instrument(s)",
-      "Navigator's Tools",
-      "Painter's Supplies",
-      "Playing Card Set",
-      "Poisoner's Kit",
-      "Potter's Tools",
-      "Smith's Tools",
-      "Thieves' Tools",
-      "Tinker's Tools",
-      "Weaver's Tools",
-      "Woodcarver's Tools",
-    ]
-
-    this.tools = tools;
-
-    const activity = this.activity;
-    const tables = game.tables;
-    const compChances = [10, 25, 50, 75, 100]
-
     return {
-      abilities,
-      saves,
-      skills,
-      tools,
-      activity,
-      tables,
-      compChances
+      abilities: CONFIG.DND5E.abilities,
+      saves: CONFIG.DND5E.abilities,
+      skills: CONFIG.DND5E.skills,
+      tools: DND5E_TOOLS,
+      activity: this.activity,
+      tables: game.tables,
+      compChances: COMPLETION_CHANCES
     };
   }
 
@@ -133,8 +175,10 @@ export class DWTForm extends FormApplication {
       $(roll).find("#roll-type > select").val(type);
 
       $(roll).find("#roll-val").find("select, input").css("display", "none");
+      $(roll).find("#roll-val").find("select, input").prop("disabled", true);
       $(roll).find("#roll-val").find("#" + type).css("display", "");
       $(roll).find("#roll-val > select #" + type).val(newVal);
+      $(roll).find("#roll-val").find("#" + type).prop("disabled", false);
     });
   }
 
@@ -242,7 +286,9 @@ export class DWTForm extends FormApplication {
     let type = $(event.currentTarget).val();
 
     valSelect.find("select, input").css("display", "none");
+    valSelect.find("select, input").prop("disabled", true);
     valSelect.find("#" + type).css("display", "");
+    valSelect.find("#" + type).prop("disabled", false);
   }
   
   addResult() {
@@ -266,7 +312,33 @@ export class DWTForm extends FormApplication {
     row.remove();
   }
 
+  loadArrayModel(entries, model, formData, dataPrefix){
+    for (const [key, value] of Object.entries(model)){
+      console.log(key)
+      const data = formData[dataPrefix + "." + key].filter(x => x);
+      console.log(data)
+
+      // Option 1A
+      const midpoint = Math.min(data.length, entries.length);
+      const end = Math.max(data.length, entries.length);
+
+      let i = 0;
+      for (; i < midpoint; i++) {
+        entries[i][key] = data[i];
+      }
+
+      for (; i < end; i++) {
+        const entry   = {}
+        entry[key]    = data[i];
+        entries[i][key] = entry;
+      }
+    }
+  }
+
   async _updateObject(event, formData) {
+    //console.log(event, expandObject(formData));
+
+    //console.log(Object.values(expandObject(formData).results)[0])
     // create/edit activity to show
     // Get vals from form
     const actName = this.element.find("#name").val();
@@ -280,6 +352,11 @@ export class DWTForm extends FormApplication {
     const compPrivate = this.element.find("#privateComp").prop("checked");
     const actTimeTaken = this.element.find("#timeTaken").val();
     const useMaterials = this.element.find("#materials").prop("checked");
+
+    const {rolls} = this.activity;
+    console.log(formData);
+    this.loadArrayModel(this.activity.rolls, ACTIVITY_ROLL_MODEL, formData, "roll");
+    this.loadArrayModel(this.activity.results, ACTIVITY_RESULT_MODEL, formData, "result");
 
     // Make the complication object with table and chance
 
@@ -297,27 +374,6 @@ export class DWTForm extends FormApplication {
       throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
     }
 
-    let newResults = [];
-    this.element.find("#resultsTable > #result").each((i, result) => {
-      // Skip the template
-      if ($(result).attr("data-id") === "template") return;
-
-      let low = $(result).find("#low").val();
-      let high = $(result).find("#high").val();
-      let desc = $(result).find("#desc").val();
-      let id = $(result).attr("data-id");
-
-      newResults.push({
-        low: low,
-        high: high,
-        desc: desc,
-        id: id
-      })
-    })
-
-    this.results = newResults;
-
-
     // Setup or update the values of our activity
     let activity = {};
     if (!this.edit) {
@@ -326,7 +382,7 @@ export class DWTForm extends FormApplication {
         description: actDesc || "",
         changes: [],
         //rollableEvents: this.rollableEvents,
-        results: this.results,
+        results: this.activity.results,
         id: Date.now(),
         type: actType,
         img: this.image,
@@ -343,7 +399,7 @@ export class DWTForm extends FormApplication {
       activity["name"] = actName;
       activity["description"] = actDesc;
       //activity["rollableEvents"] = this.rollableEvents;
-      activity["results"] = this.results;
+      activity["results"] = this.activity.results;
       activity["type"] = actType;
       activity["img"] = this.image;
       activity["complication"] = complication;

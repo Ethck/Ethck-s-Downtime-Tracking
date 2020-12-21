@@ -62,37 +62,37 @@
         <li class="table-result flexrow" data-id="template" id="rollable" style="display: none;">
 
               <div class="result-type" id="roll-type" data-id="template">
-                <select>
-                  <option value="abiCheck" selected="">Ability Check</option>
-                  <option value="save">Saving Throw</option>
-                  <option value="skiCheck">Skill Check</option>
-                  <option value="toolCheck">Tool Check</option>
-                  <option value="custForm">Custom Formula</option>
+                <select name="roll.type" disabled>
+                  <option value="ABILITY_CHECK" selected="">Ability Check</option>
+                  <option value="SAVING_THROW">Saving Throw</option>
+                  <option value="SKILL_CHECK">Skill Check</option>
+                  <option value="TOOL_CHECK">Tool Check</option>
+                  <option value="CUSTOM">Custom Formula</option>
                 </select>
               </div>
 
               <div class="result-details" id="roll-val">
-                <select id="abiCheck">
+                <select id="ABILITY_CHECK" name="roll.roll" disabled>
                   {{#each abilities}}
                     <option value="{{@key}}">{{this}}</option>
                   {{/each}}
                 </select>
-                <select id="save" style="display: none;">
+                <select id="SAVING_THROW" style="display: none;" name="roll.roll" disabled>
                   {{#each saves}}
                     <option value="{{@key}}">{{this}}</option>
                   {{/each}}
                 </select>
-                <select id="skiCheck" style="display: none;">
+                <select id="SKILL_CHECK" style="display: none;" name="roll.roll" disabled>
                   {{#each skills}}
                     <option value="{{@key}}">{{this}}</option>
                   {{/each}}
                 </select>
-                <select id="toolCheck" style="display: none;">
+                <select id="TOOL_CHECK" style="display: none;"  name="roll.roll" disabled>
                   {{#each tools as | tool |}}
                     <option value="{{tool}}">{{tool}}</option>
                   {{/each}}
                 </select>
-                <input type="text" id="custForm" value="{{roll.val}}" placeholder="@attributes.str.mod" style="display: none;"/>
+                <input type="text" id="CUSTOM" value="{{roll.roll}}" placeholder="@attributes.str.mod" style="display: none;" name="roll.roll" disabled/>
               </div>
 
               <div class="result-type" id="roll-group">
@@ -114,45 +114,45 @@
             <li class="table-result flexrow" data-id="{{roll.id}}" id="rollable">
 
               <div class="result-type" id="roll-type" data-id="{{roll.id}}">
-                <select>
-                  <option value="abiCheck" selected="">Ability Check</option>
-                  <option value="save">Saving Throw</option>
-                  <option value="skiCheck">Skill Check</option>
-                  <option value="toolCheck">Tool Check</option>
-                  <option value="custForm">Custom Formula</option>
+                <select name="roll.type">
+                  <option value="ABILITY_CHECK" selected="">Ability Check</option>
+                  <option value="SAVING_THROW">Saving Throw</option>
+                  <option value="SKILL_CHECK">Skill Check</option>
+                  <option value="TOOL_CHECK">Tool Check</option>
+                  <option value="CUSTOM">Custom Formula</option>
                 </select>
               </div>
 
               <div class="result-details" id="roll-val">
-                <select id="abiCheck">
+                <select id="ABILITY_CHECK" name="roll.roll">
                   {{#each ../abilities}}
                     <option value="{{@key}}">{{this}}</option>
                   {{/each}}
                 </select>
-                <select id="save" style="display: none;">
+                <select id="SAVING_THROW" style="display: none;" disabled name="roll.roll">
                   {{#each ../saves}}
                     <option value="{{@key}}">{{this}}</option>
                   {{/each}}
                 </select>
-                <select id="skiCheck" style="display: none;">
+                <select id="SKILL_CHECK" style="display: none;" disabled name="roll.roll">
                   {{#each ../skills}}
                     <option value="{{@key}}">{{this}}</option>
                   {{/each}}
                 </select>
-                <select id="toolCheck" style="display: none;">
+                <select id="TOOL_CHECK" style="display: none;" disabled name="roll.roll">
                   {{#each ../tools as | tool |}}
                     <option value="{{tool}}">{{tool}}</option>
                   {{/each}}
                 </select>
-                <input type="text" id="custForm" value="{{roll.val}}" placeholder="@attributes.str.mod" style="display: none;"/>
+                <input type="text" id="CUSTOM" value="{{roll.roll}}" placeholder="@attributes.str.mod" style="display: none;" disabled name="roll.roll"/>
               </div>
 
               <div class="result-type" id="roll-group">
-                <input type="text" value="{{roll.group}}" placeholder="a">
+                <input type="text" name="roll.group" value="{{roll.group}}" placeholder="a">
               </div>
 
               <div class="result-weight" id="roll-dc">
-                <input type="text" value="{{roll.dc}}" placeholder="1d20">
+                <input type="text" name="roll.dc" value="{{roll.dc}}" placeholder="1d20">
               </div>
 
               <div class="result-controls">
@@ -191,13 +191,13 @@
         <li class="table-result flexrow" id="result" data-id="template" style="display:none;">
 
           <div class="result-range">
-            <input type="text" id="low" value="" placeholder="0">
+            <input type="text" id="low" name="result.min" value="" placeholder="0">
             <span> - </span>
-            <input type="text" id="high" value="" placeholder="5">
+            <input type="text" id="high" name="result.max" value="" placeholder="5">
           </div>
 
           <div class="result-details">
-            <input type="text" id="desc" value="" placeholder="Result description">
+            <input type="text" id="desc" name="result.details" value="" placeholder="Result description">
           </div>
 
           <div class="result-controls">
@@ -207,17 +207,17 @@
           </div>
         </li>
 
-        {{#each activity.results as | result |}}
+        {{#each activity.results as | result i |}}
           <li class="table-result flexrow" id="result" data-id="{{result.id}}">
 
           <div class="result-range">
-            <input type="text" id="low" value="{{result.low}}" placeholder="0">
+            <input type="text" id="low" name="result.min" value="{{result.min}}" placeholder="0">
             <span> - </span>
-            <input type="text" id="high" value="{{result.high}}" placeholder="5">
+            <input type="text" id="high" name="result.max" value="{{result.max}}" placeholder="5">
           </div>
 
           <div class="result-details">
-            <input type="text" id="desc" value="{{result.desc}}" placeholder="Result description">
+            <input type="text" id="desc" name="result.details" value="{{result.details}}" placeholder="Result description">
           </div>
 
           <div class="result-controls">
@@ -244,7 +244,7 @@
     </div>
     <div class="form-group">
       <label>RollTable to use</label>
-      <select name="Complications" id="complications">
+      <select name="complications" id="complications">
         <option label=" "></option>
         {{#each tables as |table |}}
           <option value="{{table.data._id}}" id="{{table.data._id}}"/>{{table.data.name}}</option>
