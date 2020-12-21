@@ -87,9 +87,6 @@ export class DWTForm extends FormApplication {
     super(...args);
     game.users.apps.push(this);
     this.activity = activity;
-    this.rollableEvents = activity["rollableEvents"] || [];
-    this.rolls = activity["rolls"];
-    this.results = activity["results"] || [];
     this.actor = actor;
     this.edit = editMode;
     this.image = activity["img"] || ""
@@ -169,7 +166,7 @@ export class DWTForm extends FormApplication {
     this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
       let id = $(roll).attr("data-id");
       if (id === "template") return;
-      let event = this.rolls.find((rble) => rble.id == id);
+      let event = this.activity.rolls[i - 1]
       let type = event.type;
       let newVal = event.roll || "";
 
@@ -209,7 +206,7 @@ export class DWTForm extends FormApplication {
     // Show it!
     newRoll.css("display", "");
     // Enable it
-    newRoll.find("#roll-val > select, #roll-type > select").prop("disabled", false)
+    newRoll.find("#roll-type > select, #roll-val > #ABILITY_CHECK").prop("disabled", false)
     // Append
     this.element.find("#rollableEventsTable").append(newRoll);
     // Attach new listener
@@ -297,31 +294,21 @@ export class DWTForm extends FormApplication {
     row.remove();
   }
 
-  loadArrayModel(entries, model, formData, dataPrefix){
+  loadArrayModel(model, formData, dataPrefix){
+    let entries = [];
     for (const key of Object.keys(model)){
       const data = formData[dataPrefix + "." + key].filter(x => x);
-      console.log(entries.length, data.length);
-
-
-      const midpoint = Math.min(data.length, entries.length);
-      const end = Math.max(data.length, entries.length);
-
-      entries.length = data.length;
-      console.log(entries.length);
 
       let i = 0;
-      for (; i < midpoint; i++) {
-        entries[i][key] = data[i];
-      }
 
-      for (; i < end; i++) {
-        const entry   = {}
-        entry[key]    = data[i];
-        entries[i] = entry;
+      for (; i < data.length; i++) {
+        if (i === entries.length) entries.push({});
+        entries[i][key] = data[i];
       }
     }
 
     console.log(entries);
+    return entries;
   }
 
   async _updateObject(event, formData) {
@@ -343,8 +330,8 @@ export class DWTForm extends FormApplication {
     const useMaterials = this.element.find("#materials").prop("checked");
 
     console.log(formData);
-    this.loadArrayModel(this.activity.rolls, ACTIVITY_ROLL_MODEL, formData, "roll");
-    this.loadArrayModel(this.activity.results, ACTIVITY_RESULT_MODEL, formData, "result");
+    this.activity.rolls = this.loadArrayModel(ACTIVITY_ROLL_MODEL, formData, "roll");
+    this.activity.results = this.loadArrayModel(ACTIVITY_RESULT_MODEL, formData, "result");
 
     // Make the complication object with table and chance
 
@@ -380,7 +367,7 @@ export class DWTForm extends FormApplication {
         actTimeTaken: actTimeTaken,
         rollIcon: actRollImage,
         useMaterials: useMaterials,
-        rolls: this.rolls
+        rolls: this.activity.rolls
       };
     } else {
       activity = this.activity;
@@ -396,7 +383,7 @@ export class DWTForm extends FormApplication {
       activity["timeTaken"] = actTimeTaken;
       activity["rollIcon"] = actRollImage;
       activity["useMaterials"] = useMaterials;
-      activity["rolls"] = this.rolls;
+      activity["rolls"] = this.activity.rolls;
     }
 
     const actor = this.actor;
