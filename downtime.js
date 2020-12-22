@@ -294,19 +294,31 @@ export class DWTForm extends FormApplication {
   entry in formData and combine them. `entires` grows 
   dependent on the formData.
    */
-  loadArrayModel(model, formData, dataPrefix){
-    let entries = [];
+  loadModelFromTable(rows, columns, model, dataPrefix){
     for (const key of Object.keys(model)){
-      const data = formData[dataPrefix + "." + key].filter(x => x);
+      const column = columns[dataPrefix + "." + key].filter((x) => x);
+      console.log(rows)
+      delete rows.key;
+  
+      const existingRowsEnd = Math.min(column.length, rows.length);
+      const allRowsEnd = column.length;
+
+      rows.length = column.length;
 
       let i = 0;
 
-      for (; i < data.length; i++) {
-        if (i === entries.length) entries.push({});
-        entries[i][key] = data[i];
+      for (; i < existingRowsEnd; i++) {
+        rows[i][key] = column[i];
+      }
+
+      for (; i < allRowsEnd; i++) {
+        const row = {};
+        row[key]  = column[i];
+        rows[i]   = row;
       }
     }
-    return entries;
+
+    console.log(rows);
   }
 
   async _updateObject(event, formData) {
@@ -322,8 +334,9 @@ export class DWTForm extends FormApplication {
     this.activity.id = id;
 
     this.activity.chat_icon = this.image;
-    this.activity.roll = this.loadArrayModel(ACTIVITY_ROLL_MODEL, formData, "roll");
-    this.activity.result = this.loadArrayModel(ACTIVITY_RESULT_MODEL, formData, "result");
+    console.log(this.activity.roll);
+    this.loadModelFromTable(this.activity.roll, formData, ACTIVITY_ROLL_MODEL, "roll");
+    this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
 
     // extra validate on custom formulas...
     try {
@@ -332,6 +345,9 @@ export class DWTForm extends FormApplication {
       console.error(e);
       throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
     }
+
+    console.log(this.activity)
+    return;
     // Update!!!
     const actor = this.actor;
     // local scope
