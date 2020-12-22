@@ -247,26 +247,37 @@ async function addTrainingTab(app, html, data) {
       let res = [];
 
       let rolls = [];
-      if (activity.rollableGroups.every((rg) => rg.rolls.length <= 1)){ //No ORs in activity
-        activity.rollableGroups.forEach((group) => {
-          if (group.rolls.length >= 1){
-            rolls.push(group.rolls[0])
-          }
-        });
-      } else { // Some ORs in Activity
-        let form = new ChooseRoll(actor, activity)
-        const choices = await form.chooseRollDialog();
-        for (let rg of activity.rollableGroups){
-          for (let c of choices){
-            const choice = rg.rolls.find((roll) => roll[2] === c)
-            if (choice !== undefined){
-              rolls.push(choice)
-              break;
-            }
-          }
+
+      // build dict of group: rolls pairs
+      // key is the group name
+      // val is the roll(s) in that group
+      const groups = {}
+      for (let roll of activity.roll){
+        let group = groups[roll.group];
+        // make a new group
+        if (group == null){
+          group = [];
+          groups[roll.group] = group;
         }
+        // add to group
+        group.push(roll);
       }
 
+      if (Object.values(groups).every((rg) => rg.length === 1)){ // No choices, just execute
+        // Just store all values.
+        rolls = Object.values(groups).flat();
+      } else { // Some choices need to be made
+        let form = new ChooseRoll(actor, groups);
+        // choices is array of selected index for each group
+        // i.e. [1, 0, 3, 0]
+        const choices = await form.chooseRollDialog();
+        const groupVals = Object.values(groups);
+        // match choices to their indexed rolls.
+        rolls = groupVals.map((group, i) => {
+          return group[choices[i]];
+        })
+      }
+      
       try {
         // wait for rollRollable to roll these
         let rollRes = rolls.map(async (roll) => {

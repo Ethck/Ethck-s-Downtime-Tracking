@@ -1,10 +1,9 @@
 <form autocomplete="off" onsubmit="event.preventDefault();">
-    {{#each activity.rollableGroups as |groupRoll |}}
+    {{#each groups as |groupRoll |}}
     <fieldset>
-        {{#each groupRoll.rolls as |roll |}}
+        {{#each groupRoll as |roll i |}}
         <div>
-            <input type="radio" id="{{roll.[2]}}" value="{{roll.[2]}}" name="{{groupRoll.group}}">
-            <label for="{{roll.[2]}}">{{roll.[0]}} DC: {{roll.[1]}}</label>
+            <input type="radio" value="{{i}}" name="{{roll.group}}">{{roll.roll}} DC: {{roll.dc}}</input>
         </div>
         {{/each}}
     </fieldset>

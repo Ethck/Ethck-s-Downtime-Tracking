@@ -67,8 +67,8 @@ const ACTIVITY_MODEL = {
   chat_icon  : "icons/svg/d20.svg",
   sheet_icon : "icons/svg/d20.svg",
   type       : 0,  //* ACTIVITY_TYPES
-  rolls      : [], //* ACTIVITY_ROLL_MODEL
-  results    : [], //* ACTIVITY_RESULT_MODEL
+  roll      : [], //* ACTIVITY_ROLL_MODEL
+  result    : [], //* ACTIVITY_RESULT_MODEL
   complications: {
     chance    : "",
     roll_table: ""
@@ -378,7 +378,6 @@ export class DWTForm extends FormApplication {
     }
 
     console.log(this.activity)
-    return;
     // Update!!!
     const actor = this.actor;
     // local scope

@@ -1,13 +1,13 @@
 export class ChooseRoll extends Dialog {
-  constructor(actor, activity, ...args) {
+  constructor(actor, groups, ...args) {
     super(...args);
     game.users.apps.push(this);
     this.actor = actor;
-    this.activity = activity;
     this.chosen = [];
     this.done = false;
     this.res = [];
     this.checks = [];
+    this.groups = groups;
   }
 
   static get defaultOptions() {
@@ -22,14 +22,13 @@ export class ChooseRoll extends Dialog {
   }
 
   async getData() {
-    const activity = this.activity;
     return {
-      activity,
+      groups: this.groups,
     };
   }
 
   async chooseRollDialog() {
-    const dialogContent = await renderTemplate("modules/downtime-ethck/templates/chooseRoll.html", {activity: this.activity});
+    const dialogContent = await renderTemplate("modules/downtime-ethck/templates/chooseRoll.html", {groups: this.groups});
     return new Promise(async(resolve, reject) => {
       const dlg = new Dialog({
         title: "Choose Roll",
@@ -41,7 +40,8 @@ export class ChooseRoll extends Dialog {
             callback: (html) => {
               let chosen = [];
               html.find("form > fieldset > div > input:checked").each((i, check) => {
-                const c = parseInt($(check).attr("id"));
+                //console.log(i, check);
+                const c = parseInt($(check).val());
                 chosen.push(c);
               })
               
