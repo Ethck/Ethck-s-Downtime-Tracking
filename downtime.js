@@ -288,37 +288,63 @@ export class DWTForm extends FormApplication {
     // Remove it from DOM
     row.remove();
   }
-
   /*
-  Iterate over all keys in a model, then find the relevant
-  entry in formData and combine them. `entires` grows 
-  dependent on the formData.
-   */
+  Loads data from a "form" table that stores the values in each column as
+  a seperate array into an array of rows, where each row has the same
+  shape as `model`.
+  
+  As an example, for `rows` with the shape:
+    [{group: "a", dc: 8}, {group: "b", dc: 72}, {group: "c", dc: 3}]
+  would be represented with columns (expanded FormData) that has the shape:
+    {group: ["a", "b", "c"], dc: [8, 72, 3]}
+  
+  The algorithm assumes that any 'null' or 'undefined' value
+  found in a column's data is a disabled field and is thus 
+  filtered out. 
+  
+  Other assumptions:
+    - A column will either be undefined, or be an array with the same
+      length as other defined columns.
+    - All existing rows have defined values for all keys in `model`.
+
+  @param  {[object]} rows      currently filled out model with vals
+  @param {[object]} columns    expanded FormData 
+  @param {[object]} model      data model to base structure on
+  @param {[String]} dataPrefix prefix for column names
+
+  Special thanks to @Varriount#0883 for their help on this!
+  */
   loadModelFromTable(rows, columns, model, dataPrefix){
     for (const key of Object.keys(model)){
+      // Retrieve the column of data, ignore all falsy values
       const column = columns[dataPrefix + "." + key].filter((x) => x);
-      console.log(rows)
-      delete rows.key;
-  
+
+      // Calculate where rows currently exist, and where they will
+      // need to be created.
+      // This is because, if we extend the length of `rows`, we will have 2
+      // sections - one containing existing rows, and one containing
+      // `undefined` values.
       const existingRowsEnd = Math.min(column.length, rows.length);
       const allRowsEnd = column.length;
 
+      // Shrink or extend `rows` to remove or add new rows.
       rows.length = column.length;
 
+      // Loop through the data in the current column.
       let i = 0;
 
+      // Update existing rows with the column data.
       for (; i < existingRowsEnd; i++) {
         rows[i][key] = column[i];
       }
 
+      // Create new rows with the column data.
       for (; i < allRowsEnd; i++) {
         const row = {};
         row[key]  = column[i];
         rows[i]   = row;
       }
     }
-
-    console.log(rows);
   }
 
   async _updateObject(event, formData) {
@@ -329,12 +355,17 @@ export class DWTForm extends FormApplication {
     } else {
       id = randomID();
     }
+
+    let rolls = this.activity.roll;
+    let results = this.activity.result;
     // recreate activity
     this.activity = expandObject(formData);
     this.activity.id = id;
 
+    this.activity.roll = rolls;
+    this.activity.result = results;
+
     this.activity.chat_icon = this.image;
-    console.log(this.activity.roll);
     this.loadModelFromTable(this.activity.roll, formData, ACTIVITY_ROLL_MODEL, "roll");
     this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
 
