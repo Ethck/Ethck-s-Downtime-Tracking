@@ -277,7 +277,7 @@ async function addTrainingTab(app, html, data) {
           return group[choices[i]];
         })
       }
-      
+
       try {
         // wait for rollRollable to roll these
         let rollRes = rolls.map(async (roll) => {
@@ -478,8 +478,8 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   return: Roll()
 */
 async function rollDC(rollable) {
-  if (!rollable[1]) return {_total: 0}; // If no DC, return fake total (it doesn't matter...)
-  const rdc = new Roll(rollable[1]);
+  if (!rollable.dc) return {_total: 0}; // If no DC, return fake total (it doesn't matter...)
+  const rdc = new Roll(rollable.dc);
   const dcRoll = rdc.roll();
   dcRoll.toMessage(
     {},
@@ -501,85 +501,92 @@ async function rollDC(rollable) {
   return: [rollTotal, dcTotal]
 */
 async function rollRollable(actor, activity, rollable) {
+  console.log(rollable);
   return new Promise(async (resolve, reject) => {
-    const abilities = ["str", "dex", "con", "int", "wis", "cha"];
-    const skills = CONFIG.DND5E.skills;
-    let res = []
-    const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
+    // } else {
+    //   let skillAcr = Object.keys(skills).find((key) =>
+    //     skills[key].toLowerCase().includes(rollable[0].toLowerCase())
+    //   );
 
-    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA CHECK
-    if (rollable[0].includes("Check")) {
-      let abiAcr = abilities.find((abi) =>
-        rollable[0].toLowerCase().includes(abi)
-      );
-      await actor.rollAbilityTest(abiAcr).then(async (r) => {
-        const dc = await rollDC(rollable);
-        res = [r._total, dc._total];
-      });
-    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA SAVING THROW
-    } else if (rollable[0].includes("Saving Throw")) {
-      let abiAcr = abilities.find((abi) =>
-        rollable[0].toLowerCase().includes(abi)
-      );
-      await actor.rollAbilitySave(abiAcr).then(async (r) => {
-        const dc = await rollDC(rollable);
-        res = [r._total, dc._total];
-      });
-    // includes ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"] in name
-    } else if (toolFilters.some((filter) => rollable[0].includes(filter))) {
+    //   // The Skill Custimization 5e module patches actor.rollSkill and makes it NOT be a promise
+    //   // so we have to handle it differently.
+    //   let skillCust = game.modules.get("skill-customization-5e");
+    //   let r = null;
+    //   if (skillCust && skillCust.active){
+    //     r = await _skillCustHandler(skillAcr, actor, rollable[0]);
+    //   } else {
+    //     r = await actor.rollSkill(skillAcr)
+    //   }
+
+    //   const dc = await rollDC(rollable);
+    //   res = [r._total, dc._total];
+    // }
+
+    let res = [];
+    let r = null;
+    if (rollable.type === "ABILITY_CHECK"){
+      // roll an ability check, then dc
+      // rollAbilityTest assumes that the argument
+      // is in short form, i.e. "str", "con"
+      r = await actor.rollAbilityTest(rollable.roll)
+    } else if (rollable.type === "SAVING_THROW"){
+      // roll a save
+      // rollAbilitySave has the same assumption
+      r = await actor.rollAbilitySave(rollable.roll);
+    } else if (rollable.type === "TOOL_CHECK"){
       let actorTool;
-      if (rollable[0].includes("Instrument")){
+      // instead of giving the user the 20+ instruments to select
+      // from, we instead have one option "Musical Instrument(s)"
+      // When selected, this option will then find every instrument
+      // in the actor's inventory and provide the ability to choose
+      // between them.
+      if (rollable.roll.includes("Instrument")){
         const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes("Instrument"))
+
+        // Assemble a fake activity for our ChooseRoll prompt
+        // all the tools are in one group.
         let musicActivity = {
-          rollableGroups: [{
-            group: "",
-            rolls: actorTools.map((tool, index) => [tool.data.name, rollable[1], index])
-          }]
-        }
+          rollableGroups: actorTools.map((tool) => {
+              return { 
+                roll: tool.data.name, // bare minimum required to display
+                dc: rollable.dc
+              }
+            })
+          }
         let form = new ChooseRoll(actor, musicActivity)
         const choice = await form.chooseRollDialog();
-        const toolName = musicActivity.rollableGroups[0].rolls.find((roll) => roll[2] === choice[0])[0]
-        actorTool = actor.items.find((item) => item.data.name === toolName)
+        // since all tools are in the same group, choice is length 1
+        actorTool = actorTools[choice[0]]
       } else {
+        // if it's not an instrument, just find it by name.
         actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
       }
 
       if (actorTool !== null) {
-        await actorTool.rollToolCheck().then(async (r) => {
-          const dc = await rollDC(rollable);
-          res = [r._total, dc._total];
-        })
+        r = await actorTool.rollToolCheck();
       } else {
         // No tool of that name found.
         ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
         res = [];
       }
-    // Special formulas
-    } else if (rollable[0].includes("Formula:")) {
-      
-      let dRoll = await formulaRoll(rollable[0].split("Formula: ")[1].split(" + "), actor)
-      const dc = await rollDC(rollable);
-      res = [dRoll._total, dc._total];
-    // We must be at skills...
-    } else {
-      let skillAcr = Object.keys(skills).find((key) =>
-        skills[key].toLowerCase().includes(rollable[0].toLowerCase())
-      );
-
+    } else if (rollable.type === "CUSTOM") {
+      // call our helper after separating all terms
+      r = await formulaRoll(rollable.roll.split(" + "), actor)
+    } else { // skills...
       // The Skill Custimization 5e module patches actor.rollSkill and makes it NOT be a promise
       // so we have to handle it differently.
       let skillCust = game.modules.get("skill-customization-5e");
-      let r = null;
       if (skillCust && skillCust.active){
-        r = await _skillCustHandler(skillAcr, actor, rollable[0]);
+        r = await _skillCustHandler(rollable.roll, actor);
       } else {
-        r = await actor.rollSkill(skillAcr)
+        r = await actor.rollSkill(rollable.roll)
       }
-
-      const dc = await rollDC(rollable);
-      res = [r._total, dc._total];
     }
 
+    const dc = await rollDC(rollable);
+    res = [r._total, dc._total];
+
+    console.log(res);
     // For some reason, we don't have a roll or a dc roll...
     if (res.length === 0) {
       throw "Ethck's Downtime Tracking | Error on rolling."
@@ -715,7 +722,7 @@ async function _formulaDialog(formula) {
   });
 }
 
-async function _skillCustHandler(skillAcr, actor, skiname){
+async function _skillCustHandler(skillAcr, actor){
   return new Promise(async (resolve, reject) => {
     actor.rollSkill(skillAcr); // call the patched function
     // only way to know it's done is by the final chat message, so listen for it
@@ -723,6 +730,7 @@ async function _skillCustHandler(skillAcr, actor, skiname){
       // discard if not a roll
       if (message.isRoll) {
         // make sure it's our expected Skill Check
+        let skiname = CONFIG.DND5E.skills[rollable.roll];
         if ((getProperty(message, "data.flavor") && getProperty(message, "data.flavor").includes(skiname + " Skill Check"))) {
           // return the roll
           resolve(message._roll);
