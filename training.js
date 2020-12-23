@@ -501,27 +501,7 @@ async function rollDC(rollable) {
   return: [rollTotal, dcTotal]
 */
 async function rollRollable(actor, activity, rollable) {
-  console.log(rollable);
   return new Promise(async (resolve, reject) => {
-    // } else {
-    //   let skillAcr = Object.keys(skills).find((key) =>
-    //     skills[key].toLowerCase().includes(rollable[0].toLowerCase())
-    //   );
-
-    //   // The Skill Custimization 5e module patches actor.rollSkill and makes it NOT be a promise
-    //   // so we have to handle it differently.
-    //   let skillCust = game.modules.get("skill-customization-5e");
-    //   let r = null;
-    //   if (skillCust && skillCust.active){
-    //     r = await _skillCustHandler(skillAcr, actor, rollable[0]);
-    //   } else {
-    //     r = await actor.rollSkill(skillAcr)
-    //   }
-
-    //   const dc = await rollDC(rollable);
-    //   res = [r._total, dc._total];
-    // }
-
     let res = [];
     let r = null;
     if (rollable.type === "ABILITY_CHECK"){
@@ -586,7 +566,6 @@ async function rollRollable(actor, activity, rollable) {
     const dc = await rollDC(rollable);
     res = [r._total, dc._total];
 
-    console.log(res);
     // For some reason, we don't have a roll or a dc roll...
     if (res.length === 0) {
       throw "Ethck's Downtime Tracking | Error on rolling."
@@ -742,7 +721,7 @@ async function _skillCustHandler(skillAcr, actor){
 
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
-  //await game.settings.set("downtime-ethck", "migrated", false);
+  await game.settings.set("downtime-ethck", "migrated", false);
   const NEEDS_MIGRATION_VERSION = "0.3.4";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
@@ -772,7 +751,7 @@ async function _downtimeMigrate(){
         "flags.downtime-ethck": {trainingItems: downtimes}
       }
 
-      await actor.update(update, {enforceTypes: false})
+      //await actor.update(update, {enforceTypes: false})
     }
   })
 
@@ -789,8 +768,9 @@ async function _downtimeMigrate(){
 
 async function _updateDowntimes(downtimes) {
   let changed = false;
-  downtimes.forEach(async (downtime) => {
+  downtimes.forEach((downtime, i) => {
     // Handle old private
+    // 12/3/2020 v0.3.3
     if ("private" in downtime) {
       // If previously updated, the "new" value might be here
       if (!("actPrivate" in downtime)) {
@@ -802,6 +782,7 @@ async function _updateDowntimes(downtimes) {
     }
 
     // Update tables, might not be present?
+    // 12/3/2020 v0.3.3
     if ("complication" in downtime) {
       if ("table" in downtime.complication) {
         // Old format where table was the string id of the table
@@ -817,7 +798,7 @@ async function _updateDowntimes(downtimes) {
         }
       }
     }
-
+    // 12/23/2020 v0.3.4 transfer to new roll model
     if ("rollableGroups" in downtime){
       let newRolls = downtime.rollableGroups.flatMap((group) => {
         if (group.rolls.length === 0) return;
@@ -827,19 +808,22 @@ async function _updateDowntimes(downtimes) {
           if (!Array.isArray(roll)) return;
           let typeRoll = determineOldType(roll); // Determine type
           let dc = roll[1] || 0; // Use old DC, or default to 0
-          let id = randomID(); // generate new ID
           let rollVal = roll[0];
+          // ensure our DC is a number
+          if (typeof dc === "number") {
+            dc = dc.toString();
+          }
 
-          if (typeRoll === "custForm") {
+          if (typeRoll === "CUSTOM") {
             rollVal = rollVal.split("Formula: ")[1];
-          } else if (typeRoll === "skiCheck") {
+          } else if (typeRoll === "SKILL_CHECK") {
             let skills = CONFIG.DND5E.skills;
             // returns shorthand of skill
             rollVal = Object.keys(skills).find((key) => skills[key] === rollVal);
-          } else if (typeRoll === "toolCheck"){
+          } else if (typeRoll === "TOOL_CHECK"){
 
           } else { //abiCheck, save
-            if (typeRoll === "abiCheck") {
+            if (typeRoll === "ABILITY_CHECK") {
               rollVal = rollVal.split(" Check")[0];
             } else {
               rollVal = rollVal.split(" Saving Throw")[0];
@@ -849,16 +833,16 @@ async function _updateDowntimes(downtimes) {
             rollVal = Object.keys(abilities).find((key) => abilities[key] === rollVal).toLowerCase();
           }
           changed = true;
-          return {type: typeRoll, dc: dc, id: id, group: g, val: rollVal}
+          return {type: typeRoll, roll: rollVal, group: g, dc: dc}
         });
 
         return rolls;
 
       });
       newRolls = newRolls.filter(Boolean);
-      downtime.rolls = newRolls;
+      downtime.roll = newRolls;
     }
-
+    // 12/23/2020 v0.3.4 transfer to new result model
     if ("results" in downtime) {
       // downtime.results[0] old format is an array
       // new format is object
@@ -870,13 +854,46 @@ async function _updateDowntimes(downtimes) {
             min: result[0], // lower bound
             max: result[1], // high bound
             details: result[2], // description
-            id: randomID() //some unique thingamabob
           }
         });
 
-        downtime.results = newRes;
+        downtime.result = newRes;
         changed = true;
       }
+    }
+    // 12/23/20 v0.3.4 transfer to new activity model
+    if ("rollableGroups" in downtime && "rollableEvents" in downtime) {
+
+      if (downtime.type === "succFail"){
+        downtime.type = "SUCCESS_COUNT";
+      } else if (downtime.type === "categories") {
+        downtime.type = "ROLL_TOTAL";
+      } else {
+        downtime.type = "NO_ROLL";
+      }
+      // Load new model.
+      downtimes[i] = {
+        name       : downtime.name,
+        description: downtime.description,
+        chat_icon  : downtime.img || "icons/svg/d20.svg",
+        sheet_icon : downtime.rollIcon || "icons/svg/d20.svg",
+        type       : downtime.type,  //* ACTIVITY_TYPES
+        roll      : downtime.roll, //* ACTIVITY_ROLL_MODEL
+        result    : downtime.result, //* ACTIVITY_RESULT_MODEL
+        id        : downtime.id || randomID(),
+        complications: {
+          chance    : downtime.complication.chance || 0,
+          roll_table: downtime.complication.table.id || ""
+        },
+        options: {
+          rolls_are_private        : downtime.actPrivate || false,
+          complications_are_private: downtime.compPrivate || false,
+          ask_for_materials        : downtime.useMaterials || false,
+          days_used                : downtime.timeTaken || "",
+        }
+      }
+
+      changed = true;
     }
   })
 
@@ -890,18 +907,18 @@ function determineOldType(roll) {
 
     // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA CHECK
     if (roll[0].includes("Check")) {
-      return "abiCheck";
+      return "ABILITY_CHECK";
     // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA SAVING THROW
     } else if (roll[0].includes("Saving Throw")) {
-      return "save";
+      return "SAVING_THROW";
     // includes ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"] in name
     } else if (toolFilters.some((filter) => roll[0].includes(filter))) {
-      return "toolCheck";
+      return "TOOL_CHECK";
     // Special formulas
     } else if (roll[0].includes("Formula:")) {
-      return "custForm";
+      return "CUSTOM";
     // We must be at skills...
     } else {
-      return "skiCheck";
+      return "SKILL_CHECK";
     }
   }

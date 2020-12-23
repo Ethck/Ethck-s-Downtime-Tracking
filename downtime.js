@@ -69,6 +69,7 @@ const ACTIVITY_MODEL = {
   type       : 0,  //* ACTIVITY_TYPES
   roll      : [], //* ACTIVITY_ROLL_MODEL
   result    : [], //* ACTIVITY_RESULT_MODEL
+  //id
   complications: {
     chance    : "",
     roll_table: ""
@@ -125,6 +126,8 @@ export class DWTForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
+
+    console.log(this.activity);
 
     this.element.find(".addRollable").click(() => this.addRollable());
     this.element.find("#rollableEventsTable > li > .result-controls > .delete-roll").click((event) => this.deleteRollable(event));
@@ -377,7 +380,6 @@ export class DWTForm extends FormApplication {
       throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
     }
 
-    console.log(this.activity)
     // Update!!!
     const actor = this.actor;
     // local scope
