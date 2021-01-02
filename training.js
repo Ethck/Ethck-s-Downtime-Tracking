@@ -721,7 +721,7 @@ async function _skillCustHandler(skillAcr, actor){
 
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
-  await game.settings.set("downtime-ethck", "migrated", false);
+  //await game.settings.set("downtime-ethck", "migrated", false);
   const NEEDS_MIGRATION_VERSION = "0.3.4";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
@@ -736,6 +736,13 @@ async function _downtimeMigrate(){
     if (migrated.version === NEEDS_MIGRATION_VERSION) return;
   }
 
+  // Save a backup of the old data
+  ui.notifications.info("Ethck's Downtime | Backing up World Downtimes")
+  const oldActivities = game.data.settings.find((setting) => setting.key === "downtime-ethck.activities");
+  const jsonData = JSON.stringify(oldActivities, null, 2);
+  saveDataToFile(jsonData, 'application/json', "downtime-ethck-world-activities-OLD.json");
+  ui.notifications.info("Ethck's Downtime | Saved Activity Data.")
+
   ui.notifications.notify("Ethck's 5e Downtime Tracking | Beginning Migration to updated schema.")
 
   // Update Actor Flags
@@ -743,15 +750,21 @@ async function _downtimeMigrate(){
     // If it doesn't have our flags, idc
     let downtimes = actor.getFlag("downtime-ethck", "trainingItems");
     if (!downtimes) return;
-    let changed = false;
-    [downtimes, changed] = await _updateDowntimes(downtimes);
-    if (changed){
-      let update = {
-        id: actor._id,
-        "flags.downtime-ethck": {trainingItems: downtimes}
-      }
 
-      //await actor.update(update, {enforceTypes: false})
+    try {
+      let changed = false;
+      [downtimes, changed] = await _updateDowntimes(downtimes);
+      if (changed){
+        let update = {
+          id: actor._id,
+          "flags.downtime-ethck": {trainingItems: downtimes}
+        }
+
+        await actor.update(update, {enforceTypes: false})
+      }
+    } catch (e) {
+      console.error(e);
+      ui.notifications.warning("Ethck's Downtime | Something went wrong while migrating. Please open bug report with your backed-up copy of your downtimes.");
     }
   })
 
@@ -864,17 +877,17 @@ async function _updateDowntimes(downtimes) {
     // 12/23/20 v0.3.4 transfer to new activity model
     if ("rollableGroups" in downtime && "rollableEvents" in downtime) {
 
-      if (downtime.type === "succFail"){
+      if (downtime?.type === "succFail"){
         downtime.type = "SUCCESS_COUNT";
-      } else if (downtime.type === "categories") {
+      } else if (downtime?.type === "categories") {
         downtime.type = "ROLL_TOTAL";
       } else {
         downtime.type = "NO_ROLL";
       }
       // Load new model.
       downtimes[i] = {
-        name       : downtime.name,
-        description: downtime.description,
+        name       : downtime.name || "New Downtime Activity",
+        description: downtime.description || "My awesome downtime activity",
         chat_icon  : downtime.img || "icons/svg/d20.svg",
         sheet_icon : downtime.rollIcon || "icons/svg/d20.svg",
         type       : downtime.type,  //* ACTIVITY_TYPES
