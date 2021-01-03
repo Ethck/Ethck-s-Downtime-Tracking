@@ -127,8 +127,6 @@ export class DWTForm extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    console.log(this.activity);
-
     this.element.find(".addRollable").click(() => this.addRollable());
     this.element.find("#rollableEventsTable > li > .result-controls > .delete-roll").click((event) => this.deleteRollable(event));
 
@@ -140,15 +138,7 @@ export class DWTForm extends FormApplication {
 
     this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
-    // Not really a listener, but update the state of this.
-    // if (this.activity.type === "categories"){
-    //     this.element.find("#categoryActivity").attr("checked", true);
-    // } else if (this.activity.type === "noRoll"){
-    //   this.element.find("#noRollActivity").attr("checked", true);
-    // }
-    // 
     this.element.find('#' + this.activity.type).attr("checked", true);
-    console.log(this.element.find('#' + this.activity.type), this.activity.type)
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
       this.element.find("#compchance").val(this.activity.complication.chance);
@@ -205,6 +195,7 @@ export class DWTForm extends FormApplication {
     newRoll.css("display", "");
     // Enable it
     newRoll.find("#roll-type > select, #roll-val > #ABILITY_CHECK").prop("disabled", false)
+    newRoll.find("#roll-group > input, #roll-dc > input").prop("disabled", false);
     // Append
     this.element.find("#rollableEventsTable").append(newRoll);
     // Attach new listener
@@ -278,6 +269,7 @@ export class DWTForm extends FormApplication {
     newResult.attr("data-id", randomID());
     // Show it!
     newResult.css("display", "");
+    newResult.find(".result-range > input, .result-details > input").prop("disabled", false);
     // Append
     this.element.find("#resultsTable").append(newResult);
     // Attach new listener
@@ -361,16 +353,25 @@ export class DWTForm extends FormApplication {
 
     let rolls = this.activity.roll;
     let results = this.activity.result;
+
     // recreate activity
     this.activity = expandObject(formData);
     this.activity.id = id;
 
-    this.activity.roll = rolls;
-    this.activity.result = results;
+    // Load old roll/result from activity otherwise
+    // loadModelFromTable requires these to exist
+    this.activity.roll = rolls || [];
+    this.activity.result = results || [];
 
     this.activity.chat_icon = this.image;
-    this.loadModelFromTable(this.activity.roll, formData, ACTIVITY_ROLL_MODEL, "roll");
-    this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
+
+    if ("roll.roll" in formData) {
+      this.loadModelFromTable(this.activity.roll, formData, ACTIVITY_ROLL_MODEL, "roll");
+    }
+
+    if (formData["result.min"] !== ""){
+      this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
+    }
 
     // extra validate on custom formulas...
     try {
