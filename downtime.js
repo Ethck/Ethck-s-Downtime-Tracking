@@ -4,32 +4,12 @@ const EDIT_DOWNTIME_TITLE = "Edit a Downtime Activity";
 const ADD_DOWNTIME_TITLE = "Add a Downtime Event";
 
 const DND5E_TOOLS = [
-  "Alchemist's Supplies",
-  "Brewer's Supplies",
-  "Calligrapher's Supplies",
-  "Carpenter's Tools",
-  "Cartographer's Tools",
-  "Cobbler's Tools",
-  "Cook's Utensils",
-  "Dice Set",
-  "Disguise Kit",
-  "Forgery Kit",
-  "Glassblower's Tools",
-  "Herbalism Kit",
-  "Jeweler's Tools",
-  "Leatherworker's Tools",
-  "Mason's Tools",
-  "Musical Instrument(s)",
-  "Navigator's Tools",
-  "Painter's Supplies",
-  "Playing Card Set",
-  "Poisoner's Kit",
-  "Potter's Tools",
-  "Smith's Tools",
-  "Thieves' Tools",
-  "Tinker's Tools",
-  "Weaver's Tools",
-  "Woodcarver's Tools",
+  "Kit",
+  "Instrument",
+  "Set",
+  "Supplie",
+  "Tool",
+  "Utensil"
 ];
 
 const COMPLETION_CHANCES = [10, 25, 50, 75, 100];
@@ -245,8 +225,8 @@ export class DWTForm extends FormApplication {
 
   /**
    * Handle changes of the "Roll Type" to dynamically change the "Roll"
-   * options. For all except type "custForm" we unhide a <select> with
-   * dynamic options. "custForm" maintains a simple input.
+   * options. For all except type "CUSTOM" we unhide a <select> with
+   * dynamic options. "CUSTOM" maintains a simple input.
    * 
    * @param  {[jQuery object]} event triggering change event from a "Roll Type" select.
    */

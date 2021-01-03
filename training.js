@@ -516,31 +516,25 @@ async function rollRollable(actor, activity, rollable) {
     } else if (rollable.type === "TOOL_CHECK"){
       let actorTool;
       // instead of giving the user the 20+ instruments to select
-      // from, we instead have one option "Musical Instrument(s)"
-      // When selected, this option will then find every instrument
+      // from, we instead have one option for each group
+      // When selected, this option will then find every tool of that type
       // in the actor's inventory and provide the ability to choose
       // between them.
-      if (rollable.roll.includes("Instrument")){
-        const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes("Instrument"))
+      const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes(rollable.roll));
 
-        // Assemble a fake activity for our ChooseRoll prompt
-        // all the tools are in one group.
-        let musicActivity = {
-          rollableGroups: actorTools.map((tool) => {
-              return { 
-                roll: tool.data.name, // bare minimum required to display
-                dc: rollable.dc
-              }
-            })
+      let toolChoices = {
+        rollableGroups: actorTools.map((tool) => {
+          return {
+            roll: tool.data.name,
+            dc: rollable.dc,
+            group: rollable.roll
           }
-        let form = new ChooseRoll(actor, musicActivity)
-        const choice = await form.chooseRollDialog();
-        // since all tools are in the same group, choice is length 1
-        actorTool = actorTools[choice[0]]
-      } else {
-        // if it's not an instrument, just find it by name.
-        actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
+        })
       }
+
+      let form = new ChooseRoll(actor, toolChoices);
+      const choice = await form.chooseRollDialog();
+      actorTool = actorTools[choice[0]];
 
       if (actorTool !== null) {
         r = await actorTool.rollToolCheck();
