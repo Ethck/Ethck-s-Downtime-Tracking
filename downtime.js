@@ -119,6 +119,7 @@ export class DWTForm extends FormApplication {
     this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
     this.element.find('#' + this.activity.type).attr("checked", true);
+    this.element.find("#SUCCESS_COUNT, #ROLL_TOTAL, #NO_ROLL").change((event) => this.updateRollsStatus($(event.currentTarget).attr("id")));
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
       this.element.find("#compchance").val(this.activity.complication.chance);
@@ -130,23 +131,30 @@ export class DWTForm extends FormApplication {
     this.element.find("#timeTaken").val(this.activity.options.days_used);
     this.element.find("#materials").attr("checked", this.activity.options.ask_for_materials)
 
-    // Set initial values of rollables
-    this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
-      let id = $(roll).attr("data-id");
-      if (id === "template") return;
-      let event = this.activity.roll[i - 1]
-      let type = event.type;
-      let newVal = event.roll || "";
+    // set field status based on activity type
+    this.updateRollsStatus(this.activity.type);
 
-      $(roll).find("#roll-type > select").val(type);
-      // Set all roll-val to off
-      $(roll).find("#roll-val").find("select, input").css("display", "none");
-      $(roll).find("#roll-val").find("select, input").prop("disabled", true);
-      // Turn on the correct select based on type
-      $(roll).find("#roll-val").find("#" + type).css("display", "");
-      $(roll).find("#roll-val > #" + type).val(newVal);
-      $(roll).find("#roll-val").find("#" + type).prop("disabled", false);
-    });
+    if (this.activity.type !== "NO_ROLL") {
+
+      // Handle displaying intitial data
+      // TODO: Hand this off to Handlebars???
+      this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
+        let id = $(roll).attr("data-id");
+        if (id === "template") return;
+        let event = this.activity.roll[i - 1]
+        let type = event.type;
+        let newVal = event.roll || "";
+
+        $(roll).find("#roll-type > select").val(type);
+        // Set all roll-val to off
+        $(roll).find("#roll-val").find("select, input").css("display", "none");
+        $(roll).find("#roll-val").find("select, input").prop("disabled", true);
+        // Turn on the correct select based on type
+        $(roll).find("#roll-val").find("#" + type).css("display", "");
+        $(roll).find("#roll-val > #" + type).val(newVal);
+        $(roll).find("#roll-val").find("#" + type).prop("disabled", false);
+      });
+    }
   }
 
   async handleImage(event) {
@@ -241,6 +249,23 @@ export class DWTForm extends FormApplication {
     valSelect.find("#" + type).css("display", "");
     valSelect.find("#" + type).prop("disabled", false);
   }
+
+  updateRollsStatus(type) {
+    // Reset all non-template selects and inputs to enabled
+    this.element.find(`#rollsTable li:not([data-id="template"]) select, 
+      #rollsTable li:not([data-id="template"]) input`).prop("disabled", false);
+
+    // Reset status of the multiple selects that respond to roll.roll by invoking
+    // a change event to get changeValSelect() to do its magic.
+    this.element.find('#rollsTable li:not([data-id="template"]) select').trigger("change");
+    // Turn off DCs
+    if (type === "ROLL_TOTAL") {
+      this.element.find("li > #roll-dc > input").prop("disabled", true);
+    // Turn off everything
+    } else if (type === "NO_ROLL") { 
+      this.element.find("#rollsTable select, #rollsTable input").prop("disabled", true);
+    }
+  }
   
   addResult() {
     // Copy our template result
@@ -263,6 +288,7 @@ export class DWTForm extends FormApplication {
     // Remove it from DOM
     row.remove();
   }
+  
   /*
   Loads data from a "form" table that stores the values in each column as
   a seperate array into an array of rows, where each row has the same
@@ -293,6 +319,7 @@ export class DWTForm extends FormApplication {
     for (const key of Object.keys(model)){
       // Retrieve the column of data, ignore all falsy values
       const column = columns[dataPrefix + "." + key];
+      console.log(column);
 
       // Calculate where rows currently exist, and where they will
       // need to be created.
@@ -344,6 +371,7 @@ export class DWTForm extends FormApplication {
     this.activity.result = results || [];
 
     this.activity.chat_icon = this.image;
+    console.log(formData);
 
     if ("roll.roll" in formData) {
       // there is a disabled template that needs to be pruned. It is
@@ -351,7 +379,16 @@ export class DWTForm extends FormApplication {
       // it.
       formData["roll.type"].shift()
       formData["roll.group"].shift()
-      formData["roll.dc"].shift()
+      if ("roll.dc" in formData) {
+        formData["roll.dc"].shift()
+      } else {
+        // if activity type (not roll.type) is NOT SUCCESS_COUNT
+        // the ALL DC fields are disabled, thus roll.dc does not
+        // exist. loadModelFromTable requires all columns to exist.
+        // So we make a new array of the same size as roll.type and
+        // fill it with 0s (just some default value).
+        formData["roll.dc"] = Array(formData["roll.type"].length).fill("0")
+      }
       // roll.roll is FILLED with nulls because every
       // select (5 * row) has a value, but only one
       // is enabled. All the disabled selects (also hidden)
