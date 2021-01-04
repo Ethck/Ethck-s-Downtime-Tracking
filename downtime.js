@@ -7,7 +7,7 @@ const DND5E_TOOLS = [
   "Kit",
   "Instrument",
   "Set",
-  "Supplie",
+  "Supplies",
   "Tool",
   "Utensil"
 ];
