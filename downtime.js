@@ -292,7 +292,7 @@ export class DWTForm extends FormApplication {
   loadModelFromTable(rows, columns, model, dataPrefix){
     for (const key of Object.keys(model)){
       // Retrieve the column of data, ignore all falsy values
-      const column = columns[dataPrefix + "." + key].filter((x) => x);
+      const column = columns[dataPrefix + "." + key];
 
       // Calculate where rows currently exist, and where they will
       // need to be created.
@@ -346,10 +346,25 @@ export class DWTForm extends FormApplication {
     this.activity.chat_icon = this.image;
 
     if ("roll.roll" in formData) {
+      // there is a disabled template that needs to be pruned. It is
+      // always in the first slot of the formData array, so we can just remove
+      // it.
+      formData["roll.type"].shift()
+      formData["roll.group"].shift()
+      formData["roll.dc"].shift()
+      // roll.roll is FILLED with nulls because every
+      // select (5 * row) has a value, but only one
+      // is enabled. All the disabled selects (also hidden)
+      // return null in the formData
+      formData["roll.roll"] = formData["roll.roll"].filter((x) => x !== null);
       this.loadModelFromTable(this.activity.roll, formData, ACTIVITY_ROLL_MODEL, "roll");
     }
 
-    if (formData["result.min"] !== ""){
+    if ("result.min" in formData){
+      // Same deal with the template applies here
+      formData["result.min"].shift()
+      formData["result.max"].shift()
+      formData["result.details"].shift()
       this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
     }
 
