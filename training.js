@@ -809,7 +809,7 @@ async function _updateDowntimes(downtimes) {
     if ("rollableGroups" in downtime){
       let newRolls = downtime.rollableGroups.flatMap((group) => {
         if (group.rolls.length === 0) return;
-        let g = group.group;
+        let g = group.group || "a";
         let rolls = group.rolls.map((roll) => {
           // new format is an object
           if (!Array.isArray(roll)) return;

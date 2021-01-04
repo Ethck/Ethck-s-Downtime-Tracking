@@ -1,5 +1,6 @@
 <form autocomplete="off" onsubmit="event.preventDefault();">
     {{#each groups as |groupRoll |}}
+    <label>Group: {{groupRoll.[0].group}}</label>
     <fieldset>
         {{#each groupRoll as |roll i |}}
         <div>
