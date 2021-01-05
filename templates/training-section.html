@@ -15,8 +15,8 @@
       {{#each actorAct.actor.flags.downtime-ethck.trainingItems as |training tid| }}
         <li class="item flexrow">
           <div class="item-name flexrow rollable">
-            {{#if training.rollIcon}}
-            <div class="item-image activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.rollIcon}});"></div>
+            {{#if training.sheet_icon}}
+            <div class="item-image activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.sheet_icon}});"></div>
             {{else}}
             <div class="item-image activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
             {{/if}}

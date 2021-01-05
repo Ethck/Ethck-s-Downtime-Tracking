@@ -407,10 +407,10 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   // Add in materials, if any.
   cmsg = materials ? cmsg + "\n Used " + materials : cmsg;
 
-  const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg, result: cmsgResult})
+  const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.chat_icon, text: cmsg, result: cmsgResult})
 
   // Determine if we whisper this message, and who to
-  const cmsgVis = activity.actPrivate || game.settings.get("core", "rollMode");
+  const cmsgVis = activity.options.rolls_are_private || game.settings.get("core", "rollMode");
   const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser._id)
 
   // Results message
