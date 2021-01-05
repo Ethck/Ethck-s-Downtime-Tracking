@@ -240,7 +240,7 @@ export class DWTForm extends FormApplication {
    */
   changeValSelect(event) {
     event.preventDefault();
-
+    // double parent used to stay within the same row
     let valSelect = $(event.currentTarget).parent().parent().find("#roll-val");
     let type = $(event.currentTarget).val();
 

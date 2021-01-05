@@ -68,7 +68,7 @@ Hooks.once("init", () => {
     config: true,
     type: String,
     choices: {
-      gmroll: "GM Roll (Player can see)",
+      gmroll: "Private GM Roll (Player can see)",
       blindroll: "Blind Roll (Player can't see)",
     },
     default: "blindroll",
@@ -312,8 +312,8 @@ async function addTrainingTab(app, html, data) {
       }
 
       let desc = "";
-      for (let rollable of activity.rollableEvents) {
-        desc += rollable[0] + " DC: " + rollable[1] + "</br>";
+      for (let rollable of activity.roll) {
+        desc += rollable.roll + " DC: " + rollable.dc + "</br>";
       }
 
       let li = $(event.currentTarget).parents(".item");
@@ -323,7 +323,7 @@ async function addTrainingTab(app, html, data) {
         summary.slideUp(200, () => summary.remove());
       } else {
         let div = $(
-          `<div class="item-summary"><label>` + desc + `</label></div>`
+          `<div class="item-summary"><label>Description: ` + activity.description + `</label></br><label>` + desc + `</label></div>`
         );
         li.append(div.hide());
         div.slideDown(200);
@@ -368,7 +368,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   let cmsg = "";
   let cmsgResult = "";
 
-  if (activity.type === "succFail") {
+  if (activity.type === "SUCCESS_COUNT") {
     let booleanResults = [0, 0];
     res.map((pair) => {
       if (pair[0] >= pair[1]) {
@@ -386,21 +386,21 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
       " successes and " +
       booleanResults[1] +
       " failures.";
-    activity.results.forEach((result) => {
+    activity.result.forEach((result) => {
       if (
-        result[0] <= booleanResults[0] &&
-        result[1] >= booleanResults[0]
+        result.min <= booleanResults[0] &&
+        result.max >= booleanResults[0]
       ) {
-        cmsgResult = result[2];
+        cmsgResult = result.details;
       }
     });
-  } else if (activity.type === "categories") {
-    activity.results.forEach((result) => {
-      if (res[0][0] >= result[0] && res[0][0] <= result[1]) {
-        cmsgResult = result[2];
+  } else if (activity.type === "ROLL_TOTAL") {
+    activity.result.forEach((result) => {
+      if (res[0][0] >= parseInt(result.min) && res[0][0] <= parseInt(result.max)) {
+        cmsgResult = result.details;
       }
     });
-  } else if (activity.type === "noRoll") {
+  } else if (activity.type === "NO_ROLL") {
     // Do Nothing
   }
 
