@@ -2,7 +2,7 @@
 import AuditLog from "./audit-log.js";
 import { DWTForm } from "./downtime.js";
 import { GMConfig } from "./gmConfig.js";
-import { ChooseRoll } from "./chooseRoll.js";
+// import { ChooseRoll } from "./chooseRoll.js";
 import { d20Roll } from "../../systems/dnd5e/module/dice.js";
 
 // Register Game Settings
@@ -267,10 +267,10 @@ async function addTrainingTab(app, html, data) {
         // Just store all values.
         rolls = Object.values(groups).flat();
       } else { // Some choices need to be made
-        let form = new ChooseRoll(actor, groups);
         // choices is array of selected index for each group
         // i.e. [1, 0, 3, 0]
-        const choices = await form.chooseRollDialog();
+        const choices = await chooseRollDialog(groups);
+        console.log(choices);
         const groupVals = Object.values(groups);
         // match choices to their indexed rolls.
         rolls = groupVals.map((group, i) => {
@@ -532,8 +532,7 @@ async function rollRollable(actor, activity, rollable) {
         })
       }
 
-      let form = new ChooseRoll(actor, toolChoices);
-      const choice = await form.chooseRollDialog();
+      const choice = await chooseRollDialog(toolChoices);
       actorTool = actorTools[choice[0]];
 
       if (actorTool !== null) {
@@ -692,6 +691,34 @@ async function _formulaDialog(formula) {
         default: "normal",
         close: () => resolve(null)
       }).render(true);
+  });
+}
+
+async function chooseRollDialog(groups) {
+  const dialogContent = await renderTemplate("modules/downtime-ethck/templates/chooseRoll.html", {groups: groups});
+  return new Promise(async(resolve, reject) => {
+    const dlg = new Dialog({
+      title: "Choose Roll",
+      content: dialogContent,
+      buttons: {
+        submit: {
+          icon: '<i class="fas fa-dice"></i>',
+          label: "Submit",
+          callback: (html) => {
+            let chosen = [];
+            html.find("form > fieldset > div > input:checked").each((i, check) => {
+              //console.log(i, check);
+              const c = parseInt($(check).val());
+              chosen.push(c);
+            })
+            
+            resolve(chosen);
+          }
+        }
+      },
+      close: reject
+    });
+    dlg.render(true);
   });
 }
 
