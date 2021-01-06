@@ -207,7 +207,19 @@ export class DWTForm extends FormApplication {
     this.activity.roll.forEach((roll) => {
       if (roll.type === "CUSTOM"){
         let custom = roll.roll;
-        let context = mergeObject({actor: this.actor}, this.actor.getRollData());
+
+        // Organize additional properties for use in the context
+        // This finds the value of hit dice for any class in the actor
+        let hdVals = this.actor.data.items.filter((item) => item.type === "class")
+          .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+        // Find the min and the max
+        let hd = {
+          min: Math.min.apply(null, hdVals),
+          max: Math.max.apply(null, hdVals)
+        }
+
+        let context = mergeObject({actor: this.actor, hd: hd}, this.actor.getRollData());
+        console.log(context);
         if (Roll.validate(custom, context)){//ensure no error in custom
           let fail = false;
           custom.split(" + ").forEach((formu) => {
@@ -216,7 +228,7 @@ export class DWTForm extends FormApplication {
               // Remove either "@actor." or just "@"
               let testProp = formu.startsWith("@actor.") ? formu.slice(7) : formu.slice(1);
               // Test if property does not exist (i.e. if not a valid property)
-              if (!(getProperty(this.actor, testProp)) && !(getProperty(this.actor.getRollData(), testProp))) {
+              if (!(getProperty(context, testProp))) {
                 ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in the context.");
                 fail = true;
               }
@@ -319,7 +331,6 @@ export class DWTForm extends FormApplication {
     for (const key of Object.keys(model)){
       // Retrieve the column of data, ignore all falsy values
       const column = columns[dataPrefix + "." + key];
-      console.log(column);
 
       // Calculate where rows currently exist, and where they will
       // need to be created.

@@ -653,8 +653,21 @@ async function formulaRoll(formula, actor) {
         formula[0] = newFirst + mods;
       }
     }
+
+    // Organize additional properties for use in the context
+    // This finds the value of hit dice for any class in the actor
+    let hdVals = actor.data.items.filter((item) => item.type === "class")
+      .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+    // Find the min and the max
+    // These must be roll values, so add 1d to start.
+    let hd = {
+      min: "1d" + Math.min.apply(null, hdVals),
+      max: "1d" + Math.max.apply(null, hdVals)
+    }
+
     // make the roll, providing a reference to actor
-    let context = mergeObject({actor: actor}, actor.getRollData());
+    let context = mergeObject({actor: actor, hd: hd}, actor.getRollData());
+    console.log(context);
     let myRoll = new Roll(formula.join(" + "), context);
     myRoll.roll();
     await myRoll.toMessage();
