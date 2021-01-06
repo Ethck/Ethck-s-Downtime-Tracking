@@ -38,7 +38,8 @@ const ACTIVITY_ROLL_MODEL = {
 const ACTIVITY_RESULT_MODEL = {
   min    : 0,
   max    : 0,
-  details: ""
+  details: "",
+  triggerComplication: false,
 }
 
 const ACTIVITY_MODEL = {
@@ -50,7 +51,7 @@ const ACTIVITY_MODEL = {
   roll      : [], //* ACTIVITY_ROLL_MODEL
   result    : [], //* ACTIVITY_RESULT_MODEL
   //id
-  complications: {
+  complication: {
     chance    : "",
     roll_table: ""
   },
@@ -219,7 +220,6 @@ export class DWTForm extends FormApplication {
         }
 
         let context = mergeObject({actor: this.actor, hd: hd}, this.actor.getRollData());
-        console.log(context);
         if (Roll.validate(custom, context)){//ensure no error in custom
           let fail = false;
           custom.split(" + ").forEach((formu) => {
@@ -410,9 +410,10 @@ export class DWTForm extends FormApplication {
 
     if ("result.min" in formData){
       // Same deal with the template applies here
-      formData["result.min"].shift()
-      formData["result.max"].shift()
-      formData["result.details"].shift()
+      formData["result.min"].shift();
+      formData["result.max"].shift();
+      formData["result.details"].shift();
+      formData["result.triggerComplication"].shift();
       this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
     }
 

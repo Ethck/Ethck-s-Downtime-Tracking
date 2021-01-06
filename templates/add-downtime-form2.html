@@ -180,6 +180,9 @@
           <div class="result-details">
             <label>Result Details</label>
           </div>
+          <div class="result-controls">
+            <label>Trigger Complications</label>
+          </div>
 
           <div class="result-controls">
             <a class="addResult" title="Add New Result">
@@ -200,6 +203,10 @@
             <input type="text" id="details" name="result.details" placeholder="Result description" disabled>
           </div>
 
+          <div style="flex: 0 0 80px; text-align: center;">
+            <input type="checkbox" id="triggerComplication" name="result.triggerComplication" {{#if result.triggerComplication}}checked{{/if}} disabled>
+          </div>
+
           <div class="result-controls">
             <a class="delete-result" title="Delete Result">
               <i class="fas fa-trash fa-fw"></i>
@@ -218,6 +225,9 @@
 
           <div class="result-details">
             <input type="text" id="details" name="result.details" value="{{result.details}}" placeholder="Result description">
+          </div>
+          <div style="flex: 0 0 80px; text-align: center;">
+            <input type="checkbox" id="triggerComplication" name="result.triggerComplication" {{#if result.triggerComplication}}checked{{/if}}>
           </div>
 
           <div class="result-controls">

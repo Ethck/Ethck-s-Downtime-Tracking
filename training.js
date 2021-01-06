@@ -399,6 +399,7 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
 async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   let cmsg = "";
   let cmsgResult = "";
+  let triggeredComp = false;
 
   if (activity.type === "SUCCESS_COUNT") {
     let booleanResults = [0, 0];
@@ -424,6 +425,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
         result.max >= booleanResults[0]
       ) {
         cmsgResult = result.details;
+        if (result.triggerComplication) triggeredComp = true;
       }
     });
   } else if (activity.type === "ROLL_TOTAL") {
@@ -459,15 +461,12 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   // Test if complications are being used
   if (activity.complication !== undefined && (activity.complication.chance !== " " || activity.complication.table !== " ")){
     const num = Math.floor(Math.random() * 100) + 1 // 1-100
-    if (num <= activity.complication.chance){
+    if (triggeredComp || num <= activity.complication.chance){
       // Complication has occured
-      let tableRes = null;
-      if ("id" in activity.complication.table) { // New Style
-        tableRes = game.tables.get(activity.complication.table.id);
-      }
+      let tableRes = game.tables.get(activity.complication.roll_table);
       // Also outputs chat message, YAY!
       let opts = {};
-      if (activity.compPrivate === true){
+      if (activity.options.complications_are_private === true){
         opts["rollMode"] = "blindroll";
       }
       tableRes.draw(opts)
@@ -492,7 +491,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
     user: game.user.name,
     activityName: activity.name,
     result: cmsgResult,
-    timeTaken: activity.timeTaken,
+    timeTaken: activity.options.days_used,
     materials: materials
   }
 
@@ -637,7 +636,7 @@ function fixActiveTab(app, CRASH_COMPAT) {
 
 async function materialsPrompt(activity) {
   return new Promise((resolve, reject) => {
-    if (!("useMaterials" in activity) || !activity.useMaterials) {
+    if (!("ask_for_materials" in activity.options) || !activity.options.ask_for_materials) {
       resolve("");
     } else {
       new Dialog({
