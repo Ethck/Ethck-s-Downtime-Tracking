@@ -706,13 +706,20 @@ async function chooseRollDialog(groups) {
           label: "Submit",
           callback: (html) => {
             let chosen = [];
-            html.find("form > fieldset > div > input:checked").each((i, check) => {
+            let fields = html.find("form > fieldset > div > input:checked");
+
+            if (fields.length === Object.keys(groups).length) {
+              fields.each((i, check) => {
               //console.log(i, check);
               const c = parseInt($(check).val());
               chosen.push(c);
             })
             
             resolve(chosen);
+            } else {
+              // This seems ugly, but it works.
+              throw new Error("Ethck's Downtime | Choice prompt not filled.")
+            }
           }
         }
       },
