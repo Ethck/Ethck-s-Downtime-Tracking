@@ -2,8 +2,9 @@
     <fieldset>
         <table id="rollableEventsTable" class="ethck-downtime-table">
             <colgroup>
+               <col span="1" style="width: 30%;">
                <col span="1" style="width: 40%;">
-               <col span="1" style="width: 40%;">
+               <col span="1" style="width: 10%;">
                <col span="1" style="width: 10%;">
                <col span="1" style="width: 10%;">
             </colgroup>
@@ -12,6 +13,7 @@
                 <th class="resultLeft">DC</th>
                 <th>Edit</th>
                 <th>Delete</th>
+                <th>Move</th>
             </tr>
             {{#each activities as |act|}}
                 <tr id={{act.id}} class="rollableEvent">
@@ -19,6 +21,10 @@
                     <td><label>{{act.description}}</label></td>
                     <td class="resultCenter"><a class="item-control training-edit" id="{{act.id}}" title="Edit Downtime Activity"><i class="fas fa-edit"></i></a></td>
                     <td class="resultCenter"><a class="item-control training-delete" id="deleteRollable" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a></td>
+                    <td class="resultCenter">
+                        <a class="item-control activity-move" id="{{act.id}}" title="Move Activity Up"><i class="fas fa-chevron-up"></i></a>
+                        <a class="item-control activity-move" id="{{act.id}}" title="Move Activity Down"><i class="fas fa-chevron-down"></i></a>
+                    </td>
                 </tr>
             {{/each}}
         </table>

@@ -48,6 +48,8 @@ export class GMConfig extends FormApplication {
 
     this.element.find(".import").click((event) => this.importActivities(event));
     this.element.find(".export").click((event) => this.exportActivities(event));
+
+    this.element.find(".activity-move").click((event) => this.moveWorldDowntime(event));
   }
 
   editWorldDowntime(event) {
@@ -66,6 +68,40 @@ export class GMConfig extends FormApplication {
   addWorldDowntime(event) {
     let form = new DWTForm();
     form.render(true);
+  }
+
+  async moveWorldDowntime(event) {
+    // Set up some variables
+    let flags = game.settings.get("downtime-ethck", "activities");
+    let fieldId = parseInt(event.currentTarget.id);
+    let activity = game.settings
+      .get("downtime-ethck", "activities")
+      .find((act) => act.id === fieldId);
+
+    let trainingIdx = flags.map((flag) => flag.id).indexOf(fieldId);
+    let tflags = duplicate(flags);
+
+    let move = 0;
+    if ($(event.target).hasClass("fa-chevron-up")) {
+      move = -1;
+    } else {
+      move = 1;
+    }
+    // loop to bottom
+    if (trainingIdx === 0 && move === -1) {
+      tflags.push(tflags.shift());
+    // loop to top
+    } else if (trainingIdx === tflags.length - 1 && move === 1) {
+      tflags.unshift(tflags.pop());
+    // anywhere in between
+    } else {
+      tflags[trainingIdx] = tflags[trainingIdx + move]
+      tflags[trainingIdx + move] = activity;
+    }
+
+    await game.settings.set("downtime-ethck", "activities", tflags);
+    this.activities = tflags;
+    this.render(true);
   }
 
   importActivities(event){

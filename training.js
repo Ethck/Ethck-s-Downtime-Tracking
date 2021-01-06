@@ -227,6 +227,39 @@ async function addTrainingTab(app, html, data) {
       }).render(true);
     });
 
+    // Move Downtime Activity
+    downtimeHTML.find(".activity-move").click(async (event) => {
+      event.preventDefault();
+
+      // Set up some variables
+      let fieldId = event.currentTarget.id;
+      let trainingIdx = parseInt(fieldId.replace("ethck-move-", ""));
+
+      let tflags = duplicate(flags);
+      let activity = tflags[trainingIdx];
+
+      let move = 0;
+      if ($(event.target).hasClass("fa-chevron-up")) {
+        move = -1;
+      } else {
+        move = 1;
+      }
+      // loop to bottom
+      if (trainingIdx === 0 && move === -1) {
+        tflags.push(tflags.shift());
+      // loop to top
+      } else if (trainingIdx === tflags.length - 1 && move === 1) {
+        tflags.unshift(tflags.pop());
+      // anywhere in between
+      } else {
+        tflags[trainingIdx] = tflags[trainingIdx + move]
+        tflags[trainingIdx + move] = activity;
+      }
+
+      await actor.setFlag("downtime-ethck", "trainingItems", tflags)
+      fixActiveTab(app, CRASH_COMPAT)
+    });
+
     // Roll Downtime Activity
     downtimeHTML.find(".activity-roll").click(async (event) => {
       event.preventDefault();
@@ -289,8 +322,7 @@ async function addTrainingTab(app, html, data) {
       } catch (e) {
         console.log(e);
       }
-
-  });
+    });
 
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in
