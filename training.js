@@ -792,7 +792,7 @@ async function _skillCustHandler(skillAcr, actor){
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
   //await game.settings.set("downtime-ethck", "migrated", false);
-  const NEEDS_MIGRATION_VERSION = "0.3.4";
+  const NEEDS_MIGRATION_VERSION = "0.4.0";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
   // Skipped multiple versions and upgrading in 0.4.X or higher
@@ -881,7 +881,7 @@ async function _updateDowntimes(downtimes) {
         }
       }
     }
-    // 12/23/2020 v0.3.4 transfer to new roll model
+    // 12/23/2020 v0.4.0 transfer to new roll model
     if ("rollableGroups" in downtime){
       let newRolls = downtime.rollableGroups.flatMap((group) => {
         if (group.rolls.length === 0) return;
@@ -925,7 +925,7 @@ async function _updateDowntimes(downtimes) {
       newRolls = newRolls.filter(Boolean);
       downtime.roll = newRolls;
     }
-    // 12/23/2020 v0.3.4 transfer to new result model
+    // 12/23/2020 v0.4.0 transfer to new result model
     if ("results" in downtime) {
       // downtime.results[0] old format is an array
       // new format is object
@@ -945,7 +945,7 @@ async function _updateDowntimes(downtimes) {
         changed = true;
       }
     }
-    // 12/23/20 v0.3.4 transfer to new activity model
+    // 12/23/20 v0.4.0 transfer to new activity model
     if ("rollableGroups" in downtime && "rollableEvents" in downtime) {
 
       if (downtime?.type === "succFail"){
