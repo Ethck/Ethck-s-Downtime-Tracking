@@ -69,11 +69,12 @@ export class DWTForm extends FormApplication {
     game.users.apps.push(this);
     this.activity = activity;
     this.actor = actor;
-    this.edit = editMode;
+    this.editing = editMode;
     this.image = activity.chat_icon || ""
   }
 
   static get defaultOptions() {
+    // TODO: This isn't working b/c this.editing is undefined...
     let title = this.editing ? EDIT_DOWNTIME_TITLE : ADD_DOWNTIME_TITLE;
 
     return mergeObject(super.defaultOptions, {
@@ -127,10 +128,10 @@ export class DWTForm extends FormApplication {
       this.element.find("#complications").val(this.activity.complication.roll_table);
     }
     // Set initial values of our options
-    this.element.find("#privateActivity").attr("checked", this.activity.options.rolls_are_private);
-    this.element.find("#privateComp").attr("checked", this.activity.options.complications_are_private)
-    this.element.find("#timeTaken").val(this.activity.options.days_used);
-    this.element.find("#materials").attr("checked", this.activity.options.ask_for_materials)
+    this.element.find("#privateActivity").attr("checked", this.activity.options?.rolls_are_private);
+    this.element.find("#privateComp").attr("checked", this.activity.options?.complications_are_private)
+    this.element.find("#timeTaken").val(this.activity.options?.days_used);
+    this.element.find("#materials").attr("checked", this.activity.options?.ask_for_materials)
 
     // set field status based on activity type
     this.updateRollsStatus(this.activity.type);
@@ -286,9 +287,9 @@ export class DWTForm extends FormApplication {
     newResult.attr("data-id", randomID());
     // Show it!
     newResult.css("display", "");
-    newResult.find(".result-range > input, .result-details > input").prop("disabled", false);
+    newResult.find(".result-range > input, .result-details > input, #triggerComplication").prop("disabled", false);
     // Append
-    this.element.find("#resultsTable").append(newResult);
+    this.element.find("#resultsTable > ol").append(newResult);
     // Attach new listener
     newResult.find(".result-controls > .delete-result").click((event) => this.deleteResult(event));
   }
@@ -382,7 +383,6 @@ export class DWTForm extends FormApplication {
     this.activity.result = results || [];
 
     this.activity.chat_icon = this.image;
-    console.log(formData);
 
     if ("roll.roll" in formData) {
       // there is a disabled template that needs to be pruned. It is

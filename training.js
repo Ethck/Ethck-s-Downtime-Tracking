@@ -303,7 +303,6 @@ async function addTrainingTab(app, html, data) {
         // choices is array of selected index for each group
         // i.e. [1, 0, 3, 0]
         const choices = await chooseRollDialog(groups);
-        console.log(choices);
         const groupVals = Object.values(groups);
         // match choices to their indexed rolls.
         rolls = groupVals.map((group, i) => {
@@ -419,7 +418,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
       " successes and " +
       booleanResults[1] +
       " failures.";
-    activity.result.forEach((result) => {
+    activity.result?.forEach((result) => {
       if (
         result.min <= booleanResults[0] &&
         result.max >= booleanResults[0]
@@ -444,7 +443,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.chat_icon, text: cmsg, result: cmsgResult})
 
   // Determine if we whisper this message, and who to
-  const cmsgVis = activity.options.rolls_are_private || game.settings.get("core", "rollMode");
+  const cmsgVis = activity.options.rolls_are_private || game.settings.get("core", "rollMode") === "gmroll";
   const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser._id)
 
   // Results message
@@ -698,7 +697,6 @@ async function formulaRoll(formula, actor) {
 
     // make the roll, providing a reference to actor
     let context = mergeObject({actor: actor, hd: hd}, actor.getRollData());
-    console.log(context);
     let myRoll = new Roll(formula.join(" + "), context);
     myRoll.roll();
     await myRoll.toMessage();
@@ -939,6 +937,7 @@ async function _updateDowntimes(downtimes) {
             min: result[0], // lower bound
             max: result[1], // high bound
             details: result[2], // description
+            triggerComplication: false // trigger complication if result occurs
           }
         });
 
