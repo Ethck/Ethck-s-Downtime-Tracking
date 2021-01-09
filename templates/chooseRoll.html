@@ -4,7 +4,7 @@
     <fieldset>
         {{#each groupRoll as |roll i |}}
         <div>
-            <input type="radio" value="{{i}}" name="{{roll.group}}">{{roll.roll}} DC: {{roll.dc}}</input>
+            <input type="radio" value="{{i}}" name="{{roll.group}}"> {{roll.roll}} {{#if roll.dc}}DC: {{roll.dc}}{{/if}}</input>
         </div>
         {{/each}}
     </fieldset>

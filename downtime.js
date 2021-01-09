@@ -32,7 +32,7 @@ const ACTIVITY_ROLL_MODEL = {
   type : 0, //* ROLL_TYPES
   roll : "",
   group: "",
-  dc   : 0,
+  dc   : 0
 }
 
 const ACTIVITY_RESULT_MODEL = {
@@ -431,7 +431,7 @@ export class DWTForm extends FormApplication {
     if (!jQuery.isEmptyObject(actor)) {
       let flags = actor.getFlag("downtime-ethck", "trainingItems");
 
-      if (this.edit) {
+      if (this.editing) {
         let act = flags.find((act) => act.id == this.activity.id);
         let idx = flags.indexOf(act);
         flags[idx] = this.activity;
@@ -444,7 +444,7 @@ export class DWTForm extends FormApplication {
     } else {
       this.activity["world"] = true;
       const settings = game.settings.get("downtime-ethck", "activities");
-      if (this.edit) {
+      if (this.editing) {
         let act = settings.find((act) => act.id == this.activity.id);
         let idx = settings.indexOf(act);
         settings[idx] = this.activity;

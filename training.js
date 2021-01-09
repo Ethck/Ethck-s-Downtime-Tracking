@@ -302,7 +302,26 @@ async function addTrainingTab(app, html, data) {
       } else { // Some choices need to be made
         // choices is array of selected index for each group
         // i.e. [1, 0, 3, 0]
-        const choices = await chooseRollDialog(groups);
+        
+        // We internally use shorthand for everything
+        // so convert it to longhand when we print
+        let readableGroups = {}
+        let igroups = duplicate(groups);
+        for (const [key,val] of Object.entries(igroups)) {
+          readableGroups[key] = val.map((roll) => {
+            if (roll.type === "ABILITY_CHECK" || roll.type === "SAVING_THROW"){
+              roll.roll = CONFIG.DND5E.abilities[roll.roll]
+            } else if (roll.type === "SKILL_CHECK") {
+              roll.roll = CONFIG.DND5E.skills[roll.roll]
+            } else {
+              roll.roll = roll.roll;
+            }
+
+            return roll;
+          })
+        }
+
+        const choices = await chooseRollDialog(readableGroups);
         const groupVals = Object.values(groups);
         // match choices to their indexed rolls.
         rolls = groupVals.map((group, i) => {
@@ -344,7 +363,12 @@ async function addTrainingTab(app, html, data) {
 
       let desc = "";
       for (let rollable of activity.roll) {
-        desc += rollable.roll + " DC: " + rollable.dc + "</br>";
+        desc += rollable.roll;
+        if (rollable.dc) {
+          desc += " DC: " + rollable.dc;
+        }
+
+        desc += "</br>";
       }
 
       let li = $(event.currentTarget).parents(".item");
@@ -964,8 +988,8 @@ async function _updateDowntimes(downtimes) {
         type       : downtime.type,  //* ACTIVITY_TYPES
         roll      : downtime.roll, //* ACTIVITY_ROLL_MODEL
         result    : downtime.result, //* ACTIVITY_RESULT_MODEL
-        id        : downtime.id || randomID(),
-        complications: {
+        id        : downtime.id.toString() || randomID(),
+        complication: {
           chance    : downtime.complication.chance || 0,
           roll_table: downtime.complication.table.id || ""
         },

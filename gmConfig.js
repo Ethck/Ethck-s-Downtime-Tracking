@@ -60,7 +60,8 @@ export class GMConfig extends FormApplication {
     let fieldId = event.currentTarget.id;
     let activity = game.settings
       .get("downtime-ethck", "activities")
-      .find((act) => act.id === parseInt(fieldId));
+      .find((act) => act.id === fieldId);
+     console.log(activity, fieldId, game.settings.get("downtime-ethck", "activities"));
     let form = new DWTForm({}, activity, true);
     form.render(true);
   }
@@ -73,12 +74,12 @@ export class GMConfig extends FormApplication {
   async moveWorldDowntime(event) {
     // Set up some variables
     let flags = game.settings.get("downtime-ethck", "activities");
-    let fieldId = parseInt(event.currentTarget.id);
+    let fieldId = event.currentTarget.id;
     let activity = game.settings
       .get("downtime-ethck", "activities")
-      .find((act) => act.id === fieldId);
+      .find((act) => act.id.toString() === fieldId);
 
-    let trainingIdx = flags.map((flag) => flag.id).indexOf(fieldId);
+    let trainingIdx = flags.map((flag) => flag.id.toString()).indexOf(fieldId);
     let tflags = duplicate(flags);
 
     let move = 0;
