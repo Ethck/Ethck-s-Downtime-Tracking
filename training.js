@@ -460,6 +460,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
     activity.result.forEach((result) => {
       if (res[0][0] >= parseInt(result.min) && res[0][0] <= parseInt(result.max)) {
         cmsgResult = result.details;
+        if (result.triggerComplication) triggeredComp = true;
       }
     });
   } else if (activity.type === "NO_ROLL") {
