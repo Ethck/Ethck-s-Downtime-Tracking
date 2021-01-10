@@ -4,7 +4,15 @@
     <fieldset>
         {{#each groupRoll as |roll i |}}
         <div>
-            <input type="radio" value="{{i}}" name="{{roll.group}}"> {{roll.roll}} {{#if roll.dc}}DC: {{roll.dc}}{{/if}}</input>
+            <input type="radio" value="{{i}}" name="{{roll.group}}"> {{roll.roll}} 
+                {{#if (or 
+                    (eq roll.type "ABILITY_CHECK")
+                    (eq roll.type "SAVING_THROW"))
+                }}
+                    {{roll.type}} 
+                {{/if}}
+                
+                {{#if roll.dc}}DC: {{roll.dc}}{{/if}}</input>
         </div>
         {{/each}}
     </fieldset>

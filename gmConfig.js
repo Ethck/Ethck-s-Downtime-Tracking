@@ -12,7 +12,7 @@ export class GMConfig extends FormApplication {
     options.title = "Add a Global Downtime Event";
     options.id = "downtime-ethck";
     options.template = "modules/downtime-ethck/templates/gmConfig.html";
-    options.closeOnSubmit = true;
+    options.closeOnSubmit = false;
     options.popOut = true;
     options.width = 600;
     options.height = "auto";
@@ -61,7 +61,6 @@ export class GMConfig extends FormApplication {
     let activity = game.settings
       .get("downtime-ethck", "activities")
       .find((act) => act.id === fieldId);
-     console.log(activity, fieldId, game.settings.get("downtime-ethck", "activities"));
     let form = new DWTForm({}, activity, true);
     form.render(true);
   }

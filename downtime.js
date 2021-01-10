@@ -1,8 +1,5 @@
 const FORM_TEMPLATE = "modules/downtime-ethck/templates/add-downtime-form2.html";
 
-const EDIT_DOWNTIME_TITLE = "Edit a Downtime Activity";
-const ADD_DOWNTIME_TITLE = "Add a Downtime Event";
-
 const DND5E_TOOLS = [
   "Kit",
   "Instrument",
@@ -74,13 +71,10 @@ export class DWTForm extends FormApplication {
   }
 
   static get defaultOptions() {
-    // TODO: This isn't working b/c this.editing is undefined...
-    let title = this.editing ? EDIT_DOWNTIME_TITLE : ADD_DOWNTIME_TITLE;
-
     return mergeObject(super.defaultOptions, {
       id           : "downtime-ethck",
       template     : FORM_TEMPLATE,
-      title        : title,
+      title        : "Downtime Activity Modification",
       closeOnSubmit: true,
       popOut       : true,
       width        : 800,
@@ -369,6 +363,8 @@ export class DWTForm extends FormApplication {
     } else {
       id = randomID();
     }
+    // ensure id is a string
+    if (typeof id === "number") id = id.toString();
 
     let rolls = this.activity.roll;
     let results = this.activity.result;
@@ -397,8 +393,8 @@ export class DWTForm extends FormApplication {
         // the ALL DC fields are disabled, thus roll.dc does not
         // exist. loadModelFromTable requires all columns to exist.
         // So we make a new array of the same size as roll.type and
-        // fill it with 0s (just some default value).
-        formData["roll.dc"] = Array(formData["roll.type"].length).fill("0")
+        // fill it with null (just some default non-visible value).
+        formData["roll.dc"] = Array(formData["roll.type"].length).fill(null)
       }
       // roll.roll is FILLED with nulls because every
       // select (5 * row) has a value, but only one
