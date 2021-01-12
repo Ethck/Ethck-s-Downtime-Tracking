@@ -61,13 +61,15 @@ const ACTIVITY_MODEL = {
 }
 
 export class DWTForm extends FormApplication {
-  constructor(actor = {}, activity = {}, editMode = false, ...args) {
+  constructor(actor = {}, activity = {}, editMode = false, world = false, sheet = {}, ...args) {
     super(...args);
     game.users.apps.push(this);
     this.activity = activity;
     this.actor = actor;
     this.editing = editMode;
     this.image = activity.chat_icon || ""
+    this.world = world;
+    this.sheet = sheet;
   }
 
   static get defaultOptions() {
@@ -306,10 +308,6 @@ export class DWTForm extends FormApplication {
   would be represented with columns (expanded FormData) that has the shape:
     {group: ["a", "b", "c"], dc: [8, 72, 3]}
   
-  The algorithm assumes that any 'null' or 'undefined' value
-  found in a column's data is a disabled field and is thus 
-  filtered out. 
-  
   Other assumptions:
     - A column will either be undefined, or be an array with the same
       length as other defined columns.
@@ -424,7 +422,7 @@ export class DWTForm extends FormApplication {
     // Update!!!
     const actor = this.actor;
     // local scope
-    if (!jQuery.isEmptyObject(actor)) {
+    if (!this.world) {
       let flags = actor.getFlag("downtime-ethck", "trainingItems");
 
       if (this.editing) {
@@ -448,6 +446,8 @@ export class DWTForm extends FormApplication {
         settings.push(this.activity);
       }
       await game.settings.set("downtime-ethck", "activities", settings);
+      // rerender the character sheet to reflect updated activities
+      this.sheet.render(true);
     }
   }
 }

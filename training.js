@@ -172,6 +172,14 @@ async function addTrainingTab(app, html, data) {
       fixActiveTab(app, CRASH_COMPAT)
     });
 
+    // Add New Downtime Activity
+    downtimeHTML.find(".world-add").click(async (event) => {
+      event.preventDefault();
+      let form = new DWTForm(actor, {}, false, true, app);
+      form.render(true);
+      fixActiveTab(app, CRASH_COMPAT)
+    });
+
     // Edit Downtime Activity
     downtimeHTML.find(".activity-edit").click(async (event) => {
       event.preventDefault();
@@ -179,8 +187,15 @@ async function addTrainingTab(app, html, data) {
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-edit-", ""));
-      let activity = flags[trainingIdx];
-      let form = new DWTForm(actor, activity, true);
+      let activity;
+      let world = false;
+      if ($(event.currentTarget).parent().hasClass("worldRoll")){
+        activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
+        world = true;
+      } else {
+        activity = flags[trainingIdx];
+      }
+      let form = new DWTForm(actor, activity, true, world);
       form.render(true);
       fixActiveTab(app, CRASH_COMPAT)
     });
@@ -192,7 +207,14 @@ async function addTrainingTab(app, html, data) {
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-delete-", ""));
-      let activity = flags[trainingIdx];
+      let world = false;
+      let activity;
+      if ($(event.currentTarget).parent().hasClass("worldRoll")) {
+        activity = game.settings.get("downtime-ethck", "activities")[trainingIdx]
+        world = true;
+      } else {
+        activity = flags[trainingIdx];
+      }
       let del = false;
       let dialogContent = await renderTemplate(
         "modules/downtime-ethck/templates/delete-training-dialog.html"
@@ -218,9 +240,16 @@ async function addTrainingTab(app, html, data) {
         close: async (html) => {
           if (del) {
             // Delete item and update actor
-            flags.splice(trainingIdx, 1);
-            await actor.unsetFlag("downtime-ethck", "trainingItems")
-            await actor.setFlag("downtime-ethck", "trainingItems", flags)
+            if (world) {
+              let newAct = game.settings.get("downtime-ethck", "activities");
+              newAct.splice(trainingIdx, 1);
+              await game.settings.set("downtime-ethck", "activities", newAct);
+              app.render(true);
+            } else {
+              flags.splice(trainingIdx, 1);
+              await actor.unsetFlag("downtime-ethck", "trainingItems");
+              await actor.setFlag("downtime-ethck", "trainingItems", flags);
+            }
             fixActiveTab(app, CRASH_COMPAT)
           }
         },
@@ -235,7 +264,15 @@ async function addTrainingTab(app, html, data) {
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-move-", ""));
 
-      let tflags = duplicate(flags);
+      let tflags;
+      let world = false;
+      if ($(event.currentTarget).parent().hasClass("worldRoll")) {
+        tflags = game.settings.get("downtime-ethck", "activities");
+        world = true;
+      } else {
+        tflags = duplicate(flags);
+      }
+
       let activity = tflags[trainingIdx];
 
       let move = 0;
@@ -256,7 +293,13 @@ async function addTrainingTab(app, html, data) {
         tflags[trainingIdx + move] = activity;
       }
 
-      await actor.setFlag("downtime-ethck", "trainingItems", tflags)
+      if (world) {
+        await game.settings.set("downtime-ethck", "activities", tflags);
+        app.render(true);
+      } else {
+        await actor.setFlag("downtime-ethck", "trainingItems", tflags)
+      }
+
       fixActiveTab(app, CRASH_COMPAT)
     });
 
