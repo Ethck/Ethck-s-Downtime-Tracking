@@ -669,8 +669,11 @@ async function rollRollable(actor, activity, rollable) {
     }
 
     if (game.dice3d) { // If dice so nice is being used, wait till 1st animation is over.
-      Hooks.once('diceSoNiceRollComplete', (messageId) => {
-        resolve(res);
+      Hooks.on('diceSoNiceRollComplete', (messageId) => {
+        let dsnMessage = game.messages.get(messageId);
+        if (dsnMessage.data.content === res[0].toString()) {
+          resolve(res);
+        }
       });
     // no DSN, just normal.
     } else {
