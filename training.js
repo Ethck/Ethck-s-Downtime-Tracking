@@ -960,12 +960,12 @@ async function _updateDowntimes(downtimes) {
     if ("rollableGroups" in downtime){
       let newRolls = downtime.rollableGroups.flatMap((group) => {
         if (group.rolls.length === 0) return;
-        let g = group.group || "a";
+        let g = group.group || "";
         let rolls = group.rolls.map((roll) => {
           // new format is an object
           if (!Array.isArray(roll)) return;
           let typeRoll = determineOldType(roll); // Determine type
-          let dc = roll[1] || 0; // Use old DC, or default to 0
+          let dc = roll[1] || null; // Use old DC, or default to null
           let rollVal = roll[0];
           // ensure our DC is a number
           if (typeof dc === "number") {
