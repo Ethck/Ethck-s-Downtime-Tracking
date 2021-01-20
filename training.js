@@ -635,7 +635,7 @@ async function rollRollable(actor, activity, rollable) {
         })
       }
 
-      const choice = await chooseRollDialog(toolChoices);
+      const choice = await chooseRollDialog(toolChoices, rollable.roll);
       actorTool = actorTools[choice[0]];
 
       if (actorTool !== null) {
@@ -668,7 +668,7 @@ async function rollRollable(actor, activity, rollable) {
       reject();
     }
 
-    if (game.dice3d) { // If dice so nice is being used, wait till 1st animation is over.
+    if (game.dice3d) { // If dice so nice is being used, wait till matching animation is over.
       Hooks.on('diceSoNiceRollComplete', (messageId) => {
         let dsnMessage = game.messages.get(messageId);
         if (dsnMessage.data.content === res[0].toString()) {
@@ -812,8 +812,8 @@ async function _formulaDialog(formula) {
   });
 }
 
-async function chooseRollDialog(groups) {
-  const dialogContent = await renderTemplate("modules/downtime-ethck/templates/chooseRoll.html", {groups: groups});
+async function chooseRollDialog(groups, type = "") {
+  const dialogContent = await renderTemplate("modules/downtime-ethck/templates/chooseRoll.html", {groups: groups, type: type});
   return new Promise(async(resolve, reject) => {
     const dlg = new Dialog({
       title: "Choose Roll",
@@ -828,7 +828,6 @@ async function chooseRollDialog(groups) {
 
             if (fields.length === Object.keys(groups).length) {
               fields.each((i, check) => {
-              //console.log(i, check);
               const c = parseInt($(check).val());
               chosen.push(c);
             })

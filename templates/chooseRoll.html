@@ -1,6 +1,9 @@
 <form autocomplete="off" onsubmit="event.preventDefault();">
     {{#each groups as |groupRoll |}}
     <label>Group: {{groupRoll.[0].group}}</label>
+    {{#if (eq groupRoll.length 0)}}
+        <label style="color: red;">No tools found in Actor's Inventory of type "{{../type}}"</label>
+    {{/if}}
     <fieldset>
         {{#each groupRoll as |roll i |}}
         <div>
