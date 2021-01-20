@@ -623,7 +623,7 @@ async function rollRollable(actor, activity, rollable) {
       // When selected, this option will then find every tool of that type
       // in the actor's inventory and provide the ability to choose
       // between them.
-      const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes(rollable.roll));
+      const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.toLowerCase().includes(rollable.roll.toLowerCase()));
 
       let toolChoices = {
         rollableGroups: actorTools.map((tool) => {
