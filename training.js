@@ -195,7 +195,7 @@ async function addTrainingTab(app, html, data) {
       } else {
         activity = flags[trainingIdx];
       }
-      let form = new DWTForm(actor, activity, true, world);
+      let form = new DWTForm(actor, activity, true, world, app);
       form.render(true);
       fixActiveTab(app, CRASH_COMPAT)
     });
