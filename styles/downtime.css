@@ -11,23 +11,27 @@
 /*****************************/
 
 /* Tweak some item controls styles to fit the additional buttons*/
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-controls {
+.inventory-list.ethck-downtime .ethck-item-controls {
 	min-width: fit-content;
 	min-width: -moz-fit-content;
+	justify-content: space-between;
+	flex: 0 0 44px;
 }
 
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-controls a {
+.inventory-list.ethck-downtime .ethck-item-controls a {
 	min-width: fit-content;
 	min-width: -moz-fit-content;
 	flex: 1 !important;
 	margin-right: 5px;
+	font-size: 12px;
 }
 
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item .item-name {
+.inventory-list.ethck-downtime .item .item-name {
 	flex: 0 1 30%;
 }
 /* Type Column */
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type {
+.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type,
+.inventory-list.ethck-downtime .item-detail.type {
 	text-transform: capitalize;
 	flex: 1 0 50%;
 	text-align: left;
@@ -133,50 +137,4 @@
 
 .dark-mode .activity-log .action-table table tr:hover td {
 	background-color: rgba(63,136,230, 0.4);
-}
-
-
-/*********************************/
-/*     SUPPORT FOR TIDY 5E     */
-/*****************************/
-
-.tidy5e .inventory-list.ethck-downtime .item-controls .item-create {
-	padding-left: 5px;
-	padding-right: 5px;
-}
-
-.tidy5e .inventory-list.ethck-downtime .item-controls .item-create:last-child {
-	margin-right: 0px;
-}
-
-/* Tweak activity entries on NPC sheet */
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item .item-name .item-image {
-	height: 30px;
-	width: 30px;
-	flex: 0 0 30px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item .item-name h4 {
-	line-height: 30px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item-detail .downtime-override {
-	max-width: 40px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .inventory-header .item-controls a.item-create {
-	margin-top: 0px;
-	padding: 4px 5px;
-	margin-right: 5px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item {
-	line-height: 30px;
-}
-
-/* Controls dark mode support */
-.tidy5eDark .tidy5e.sheet.actor .inventory-list.ethck-downtime .item-controls a,
-.tidy5eDark .tidy5e.sheet.actor .inventory-list.ethck-downtime .item-controls a:hover {
-  color: var(--darkmode-primary-color);
-	font-weight: 300;
 }
