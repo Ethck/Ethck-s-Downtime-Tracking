@@ -270,6 +270,7 @@ export class DWTForm extends FormApplication {
     // Turn off DCs
     if (type === "ROLL_TOTAL") {
       this.element.find("li > #roll-dc > input").prop("disabled", true);
+      this.element.find("li > #roll-dc > input").val(null);
     // Turn off everything
     } else if (type === "NO_ROLL") { 
       this.element.find("#rollsTable select, #rollsTable input").prop("disabled", true);
