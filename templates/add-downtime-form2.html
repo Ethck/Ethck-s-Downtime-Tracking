@@ -38,18 +38,48 @@
         <li class="table-result table-header flexrow">
           <div class="result-type">
             <label>Roll Type</label>
+            <div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext">
+                There are 5 Types of Rolls:</br>
+                Ability Check</br>
+                Saving Throw</br>
+                Skill Check</br>
+                Tool Check - Uses tools that Actor has in inventory.</br>
+                Custom - Allows you to roll any kind of dice and reference actor properties.
+              </span>
+            </div>
           </div>
 
           <div class="result-details">
             <label>Roll</label>
+            <div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext">
+                This determines *what* is rolled, be it Strength Check
+                or 1d20 + @hd.max
+              </span>
+            </div>
           </div>
 
           <div class="result-type">
             <label>Group Name</label>
+            <div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext left">
+                Groups allow you to give choices in rolls. For example, if you want to roll
+                and Athletics OR Acrobatics check you would assign both rolls the same group ("A").</br>
+                By default, all rolls will be in the same group, so make sure to use unique groups
+                if you want to do multiple rolls.
+              </span>
+            </div>
           </div>
 
           <div class="result-weight">
             <label>DC</label>
+            <div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext left">
+                DCs are only used for Success Count rolls and determine what value you must
+                roll higher than in order to "succeed."
+              </span>
+            </div>
           </div>
 
           <div class="result-controls">

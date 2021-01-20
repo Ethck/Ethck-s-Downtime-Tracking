@@ -85,6 +85,34 @@
     margin: 0px 3px 3px 0px;
 }
 
+.ethck-downtime-form .tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.ethck-downtime-form .tooltip .tooltiptext {
+  visibility: hidden;
+  width: 400px;
+  background-color: black;
+  color: #fff;
+  border-radius: 6px;
+  padding: 15px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+.ethck-downtime-form .tooltip .tooltiptext.left {
+  top: -5px;
+  right: 105%; 
+}
+
+.ethck-downtime-form .tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
 
 /*********************************/
 /*         ACTIVITY LOGS          */
