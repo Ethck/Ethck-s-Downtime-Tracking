@@ -52,58 +52,6 @@ export class GMConfig extends FormApplication {
     this.element.find(".activity-move").click((event) => this.moveWorldDowntime(event));
   }
 
-  editWorldDowntime(event) {
-    // Edit Downtime Activity
-    event.preventDefault();
-
-    // Set up some variables
-    let fieldId = event.currentTarget.id;
-    let activity = game.settings
-      .get("downtime-ethck", "activities")
-      .find((act) => act.id === fieldId);
-    let form = new DWTForm({}, activity, true);
-    form.render(true);
-  }
-
-  addWorldDowntime(event) {
-    let form = new DWTForm();
-    form.render(true);
-  }
-
-  async moveWorldDowntime(event) {
-    // Set up some variables
-    let flags = game.settings.get("downtime-ethck", "activities");
-    let fieldId = event.currentTarget.id;
-    let activity = game.settings
-      .get("downtime-ethck", "activities")
-      .find((act) => act.id.toString() === fieldId);
-
-    let trainingIdx = flags.map((flag) => flag.id.toString()).indexOf(fieldId);
-    let tflags = duplicate(flags);
-
-    let move = 0;
-    if ($(event.target).hasClass("fa-chevron-up")) {
-      move = -1;
-    } else {
-      move = 1;
-    }
-    // loop to bottom
-    if (trainingIdx === 0 && move === -1) {
-      tflags.push(tflags.shift());
-    // loop to top
-    } else if (trainingIdx === tflags.length - 1 && move === 1) {
-      tflags.unshift(tflags.pop());
-    // anywhere in between
-    } else {
-      tflags[trainingIdx] = tflags[trainingIdx + move]
-      tflags[trainingIdx + move] = activity;
-    }
-
-    await game.settings.set("downtime-ethck", "activities", tflags);
-    this.activities = tflags;
-    this.render(true);
-  }
-
   importActivities(event){
     const input = $('<input type="file">')
     input.on("change", this.importWorldActivities);
@@ -138,17 +86,6 @@ export class GMConfig extends FormApplication {
     const jsonData = JSON.stringify(data, null, 2);
     saveDataToFile(jsonData, 'application/json', "downtime-ethck-world-activities.json");
     ui.notifications.info("Ethck's Downtime: Saved Activity Data.")
-  }
-
-  async handleRollableDelete(event, row) {
-    event.preventDefault();
-
-    const toDel = this.activities.find((act) => act.id == $(row).attr("id"));
-    const idx = this.activities.indexOf(toDel);
-    this.activities.splice(idx, 1);
-
-    await game.settings.set("downtime-ethck", "activities", this.activities);
-    $(row).remove();
   }
 
   async _updateObject(event, formData) {
