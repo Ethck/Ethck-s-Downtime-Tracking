@@ -323,53 +323,54 @@ async function addTrainingTab(app, html, data) {
       let res = [];
 
       let rolls = [];
-
-      // build dict of group: rolls pairs
-      // key is the group name
-      // val is the roll(s) in that group
-      const groups = {}
-      for (let roll of activity.roll){
-        let group = groups[roll.group];
-        // make a new group
-        if (group == null){
-          group = [];
-          groups[roll.group] = group;
+      if (activity.type !== "NO_ROLL") {
+        // build dict of group: rolls pairs
+        // key is the group name
+        // val is the roll(s) in that group
+        const groups = {}
+        for (let roll of activity.roll){
+          let group = groups[roll.group];
+          // make a new group
+          if (group == null){
+            group = [];
+            groups[roll.group] = group;
+          }
+          // add to group
+          group.push(roll);
         }
-        // add to group
-        group.push(roll);
-      }
 
-      if (Object.values(groups).every((rg) => rg.length === 1)){ // No choices, just execute
-        // Just store all values.
-        rolls = Object.values(groups).flat();
-      } else { // Some choices need to be made
-        // choices is array of selected index for each group
-        // i.e. [1, 0, 3, 0]
-        
-        // We internally use shorthand for everything
-        // so convert it to longhand when we print
-        let readableGroups = {}
-        let igroups = duplicate(groups);
-        for (const [key,val] of Object.entries(igroups)) {
-          readableGroups[key] = val.map((roll) => {
-            if (roll.type === "ABILITY_CHECK" || roll.type === "SAVING_THROW"){
-              roll.roll = CONFIG.DND5E.abilities[roll.roll]
-            } else if (roll.type === "SKILL_CHECK") {
-              roll.roll = CONFIG.DND5E.skills[roll.roll]
-            } else {
-              roll.roll = roll.roll;
-            }
+        if (Object.values(groups).every((rg) => rg.length === 1)){ // No choices, just execute
+          // Just store all values.
+          rolls = Object.values(groups).flat();
+        } else { // Some choices need to be made
+          // choices is array of selected index for each group
+          // i.e. [1, 0, 3, 0]
+          
+          // We internally use shorthand for everything
+          // so convert it to longhand when we print
+          let readableGroups = {}
+          let igroups = duplicate(groups);
+          for (const [key,val] of Object.entries(igroups)) {
+            readableGroups[key] = val.map((roll) => {
+              if (roll.type === "ABILITY_CHECK" || roll.type === "SAVING_THROW"){
+                roll.roll = CONFIG.DND5E.abilities[roll.roll]
+              } else if (roll.type === "SKILL_CHECK") {
+                roll.roll = CONFIG.DND5E.skills[roll.roll]
+              } else {
+                roll.roll = roll.roll;
+              }
 
-            return roll;
+              return roll;
+            })
+          }
+
+          const choices = await chooseRollDialog(readableGroups);
+          const groupVals = Object.values(groups);
+          // match choices to their indexed rolls.
+          rolls = groupVals.map((group, i) => {
+            return group[choices[i]];
           })
         }
-
-        const choices = await chooseRollDialog(readableGroups);
-        const groupVals = Object.values(groups);
-        // match choices to their indexed rolls.
-        rolls = groupVals.map((group, i) => {
-          return group[choices[i]];
-        })
       }
 
       try {
