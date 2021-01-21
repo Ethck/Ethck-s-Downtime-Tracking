@@ -32,9 +32,10 @@
 /* Type Column */
 .dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type,
 .inventory-list.ethck-downtime .item-detail.type {
-	/*text-transform: capitalize;*/
 	flex: 1 0 50%;
 	text-align: left;
+    overflow-y: hidden;
+    height: 1.2em;
 }
 
 /*********************************/
