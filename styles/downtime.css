@@ -32,7 +32,7 @@
 /* Type Column */
 .dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type,
 .inventory-list.ethck-downtime .item-detail.type {
-	text-transform: capitalize;
+	/*text-transform: capitalize;*/
 	flex: 1 0 50%;
 	text-align: left;
 }
@@ -94,18 +94,25 @@
 .ethck-downtime-form .tooltip .tooltiptext {
   visibility: hidden;
   width: 400px;
-  background-color: black;
-  color: #fff;
-  border-radius: 6px;
-  padding: 15px;
-
+  background-color: #f1f0ec;
+  color: black;
+  border-radius: 1px;
+  padding: 5px;
+  line-height: 1;
+  padding-top: 3px;
+  border-style: double;
+  font-style: normal;
+  font-weight: normal;
+  font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+  font-size: 14px;
+  
   /* Position the tooltip */
   position: absolute;
   z-index: 1;
 }
 
 .ethck-downtime-form .tooltip .tooltiptext.left {
-  top: -5px;
+  top: 0px;
   right: 105%; 
 }
 

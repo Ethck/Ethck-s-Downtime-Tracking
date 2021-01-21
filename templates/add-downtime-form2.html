@@ -20,6 +20,13 @@
         </div>
         <div>
           <label>Activity Type</label>
+		  <div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext">
+                <strong>Success Count:</strong>Counts the number of 'successes' or DCs beaten and compares that number to the ranges in the Results table.</br></br>
+				<strong>Roll Total:</strong> Compares the total roll result to the ranges in the Results table.</br></br>
+				<strong>No Roll:</strong> Only sends the Activity's "Name" and "Icon in Chat" to the chat feed to declare that a character has completed the task. Useful for doing activities like 'Relaxation' that have no roll/result requirements.
+              </span>
+            </div>
           <input type="radio" id="SUCCESS_COUNT" name="type" value="SUCCESS_COUNT" checked="checked">Success Count
           <input type="radio" id="ROLL_TOTAL" name="type" value="ROLL_TOTAL">Roll Total
           <input type="radio" id="NO_ROLL" name="type" value="NO_ROLL">No Roll
@@ -40,12 +47,10 @@
             <label>Roll Type</label>
             <div class="tooltip"><i class="fas fa-info-circle"></i>
               <span class="tooltiptext">
-                There are 5 Types of Rolls:</br>
-                Ability Check</br>
-                Saving Throw</br>
-                Skill Check</br>
-                Tool Check - Uses tools that Actor has in inventory.</br>
-                Custom - Allows you to roll any kind of dice and reference actor properties.
+                <strong>Ability Check, Saving Throw, Skill Check:</strong> These are rolled using the character's attributes with modifiers, proficiencies and expertise as required.</br></br>
+				<strong>Tool Checks:</strong> The appropriate tool must be in the character's inventory and its name must say the type 
+				of tool it is.</br>e.g. "Drum <u>Instrument</u>" or "Playing Card <u>Set</u>".</br></br>
+				<strong>Custom:</strong> Allows you to roll any kind of dice and reference actor properties. e.g. 1d20 + @abilities.con.mod + @hd.max  
               </span>
             </div>
           </div>
@@ -54,8 +59,7 @@
             <label>Roll</label>
             <div class="tooltip"><i class="fas fa-info-circle"></i>
               <span class="tooltiptext">
-                This determines *what* is rolled, be it Strength Check
-                or 1d20 + @hd.max
+                <strong>Roll Choice:</strong> This is where you choose the specific Ability Check, Saving Throw, Skill Check or Tool Type. </br></br> For "Custom" roll types, this is where you enter your roll formula e.g. 1d20 + @abilities.con.mod + @hd.max
               </span>
             </div>
           </div>
@@ -64,8 +68,8 @@
             <label>Group Name</label>
             <div class="tooltip"><i class="fas fa-info-circle"></i>
               <span class="tooltiptext left">
-                Groups allow you to give choices in rolls. For example, if you want to roll
-                and Athletics OR Acrobatics check you would assign both rolls the same group ("A").</br>
+                <strong>Group Names:</strong> Groups allow you to give choices in rolls. For example, if you want to roll
+                an Athletics OR Acrobatics check you would assign both rolls the same group ("A").</br></br>
                 By default, all rolls will be in the same group, so make sure to use unique groups
                 if you want to do multiple rolls.
               </span>
@@ -76,8 +80,7 @@
             <label>DC</label>
             <div class="tooltip"><i class="fas fa-info-circle"></i>
               <span class="tooltiptext left">
-                DCs are only used for Success Count rolls and determine what value you must
-                roll higher than in order to "succeed."
+                <strong>DC Value:</strong> DCs are only used for the "Success Count" activity type.</br>They determine what value each roll must be equal to or higher than in order for it to count as a "success." </br>DCs can be static numbers or formulas e.g. "15" or "2d10+5"
               </span>
             </div>
           </div>
@@ -205,13 +208,28 @@
 
           <div class="result-range">
             <label>Range</label>
+			  <div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext">
+                <strong>Range:</strong> Each range is represented by a start number and an end number. If the Roll Total or Success Count falls within the listed range, its "Result Details" text will be sent to chat.
+              </span>
+            </div>
           </div>
 
           <div class="result-details">
             <label>Result Details</label>
+			<div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext">
+                <strong>Result Details:</strong> When a Roll Total or Success Count has been determined, the accompanying "Result Details" text will be sent to chat. If needed, this text can be formatted with HTML Tags.
+              </span>
+            </div>
           </div>
           <div class="result-controls">
             <label>Complication</label>
+			<div class="tooltip"><i class="fas fa-info-circle"></i>
+              <span class="tooltiptext left">
+                <strong>Complication Override:</strong> If an activity roll falls within a result range that has its Complication box checked, it will always roll from the Complications RollTable chosen below, regardless of the "Chance of occuring" percentage.
+              </span>
+            </div>
           </div>
 
           <div class="result-controls">
@@ -233,7 +251,7 @@
             <input type="text" id="details" name="result.details" placeholder="Result description" disabled>
           </div>
 
-          <div style="flex: 0 0 80px; text-align: center;">
+          <div style="flex: 0 0 100px; text-align: center;">
             <input type="checkbox" id="triggerComplication" name="result.triggerComplication" {{#if result.triggerComplication}}checked{{/if}} disabled>
           </div>
 
@@ -256,7 +274,7 @@
           <div class="result-details">
             <input type="text" id="details" name="result.details" value="{{result.details}}" placeholder="Result description">
           </div>
-          <div style="flex: 0 0 80px; text-align: center;">
+          <div style="flex: 0 0 100px; text-align: center;">
             <input type="checkbox" id="triggerComplication" name="result.triggerComplication" {{#if result.triggerComplication}}checked{{/if}}>
           </div>
 
