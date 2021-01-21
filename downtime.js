@@ -173,6 +173,7 @@ export class DWTForm extends FormApplication {
    * this by copying a hidden template and activating it.
    */
   addRollable(){
+    if (this.activity?.type === "NO_ROLL") return;
     // Copy our template roll
     let newRoll = this.element.find('#rollableEventsTable > li[data-id ="template"]').clone();
     // Assign temporary id
@@ -261,8 +262,10 @@ export class DWTForm extends FormApplication {
 
   updateRollsStatus(type) {
     // Reset all non-template selects and inputs to enabled
-    this.element.find(`#rollsTable li:not([data-id="template"]) select, 
-      #rollsTable li:not([data-id="template"]) input`).prop("disabled", false);
+    this.element.find(`
+      #rollsTable li:not([data-id="template"]) select, 
+      #rollsTable li:not([data-id="template"]) input,
+      #resultsTable li:not([data-id="template"]) input`).prop("disabled", false);
 
     // Reset status of the multiple selects that respond to roll.roll by invoking
     // a change event to get changeValSelect() to do its magic.
@@ -274,10 +277,14 @@ export class DWTForm extends FormApplication {
     // Turn off everything
     } else if (type === "NO_ROLL") { 
       this.element.find("#rollsTable select, #rollsTable input").prop("disabled", true);
+      this.element.find("#resultsTable input").prop("disabled", true);
     }
+
+    this.activity.type = type;
   }
   
   addResult() {
+    if (this.activity?.type === "NO_ROLL") return;
     // Copy our template result
     let newResult = this.element.find('#resultsTable > li[data-id ="template"]').clone();
     // Assign temporary id
