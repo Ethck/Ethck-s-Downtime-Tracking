@@ -129,6 +129,10 @@ export class DWTForm extends FormApplication {
     this.element.find("#timeTaken").val(this.activity.options?.days_used);
     this.element.find("#materials").attr("checked", this.activity.options?.ask_for_materials)
 
+    if (this.activity.roll.length >= 5) {
+      this.element.find("#rollableEventsTable").css("overflow-y", "scroll");
+    }
+
     // set field status based on activity type
     this.updateRollsStatus(this.activity.type);
 
