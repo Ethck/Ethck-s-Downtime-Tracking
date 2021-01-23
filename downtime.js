@@ -70,6 +70,7 @@ export class DWTForm extends FormApplication {
     this.image = activity.chat_icon || ""
     this.world = world;
     this.sheet = sheet;
+    this.rollLength = this.activity.roll.length;
   }
 
   static get defaultOptions() {
@@ -129,8 +130,12 @@ export class DWTForm extends FormApplication {
     this.element.find("#timeTaken").val(this.activity.options?.days_used);
     this.element.find("#materials").attr("checked", this.activity.options?.ask_for_materials)
 
-    if (this.activity.roll.length >= 5) {
+    if (this.activity.roll.length >= 8) {
       this.element.find("#rollableEventsTable").css("overflow-y", "scroll");
+    }
+
+    if (this.activity.result.length >= 8) {
+      this.element.find("#resultsTable").css("overflow-y", "scroll");
     }
 
     // set field status based on activity type
@@ -192,6 +197,8 @@ export class DWTForm extends FormApplication {
     // Attach new listener
     newRoll.find(".result-controls > .delete-roll").click((event) => this.deleteRollable(event));
     newRoll.find("#roll-type > select").change((event) => this.changeValSelect(event));
+
+    this.detectScrolls("roll");
   }
 
   /**
@@ -204,6 +211,7 @@ export class DWTForm extends FormApplication {
     let row = $(event.currentTarget).parent().parent();
     // Remove it from DOM
     row.remove();
+    this.detectScrolls("roll");
   }
 
   validateCustom() {
@@ -300,6 +308,7 @@ export class DWTForm extends FormApplication {
     this.element.find("#resultsTable > ol").append(newResult);
     // Attach new listener
     newResult.find(".result-controls > .delete-result").click((event) => this.deleteResult(event));
+    this.detectScrolls("result");
   }
 
   deleteResult(event) {
@@ -308,6 +317,27 @@ export class DWTForm extends FormApplication {
     let row = $(event.currentTarget).parent().parent();
     // Remove it from DOM
     row.remove();
+    this.detectScrolls("result");
+  }
+
+  detectScrolls(type) {
+    if (type === "roll") {
+      if (this.element.find("#rollableEventsTable > li").length >= 8) {
+        if (this.element.find("#rollableEventsTable").css("overflow-y") === "visible") {
+          this.element.find("#rollableEventsTable").css("overflow-y", "scroll");
+        }
+      } else {
+        this.element.find("#rollableEventsTable").css("overflow-y", "visible");
+      }
+    } else { //result
+      if (this.element.find("#resultsTable > li").length >= 8) {
+        if (this.element.find("#resultsTable").css("overflow-y") === "visible") {
+          this.element.find("#resultsTable").css("overflow-y", "scroll");
+        }
+      } else {
+        this.element.find("#resultsTable").css("overflow-y", "visible");
+      }
+    }
   }
   
   /*
