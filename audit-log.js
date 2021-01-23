@@ -89,6 +89,7 @@ export default class AuditLog extends FormApplication {
             await this.actor.setFlag("downtime-ethck", "changes", this.changes)
             // Update HTML
             $(html).find("#" + fieldId).parent().parent().remove();
+            this.render();
           }
         },
       }).render(true);
