@@ -406,19 +406,6 @@ async function addTrainingTab(app, html, data) {
       }
 
       let desc = "";
-      for (let rollable of activity.roll) {
-        let tdesc = ""
-        if (rollable.type === "ABILITY_CHECK" || rollable.type === "SAVING_THROW"){
-          tdesc = CONFIG.DND5E.abilities[rollable.roll] + " " + rollable.type.toLowerCase().split("_").join(" ");
-        } else if (rollable.type === "SKILL_CHECK") {
-          tdesc = CONFIG.DND5E.skills[rollable.roll]
-        } else {
-          tdesc = rollable.roll;
-        }
-        desc += tdesc;
-
-        desc += "</br>";
-      }
 
       let li = $(event.currentTarget).parents(".item");
 
