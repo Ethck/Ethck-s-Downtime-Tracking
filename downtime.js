@@ -70,7 +70,6 @@ export class DWTForm extends FormApplication {
     this.image = activity.chat_icon || ""
     this.world = world;
     this.sheet = sheet;
-    this.rollLength = this.activity.roll.length;
   }
 
   static get defaultOptions() {
