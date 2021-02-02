@@ -90,79 +90,92 @@ export class GMConfig extends FormApplication {
   }
 
   duplicateActorActivities(){
-    this.createSrcActorDialog();
+    new LocalActivityTransfer().render(true);
   }
-   
-  createSrcActorDialog(){
-      new Dialog({
-          title: `Copy Activity - Select Source Actor`,
-          content: this.createActorDropdown(Array.from(game.actors)),
-          buttons: {
-              select: {label:`Select as Source`, callback: (html) => {
-                          let id = html.find("select[id='actors']")[0].value;
-                          let srcActor = game.actors.get(id);
-                          this.createActivityDialog(srcActor);
-                      }}
-          }
-      }).render(true);
+
+  async _updateObject(event, formData) {
+    return;
   }
-   
-  createActivityDialog(srcActor){
-      new Dialog({
-          title: `Copy Activity - Select Activity`,
-          content: this.createActivityDropdown(srcActor),
-          buttons: {
-              select: {label:`Copy Activity`, callback: (html) => {
-                          let activityId = html.find("select[id='activities']")[0].value;
-                          let activityToTransfer = this.getActivity(srcActor, activityId);
-                          this.createDestinationActorDialog(srcActor, activityToTransfer);
-                      }}
-          }
-      }).render(true);
+}
+
+
+class LocalActivityTransfer extends FormApplication {
+  constructor(...args) {
+    super(...args);
+    game.users.apps.push(this);
+    this.activities = game.settings.get("downtime-ethck", "activities");
   }
- 
-  createDestinationActorDialog(srcActor, activityToTransfer){
-    new Dialog({
-        title: `Copy Activity - Select Destination Actor`,
-        content: this.createActorDropdown(Array.from(game.actors)),
-        buttons: {
-          select: {label:`Select as Destination`, callback: async (html) => {
-                      let id = html.find("select[id='actors']")[0].value;
-                      let destinationActor = game.actors.get(id);
-                      let activities = destinationActor.getFlag('downtime-ethck','trainingItems');
-                      if (!activities){ activities = [] }
-                      let newActivities = activities.concat([activityToTransfer]);
-                      await destinationActor.setFlag('downtime-ethck','trainingItems', newActivities);
-                      ui.notifications.notify(`Successfully copied ${activityToTransfer.name} from ${srcActor.name} to ${destinationActor.name}.`);
-                  }}
-        }
-    }).render(true);
+
+  static get defaultOptions() {
+    const options = super.defaultOptions;
+    options.title = "Copy Activities Between Actors";
+    options.id = "downtime-ethck";
+    options.template = "modules/downtime-ethck/templates/localActivityTransfer.html";
+    options.closeOnSubmit = false;
+    options.popOut = true;
+    options.width = 600;
+    options.height = "auto";
+    return options;
   }
- 
-  createActorDropdown(actors){
-    let html = `<select id="actors" name="actors">`;
-    for(var i=0; i<actors.length; i++){
-        html+=`<option value="${actors[i].id}">${actors[i].name}</option>`
+
+  async getData() {
+    return {
+      activities: this.activities,
+      actors: game.actors
+    };
+  }
+
+  render(force, context = {}) {
+    return super.render(force, context);
+  }
+
+  activateListeners(html) {
+    this.element.find("#srcActor").change(() => this.changeActorAct());
+
+    this.changeActorAct();
+
+    this.element.find("#submit").click(() => this.submit());
+  }
+
+  changeActorAct() {
+    let actorAct = this.element.find("#actorAct");
+    actorAct.empty();
+
+    let srcActorID = $(this.element.find("#srcActor")).val();
+    let srcActor = game.actors.get(srcActorID);
+    let srcActs = srcActor.getFlag("downtime-ethck", "trainingItems");
+
+    if (srcActs.length) {
+      srcActs.forEach((act) => {
+        actorAct.append(`<option value=` + act.id + `>` + act.name + `</option>`);
+      })
+    } else {
+      ui.notifications.info("Actor " + srcActor.name + " does not have any downtime activities.");
     }
-    html += `</select>`;
-    return html;
   }
- 
-  createActivityDropdown(actor){
-    let activities = actor.getFlag('downtime-ethck','trainingItems');
-    let html = `<select id="activities" name="activities">`;
-    for(var i=0; i<activities.length; i++){
-        html+=`<option value="${activities[i].id}">${activities[i].name}</option>`
+
+  async submit() {
+    let srcActorID = this.element.find("#srcActor").val();
+    let srcActor = game.actors.get(srcActorID);
+    let srcActs = srcActor.getFlag("downtime-ethck", "trainingItems");
+
+    let destActorID = this.element.find("#destActor").val();
+    let destActor = game.actors.get(destActorID);
+    let destActs = destActor.getFlag("downtime-ethck", "trainingItems");
+
+    let transferID = this.element.find("#actorAct").val();
+    let activityToTransfer = srcActs.find((a) => a.id == transferID);
+
+    if (srcActorID !== destActorID) {
+      if (!destActs) destActs = [];
+      let newActivities = destActs.concat([activityToTransfer]);
+      await destActor.setFlag('downtime-ethck','trainingItems', newActivities);
+      ui.notifications.notify(`Successfully copied ${activityToTransfer.name} from ${srcActor.name} to ${destActor.name}.`);
+
+    } else {
+      ui.notifications.error("Source Actor and Destination Actor are the same.");
+      return;
     }
-    html += `</select>`;
-    return html;
-  }
- 
-  getActivity(srcActor, activityId){
-    let activities = srcActor.getFlag('downtime-ethck','trainingItems');
-    let activity = duplicate(activities.filter( function(a){ return a.id == activityId })[0]);
-    activity.id = randomID();
-    return activity;
   }
 
   async _updateObject(event, formData) {

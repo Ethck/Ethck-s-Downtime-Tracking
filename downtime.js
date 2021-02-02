@@ -129,11 +129,11 @@ export class DWTForm extends FormApplication {
     this.element.find("#timeTaken").val(this.activity.options?.days_used);
     this.element.find("#materials").attr("checked", this.activity.options?.ask_for_materials)
 
-    if (this.activity.roll.length >= 8) {
+    if (this.activity.roll?.length >= 8) {
       this.element.find("#rollableEventsTable").css("overflow-y", "scroll");
     }
 
-    if (this.activity.result.length >= 8) {
+    if (this.activity.result?.length >= 8) {
       this.element.find("#resultsTable").css("overflow-y", "scroll");
     }
 
