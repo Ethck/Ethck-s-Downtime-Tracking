@@ -9,7 +9,7 @@ export class GMConfig extends FormApplication {
 
   static get defaultOptions() {
     const options = super.defaultOptions;
-    options.title = "Add a Global Downtime Event";
+    options.title = "Modify Global Downtime Events";
     options.id = "downtime-ethck";
     options.template = "modules/downtime-ethck/templates/gmConfig.html";
     options.closeOnSubmit = false;
@@ -20,9 +20,8 @@ export class GMConfig extends FormApplication {
   }
 
   async getData() {
-    const activities = this.activities;
     return {
-      activities,
+      activities: this.activities
     };
   }
 
@@ -50,6 +49,8 @@ export class GMConfig extends FormApplication {
     this.element.find(".export").click((event) => this.exportActivities(event));
 
     this.element.find(".activity-move").click((event) => this.moveWorldDowntime(event));
+
+    this.element.find(".duplicate-actor-act").click(() => this.duplicateActorActivities());
   }
 
   importActivities(event){
@@ -86,6 +87,82 @@ export class GMConfig extends FormApplication {
     const jsonData = JSON.stringify(data, null, 2);
     saveDataToFile(jsonData, 'application/json', "downtime-ethck-world-activities.json");
     ui.notifications.info("Ethck's Downtime: Saved Activity Data.")
+  }
+
+  duplicateActorActivities(){
+    this.createSrcActorDialog();
+  }
+   
+  createSrcActorDialog(){
+      new Dialog({
+          title: `Copy Activity - Select Source Actor`,
+          content: this.createActorDropdown(Array.from(game.actors)),
+          buttons: {
+              select: {label:`Select as Source`, callback: (html) => {
+                          let id = html.find("select[id='actors']")[0].value;
+                          let srcActor = game.actors.get(id);
+                          this.createActivityDialog(srcActor);
+                      }}
+          }
+      }).render(true);
+  }
+   
+  createActivityDialog(srcActor){
+      new Dialog({
+          title: `Copy Activity - Select Activity`,
+          content: this.createActivityDropdown(srcActor),
+          buttons: {
+              select: {label:`Copy Activity`, callback: (html) => {
+                          let activityId = html.find("select[id='activities']")[0].value;
+                          let activityToTransfer = this.getActivity(srcActor, activityId);
+                          this.createDestinationActorDialog(srcActor, activityToTransfer);
+                      }}
+          }
+      }).render(true);
+  }
+ 
+  createDestinationActorDialog(srcActor, activityToTransfer){
+    new Dialog({
+        title: `Copy Activity - Select Destination Actor`,
+        content: this.createActorDropdown(Array.from(game.actors)),
+        buttons: {
+          select: {label:`Select as Destination`, callback: async (html) => {
+                      let id = html.find("select[id='actors']")[0].value;
+                      let destinationActor = game.actors.get(id);
+                      let activities = destinationActor.getFlag('downtime-ethck','trainingItems');
+                      if (!activities){ activities = [] }
+                      let newActivities = activities.concat([activityToTransfer]);
+                      await destinationActor.setFlag('downtime-ethck','trainingItems', newActivities);
+                      ui.notifications.notify(`Successfully copied ${activityToTransfer.name} from ${srcActor.name} to ${destinationActor.name}.`);
+                  }}
+        }
+    }).render(true);
+  }
+ 
+  createActorDropdown(actors){
+    let html = `<select id="actors" name="actors">`;
+    for(var i=0; i<actors.length; i++){
+        html+=`<option value="${actors[i].id}">${actors[i].name}</option>`
+    }
+    html += `</select>`;
+    return html;
+  }
+ 
+  createActivityDropdown(actor){
+    let activities = actor.getFlag('downtime-ethck','trainingItems');
+    let html = `<select id="activities" name="activities">`;
+    for(var i=0; i<activities.length; i++){
+        html+=`<option value="${activities[i].id}">${activities[i].name}</option>`
+    }
+    html += `</select>`;
+    return html;
+  }
+ 
+  getActivity(srcActor, activityId){
+    let activities = srcActor.getFlag('downtime-ethck','trainingItems');
+    let activity = duplicate(activities.filter( function(a){ return a.id == activityId })[0]);
+    activity.id = randomID();
+    return activity;
   }
 
   async _updateObject(event, formData) {
