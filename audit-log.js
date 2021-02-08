@@ -16,7 +16,7 @@ export default class AuditLog extends FormApplication {
     this.changes = this.actor.getFlag("downtime-ethck", "changes") || [];
 
     // Sort by time, newest to oldest
-    this.changes.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+    //this.changes.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
 
     let activities = new Set(this.changes.map((c) => c.activityName));
 
@@ -89,6 +89,7 @@ export default class AuditLog extends FormApplication {
             await this.actor.setFlag("downtime-ethck", "changes", this.changes)
             // Update HTML
             $(html).find("#" + fieldId).parent().parent().remove();
+            this.render();
           }
         },
       }).render(true);

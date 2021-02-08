@@ -9,10 +9,10 @@ export class GMConfig extends FormApplication {
 
   static get defaultOptions() {
     const options = super.defaultOptions;
-    options.title = "Add a Global Downtime Event";
+    options.title = "Modify Global Downtime Events";
     options.id = "downtime-ethck";
     options.template = "modules/downtime-ethck/templates/gmConfig.html";
-    options.closeOnSubmit = true;
+    options.closeOnSubmit = false;
     options.popOut = true;
     options.width = 600;
     options.height = "auto";
@@ -20,9 +20,8 @@ export class GMConfig extends FormApplication {
   }
 
   async getData() {
-    const activities = this.activities;
     return {
-      activities,
+      activities: this.activities
     };
   }
 
@@ -48,24 +47,10 @@ export class GMConfig extends FormApplication {
 
     this.element.find(".import").click((event) => this.importActivities(event));
     this.element.find(".export").click((event) => this.exportActivities(event));
-  }
 
-  editWorldDowntime(event) {
-    // Edit Downtime Activity
-    event.preventDefault();
+    this.element.find(".activity-move").click((event) => this.moveWorldDowntime(event));
 
-    // Set up some variables
-    let fieldId = event.currentTarget.id;
-    let activity = game.settings
-      .get("downtime-ethck", "activities")
-      .find((act) => act.id === parseInt(fieldId));
-    let form = new DWTForm({}, activity, true);
-    form.render(true);
-  }
-
-  addWorldDowntime(event) {
-    let form = new DWTForm();
-    form.render(true);
+    this.element.find(".duplicate-actor-act").click(() => this.duplicateActorActivities());
   }
 
   importActivities(event){
@@ -104,15 +89,93 @@ export class GMConfig extends FormApplication {
     ui.notifications.info("Ethck's Downtime: Saved Activity Data.")
   }
 
-  async handleRollableDelete(event, row) {
-    event.preventDefault();
+  duplicateActorActivities(){
+    new LocalActivityTransfer().render(true);
+  }
 
-    const toDel = this.activities.find((act) => act.id == $(row).attr("id"));
-    const idx = this.activities.indexOf(toDel);
-    this.activities.splice(idx, 1);
+  async _updateObject(event, formData) {
+    return;
+  }
+}
 
-    await game.settings.set("downtime-ethck", "activities", this.activities);
-    $(row).remove();
+
+class LocalActivityTransfer extends FormApplication {
+  constructor(...args) {
+    super(...args);
+    game.users.apps.push(this);
+    this.activities = game.settings.get("downtime-ethck", "activities");
+  }
+
+  static get defaultOptions() {
+    const options = super.defaultOptions;
+    options.title = "Copy Activities Between Actors";
+    options.id = "downtime-ethck";
+    options.template = "modules/downtime-ethck/templates/localActivityTransfer.html";
+    options.closeOnSubmit = false;
+    options.popOut = true;
+    options.width = 600;
+    options.height = "auto";
+    return options;
+  }
+
+  async getData() {
+    return {
+      activities: this.activities,
+      actors: game.actors
+    };
+  }
+
+  render(force, context = {}) {
+    return super.render(force, context);
+  }
+
+  activateListeners(html) {
+    this.element.find("#srcActor").change(() => this.changeActorAct());
+
+    this.changeActorAct();
+
+    this.element.find("#submit").click(() => this.submit());
+  }
+
+  changeActorAct() {
+    let actorAct = this.element.find("#actorAct");
+    actorAct.empty();
+
+    let srcActorID = $(this.element.find("#srcActor")).val();
+    let srcActor = game.actors.get(srcActorID);
+    let srcActs = srcActor.getFlag("downtime-ethck", "trainingItems");
+
+    if (srcActs.length) {
+      srcActs.forEach((act) => {
+        actorAct.append(`<option value=` + act.id + `>` + act.name + `</option>`);
+      })
+    } else {
+      ui.notifications.info("Actor " + srcActor.name + " does not have any downtime activities.");
+    }
+  }
+
+  async submit() {
+    let srcActorID = this.element.find("#srcActor").val();
+    let srcActor = game.actors.get(srcActorID);
+    let srcActs = srcActor.getFlag("downtime-ethck", "trainingItems");
+
+    let destActorID = this.element.find("#destActor").val();
+    let destActor = game.actors.get(destActorID);
+    let destActs = destActor.getFlag("downtime-ethck", "trainingItems");
+
+    let transferID = this.element.find("#actorAct").val();
+    let activityToTransfer = srcActs.find((a) => a.id == transferID);
+
+    if (srcActorID !== destActorID) {
+      if (!destActs) destActs = [];
+      let newActivities = destActs.concat([activityToTransfer]);
+      await destActor.setFlag('downtime-ethck','trainingItems', newActivities);
+      ui.notifications.notify(`Successfully copied ${activityToTransfer.name} from ${srcActor.name} to ${destActor.name}.`);
+
+    } else {
+      ui.notifications.error("Source Actor and Destination Actor are the same.");
+      return;
+    }
   }
 
   async _updateObject(event, formData) {

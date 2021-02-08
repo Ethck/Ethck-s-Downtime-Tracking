@@ -1,10 +1,20 @@
 <form autocomplete="off" onsubmit="event.preventDefault();">
-    {{#each activity.rollableGroups as |groupRoll |}}
+    {{#each groups as |groupRoll |}}
+    <label>Group: {{groupRoll.[0].group}}</label>
+    {{#if (eq groupRoll.length 0)}}
+        <label style="color: red;">No tools found in Actor's Inventory of type "{{../type}}"</label>
+    {{/if}}
     <fieldset>
-        {{#each groupRoll.rolls as |roll |}}
+        {{#each groupRoll as |roll i |}}
         <div>
-            <input type="radio" id="{{roll.[2]}}" value="{{roll.[2]}}" name="{{groupRoll.group}}">
-            <label for="{{roll.[2]}}">{{roll.[0]}} DC: {{roll.[1]}}</label>
+            <input type="radio" value="{{i}}" name="{{roll.group}}"> {{roll.roll}} 
+                {{#if (eq roll.type "ABILITY_CHECK")}}
+                    Check
+                {{else if (eq roll.type "SAVING_THROW")}}
+                    Save
+                {{/if}}
+                
+                {{#if roll.dc}}DC: {{roll.dc}}{{/if}}</input>
         </div>
         {{/each}}
     </fieldset>

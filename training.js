@@ -2,7 +2,6 @@
 import AuditLog from "./audit-log.js";
 import { DWTForm } from "./downtime.js";
 import { GMConfig } from "./gmConfig.js";
-import { ChooseRoll } from "./chooseRoll.js";
 import { d20Roll } from "../../systems/dnd5e/module/dice.js";
 
 // Register Game Settings
@@ -68,10 +67,19 @@ Hooks.once("init", () => {
     config: true,
     type: String,
     choices: {
-      gmroll: "GM Roll (Player can see)",
+      gmroll: "Private GM Roll (Player can see)",
       blindroll: "Blind Roll (Player can't see)",
     },
     default: "blindroll",
+  });
+
+  game.settings.register("downtime-ethck", "extraSheetWidth", {
+    name: "Extra Sheet Width",
+    hint: "# of pixels to increase width of sheet by.",
+    scope: "client",
+    config: true,
+    default: 50,
+    type: Number
   });
 
   game.settings.register("downtime-ethck", "activities", {
@@ -172,6 +180,14 @@ async function addTrainingTab(app, html, data) {
       fixActiveTab(app, CRASH_COMPAT)
     });
 
+    // Add New Downtime Activity
+    downtimeHTML.find(".world-add").click(async (event) => {
+      event.preventDefault();
+      let form = new DWTForm(actor, {}, false, true, app);
+      form.render(true);
+      fixActiveTab(app, CRASH_COMPAT)
+    });
+
     // Edit Downtime Activity
     downtimeHTML.find(".activity-edit").click(async (event) => {
       event.preventDefault();
@@ -179,8 +195,15 @@ async function addTrainingTab(app, html, data) {
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-edit-", ""));
-      let activity = flags[trainingIdx];
-      let form = new DWTForm(actor, activity, true);
+      let activity;
+      let world = false;
+      if ($(event.currentTarget).parent().hasClass("worldRoll")){
+        activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
+        world = true;
+      } else {
+        activity = flags[trainingIdx];
+      }
+      let form = new DWTForm(actor, activity, true, world, app);
       form.render(true);
       fixActiveTab(app, CRASH_COMPAT)
     });
@@ -192,7 +215,14 @@ async function addTrainingTab(app, html, data) {
       // Set up some variables
       let fieldId = event.currentTarget.id;
       let trainingIdx = parseInt(fieldId.replace("ethck-delete-", ""));
-      let activity = flags[trainingIdx];
+      let world = false;
+      let activity;
+      if ($(event.currentTarget).parent().hasClass("worldRoll")) {
+        activity = game.settings.get("downtime-ethck", "activities")[trainingIdx]
+        world = true;
+      } else {
+        activity = flags[trainingIdx];
+      }
       let del = false;
       let dialogContent = await renderTemplate(
         "modules/downtime-ethck/templates/delete-training-dialog.html"
@@ -218,13 +248,67 @@ async function addTrainingTab(app, html, data) {
         close: async (html) => {
           if (del) {
             // Delete item and update actor
-            flags.splice(trainingIdx, 1);
-            await actor.unsetFlag("downtime-ethck", "trainingItems")
-            await actor.setFlag("downtime-ethck", "trainingItems", flags)
+            if (world) {
+              let newAct = game.settings.get("downtime-ethck", "activities");
+              newAct.splice(trainingIdx, 1);
+              await game.settings.set("downtime-ethck", "activities", newAct);
+              app.render(true);
+            } else {
+              flags.splice(trainingIdx, 1);
+              await actor.unsetFlag("downtime-ethck", "trainingItems");
+              await actor.setFlag("downtime-ethck", "trainingItems", flags);
+            }
             fixActiveTab(app, CRASH_COMPAT)
           }
         },
       }).render(true);
+    });
+
+    // Move Downtime Activity
+    downtimeHTML.find(".activity-move").click(async (event) => {
+      event.preventDefault();
+
+      // Set up some variables
+      let fieldId = event.currentTarget.id;
+      let trainingIdx = parseInt(fieldId.replace("ethck-move-", ""));
+
+      let tflags;
+      let world = false;
+      if ($(event.currentTarget).parent().hasClass("worldRoll")) {
+        tflags = game.settings.get("downtime-ethck", "activities");
+        world = true;
+      } else {
+        tflags = duplicate(flags);
+      }
+
+      let activity = tflags[trainingIdx];
+
+      let move = 0;
+      if ($(event.target).hasClass("fa-chevron-up")) {
+        move = -1;
+      } else {
+        move = 1;
+      }
+      // loop to bottom
+      if (trainingIdx === 0 && move === -1) {
+        tflags.push(tflags.shift());
+      // loop to top
+      } else if (trainingIdx === tflags.length - 1 && move === 1) {
+        tflags.unshift(tflags.pop());
+      // anywhere in between
+      } else {
+        tflags[trainingIdx] = tflags[trainingIdx + move]
+        tflags[trainingIdx + move] = activity;
+      }
+
+      if (world) {
+        await game.settings.set("downtime-ethck", "activities", tflags);
+        app.render(true);
+      } else {
+        await actor.setFlag("downtime-ethck", "trainingItems", tflags)
+      }
+
+      fixActiveTab(app, CRASH_COMPAT)
     });
 
     // Roll Downtime Activity
@@ -247,23 +331,53 @@ async function addTrainingTab(app, html, data) {
       let res = [];
 
       let rolls = [];
-      if (activity.rollableGroups.every((rg) => rg.rolls.length <= 1)){ //No ORs in activity
-        activity.rollableGroups.forEach((group) => {
-          if (group.rolls.length >= 1){
-            rolls.push(group.rolls[0])
+      if (activity.type !== "NO_ROLL") {
+        // build dict of group: rolls pairs
+        // key is the group name
+        // val is the roll(s) in that group
+        const groups = {}
+        for (let roll of activity.roll){
+          let group = groups[roll.group];
+          // make a new group
+          if (group == null){
+            group = [];
+            groups[roll.group] = group;
           }
-        });
-      } else { // Some ORs in Activity
-        let form = new ChooseRoll(actor, activity)
-        const choices = await form.chooseRollDialog();
-        for (let rg of activity.rollableGroups){
-          for (let c of choices){
-            const choice = rg.rolls.find((roll) => roll[2] === c)
-            if (choice !== undefined){
-              rolls.push(choice)
-              break;
-            }
+          // add to group
+          group.push(roll);
+        }
+
+        if (Object.values(groups).every((rg) => rg.length === 1)){ // No choices, just execute
+          // Just store all values.
+          rolls = Object.values(groups).flat();
+        } else { // Some choices need to be made
+          // choices is array of selected index for each group
+          // i.e. [1, 0, 3, 0]
+          
+          // We internally use shorthand for everything
+          // so convert it to longhand when we print
+          let readableGroups = {}
+          let igroups = duplicate(groups);
+          for (const [key,val] of Object.entries(igroups)) {
+            readableGroups[key] = val.map((roll) => {
+              if (roll.type === "ABILITY_CHECK" || roll.type === "SAVING_THROW"){
+                roll.roll = CONFIG.DND5E.abilities[roll.roll]
+              } else if (roll.type === "SKILL_CHECK") {
+                roll.roll = CONFIG.DND5E.skills[roll.roll]
+              } else {
+                roll.roll = roll.roll;
+              }
+
+              return roll;
+            })
           }
+
+          const choices = await chooseRollDialog(readableGroups);
+          const groupVals = Object.values(groups);
+          // match choices to their indexed rolls.
+          rolls = groupVals.map((group, i) => {
+            return group[choices[i]];
+          })
         }
       }
 
@@ -278,8 +392,7 @@ async function addTrainingTab(app, html, data) {
       } catch (e) {
         console.log(e);
       }
-
-  });
+    });
 
     // Toggle Information Display
     // Modified version of _onItemSummary from dnd5e system located in
@@ -301,9 +414,6 @@ async function addTrainingTab(app, html, data) {
       }
 
       let desc = "";
-      for (let rollable of activity.rollableEvents) {
-        desc += rollable[0] + " DC: " + rollable[1] + "</br>";
-      }
 
       let li = $(event.currentTarget).parents(".item");
 
@@ -312,7 +422,7 @@ async function addTrainingTab(app, html, data) {
         summary.slideUp(200, () => summary.remove());
       } else {
         let div = $(
-          `<div class="item-summary"><label>` + desc + `</label></div>`
+          `<div class="item-summary"><label>Description: ` + activity.description + `</label></br><label>` + desc + `</label></div>`
         );
         li.append(div.hide());
         div.slideDown(200);
@@ -346,6 +456,14 @@ async function addTrainingTab(app, html, data) {
 }
 
 Hooks.on(`renderActorSheet`, (app, html, data) => {
+  // Borrowed from Crash's 5e-training to allow choice
+  // of whether to be on same line or not.
+  let widenSheet = adjustSheetWidth(app);
+  if(widenSheet){
+    let newPos = {width: app.position.width + game.settings.get("downtime-ethck", "extraSheetWidth")}
+    app.setPosition(newPos);
+  }
+
   addTrainingTab(app, html, data).then(function () {
     if (app.activateDowntimeTab) {
       app._tabs[0].activate("downtime");
@@ -356,8 +474,9 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
 async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   let cmsg = "";
   let cmsgResult = "";
+  let triggeredComp = false;
 
-  if (activity.type === "succFail") {
+  if (activity.type === "SUCCESS_COUNT") {
     let booleanResults = [0, 0];
     res.map((pair) => {
       if (pair[0] >= pair[1]) {
@@ -375,31 +494,33 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
       " successes and " +
       booleanResults[1] +
       " failures.";
-    activity.results.forEach((result) => {
+    activity.result?.forEach((result) => {
       if (
-        result[0] <= booleanResults[0] &&
-        result[1] >= booleanResults[0]
+        result.min <= booleanResults[0] &&
+        result.max >= booleanResults[0]
       ) {
-        cmsgResult = result[2];
+        cmsgResult = result.details;
+        if (result.triggerComplication) triggeredComp = true;
       }
     });
-  } else if (activity.type === "categories") {
-    activity.results.forEach((result) => {
-      if (res[0][0] >= result[0] && res[0][0] <= result[1]) {
-        cmsgResult = result[2];
+  } else if (activity.type === "ROLL_TOTAL") {
+    activity.result.forEach((result) => {
+      if (res[0][0] >= parseInt(result.min) && res[0][0] <= parseInt(result.max)) {
+        cmsgResult = result.details;
+        if (result.triggerComplication) triggeredComp = true;
       }
     });
-  } else if (activity.type === "noRoll") {
+  } else if (activity.type === "NO_ROLL") {
     // Do Nothing
   }
 
   // Add in materials, if any.
   cmsg = materials ? cmsg + "\n Used " + materials : cmsg;
 
-  const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.img, text: cmsg, result: cmsgResult})
+  const cmsgTemplate = await renderTemplate("modules/downtime-ethck/templates/chatMessage.html", {img: activity.chat_icon, text: cmsg, result: cmsgResult})
 
   // Determine if we whisper this message, and who to
-  const cmsgVis = activity.actPrivate || game.settings.get("core", "rollMode");
+  const cmsgVis = activity.options.rolls_are_private || game.settings.get("core", "rollMode") === "gmroll";
   const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser._id)
 
   // Results message
@@ -416,15 +537,12 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   // Test if complications are being used
   if (activity.complication !== undefined && (activity.complication.chance !== " " || activity.complication.table !== " ")){
     const num = Math.floor(Math.random() * 100) + 1 // 1-100
-    if (num <= activity.complication.chance){
+    if (triggeredComp || num <= activity.complication.chance){
       // Complication has occured
-      let tableRes = null;
-      if ("id" in activity.complication.table) { // New Style
-        tableRes = game.tables.get(activity.complication.table.id);
-      }
+      let tableRes = game.tables.get(activity.complication.roll_table);
       // Also outputs chat message, YAY!
       let opts = {};
-      if (activity.compPrivate === true){
+      if (activity.options.complications_are_private === true){
         opts["rollMode"] = "blindroll";
       }
       tableRes.draw(opts)
@@ -449,7 +567,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
     user: game.user.name,
     activityName: activity.name,
     result: cmsgResult,
-    timeTaken: activity.timeTaken,
+    timeTaken: activity.options.days_used,
     materials: materials
   }
 
@@ -467,8 +585,8 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   return: Roll()
 */
 async function rollDC(rollable) {
-  if (!rollable[1]) return {_total: 0}; // If no DC, return fake total (it doesn't matter...)
-  const rdc = new Roll(rollable[1]);
+  if (!rollable.dc) return {_total: 0}; // If no DC, return fake total (it doesn't matter...)
+  const rdc = new Roll(rollable.dc);
   const dcRoll = rdc.roll();
   dcRoll.toMessage(
     {},
@@ -491,83 +609,62 @@ async function rollDC(rollable) {
 */
 async function rollRollable(actor, activity, rollable) {
   return new Promise(async (resolve, reject) => {
-    const abilities = ["str", "dex", "con", "int", "wis", "cha"];
-    const skills = CONFIG.DND5E.skills;
-    let res = []
-    const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
-
-    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA CHECK
-    if (rollable[0].includes("Check")) {
-      let abiAcr = abilities.find((abi) =>
-        rollable[0].toLowerCase().includes(abi)
-      );
-      await actor.rollAbilityTest(abiAcr).then(async (r) => {
-        const dc = await rollDC(rollable);
-        res = [r._total, dc._total];
-      });
-    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA SAVING THROW
-    } else if (rollable[0].includes("Saving Throw")) {
-      let abiAcr = abilities.find((abi) =>
-        rollable[0].toLowerCase().includes(abi)
-      );
-      await actor.rollAbilitySave(abiAcr).then(async (r) => {
-        const dc = await rollDC(rollable);
-        res = [r._total, dc._total];
-      });
-    // includes ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"] in name
-    } else if (toolFilters.some((filter) => rollable[0].includes(filter))) {
+    let res = [];
+    let r = null;
+    if (rollable.type === "ABILITY_CHECK"){
+      // roll an ability check, then dc
+      // rollAbilityTest assumes that the argument
+      // is in short form, i.e. "str", "con"
+      r = await actor.rollAbilityTest(rollable.roll)
+    } else if (rollable.type === "SAVING_THROW"){
+      // roll a save
+      // rollAbilitySave has the same assumption
+      r = await actor.rollAbilitySave(rollable.roll);
+    } else if (rollable.type === "TOOL_CHECK"){
       let actorTool;
-      if (rollable[0].includes("Instrument")){
-        const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.includes("Instrument"))
-        let musicActivity = {
-          rollableGroups: [{
-            group: "",
-            rolls: actorTools.map((tool, index) => [tool.data.name, rollable[1], index])
-          }]
-        }
-        let form = new ChooseRoll(actor, musicActivity)
-        const choice = await form.chooseRollDialog();
-        const toolName = musicActivity.rollableGroups[0].rolls.find((roll) => roll[2] === choice[0])[0]
-        actorTool = actor.items.find((item) => item.data.name === toolName)
-      } else {
-        actorTool = actor.items.find((item) => item.type === "tool" && item.data.name.toLowerCase() == rollable[0].toLowerCase());
+      // instead of giving the user the 20+ instruments to select
+      // from, we instead have one option for each group
+      // When selected, this option will then find every tool of that type
+      // in the actor's inventory and provide the ability to choose
+      // between them.
+      const actorTools = actor.items.filter((item) => item.type === "tool" && item.data.name.toLowerCase().includes(rollable.roll.toLowerCase()));
+
+      let toolChoices = {
+        rollableGroups: actorTools.map((tool) => {
+          return {
+            roll: tool.data.name,
+            dc: rollable.dc,
+            group: rollable.roll
+          }
+        })
       }
 
+      const choice = await chooseRollDialog(toolChoices, rollable.roll);
+      actorTool = actorTools[choice[0]];
+
       if (actorTool !== null) {
-        await actorTool.rollToolCheck().then(async (r) => {
-          const dc = await rollDC(rollable);
-          res = [r._total, dc._total];
-        })
+        r = await actorTool.rollToolCheck();
       } else {
         // No tool of that name found.
         ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
         res = [];
       }
-    // Special formulas
-    } else if (rollable[0].includes("Formula:")) {
-      
-      let dRoll = await formulaRoll(rollable[0].split("Formula: ")[1].split(" + "), actor)
-      const dc = await rollDC(rollable);
-      res = [dRoll._total, dc._total];
-    // We must be at skills...
-    } else {
-      let skillAcr = Object.keys(skills).find((key) =>
-        skills[key].toLowerCase().includes(rollable[0].toLowerCase())
-      );
-
+    } else if (rollable.type === "CUSTOM") {
+      // call our helper after separating all terms
+      r = await formulaRoll(rollable.roll.split(" + "), actor)
+    } else { // skills...
       // The Skill Custimization 5e module patches actor.rollSkill and makes it NOT be a promise
       // so we have to handle it differently.
       let skillCust = game.modules.get("skill-customization-5e");
-      let r = null;
       if (skillCust && skillCust.active){
-        r = await _skillCustHandler(skillAcr, actor, rollable[0]);
+        r = await _skillCustHandler(rollable.roll, actor);
       } else {
-        r = await actor.rollSkill(skillAcr)
+        r = await actor.rollSkill(rollable.roll)
       }
-
-      const dc = await rollDC(rollable);
-      res = [r._total, dc._total];
     }
+
+    const dc = await rollDC(rollable);
+    res = [r._total, dc._total];
 
     // For some reason, we don't have a roll or a dc roll...
     if (res.length === 0) {
@@ -575,9 +672,12 @@ async function rollRollable(actor, activity, rollable) {
       reject();
     }
 
-    if (game.dice3d) { // If dice so nice is being used, wait till 1st animation is over.
-      Hooks.once('diceSoNiceRollComplete', (messageId) => {
-        resolve(res);
+    if (game.dice3d) { // If dice so nice is being used, wait till matching animation is over.
+      Hooks.on('diceSoNiceRollComplete', (messageId) => {
+        let dsnMessage = game.messages.get(messageId);
+        if (dsnMessage.data.content === res[0].toString()) {
+          resolve(res);
+        }
       });
     // no DSN, just normal.
     } else {
@@ -615,7 +715,7 @@ function fixActiveTab(app, CRASH_COMPAT) {
 
 async function materialsPrompt(activity) {
   return new Promise((resolve, reject) => {
-    if (!("useMaterials" in activity) || !activity.useMaterials) {
+    if (!("ask_for_materials" in activity.options) || !activity.options.ask_for_materials) {
       resolve("");
     } else {
       new Dialog({
@@ -663,8 +763,20 @@ async function formulaRoll(formula, actor) {
         formula[0] = newFirst + mods;
       }
     }
+
+    // Organize additional properties for use in the context
+    // This finds the value of hit dice for any class in the actor
+    let hdVals = actor.data.items.filter((item) => item.type === "class")
+      .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+    // Find the min and the max
+    // These must be roll values, so add 1d to start.
+    let hd = {
+      min: "1d" + Math.min.apply(null, hdVals),
+      max: "1d" + Math.max.apply(null, hdVals)
+    }
+
     // make the roll, providing a reference to actor
-    let context = mergeObject({actor: actor}, actor.getRollData());
+    let context = mergeObject({actor: actor, hd: hd}, actor.getRollData());
     let myRoll = new Roll(formula.join(" + "), context);
     myRoll.roll();
     await myRoll.toMessage();
@@ -704,14 +816,49 @@ async function _formulaDialog(formula) {
   });
 }
 
-async function _skillCustHandler(skillAcr, actor, skiname){
+async function chooseRollDialog(groups, type = "") {
+  const dialogContent = await renderTemplate("modules/downtime-ethck/templates/chooseRoll.html", {groups: groups, type: type});
+  return new Promise(async(resolve, reject) => {
+    const dlg = new Dialog({
+      title: "Choose Roll",
+      content: dialogContent,
+      buttons: {
+        submit: {
+          icon: '<i class="fas fa-dice"></i>',
+          label: "Submit",
+          callback: (html) => {
+            let chosen = [];
+            let fields = html.find("form > fieldset > div > input:checked");
+
+            if (fields.length === Object.keys(groups).length) {
+              fields.each((i, check) => {
+              const c = parseInt($(check).val());
+              chosen.push(c);
+            })
+            
+            resolve(chosen);
+            } else {
+              // This seems ugly, but it works.
+              throw new Error("Ethck's Downtime | Choice prompt not filled.")
+            }
+          }
+        }
+      },
+      close: reject
+    });
+    dlg.render(true);
+  });
+}
+
+async function _skillCustHandler(skillAcr, actor){
   return new Promise(async (resolve, reject) => {
-    actor.rollSkill(skillAcr); // call the patched function
+    actor.rollSkill(skillAcr, {}); // call the patched function
     // only way to know it's done is by the final chat message, so listen for it
     Hooks.on("createChatMessage", async (message, options, id) => {
       // discard if not a roll
       if (message.isRoll) {
         // make sure it's our expected Skill Check
+        let skiname = CONFIG.DND5E.skills[skillAcr];
         if ((getProperty(message, "data.flavor") && getProperty(message, "data.flavor").includes(skiname + " Skill Check"))) {
           // return the roll
           resolve(message._roll);
@@ -721,10 +868,25 @@ async function _skillCustHandler(skillAcr, actor, skiname){
   })
 }
 
+// Determines whether or not the sheet should have its width adjusted.
+// If the setting for extra width is set, and if the sheet is of a type for which
+// we have training enabled, this returns true.
+function adjustSheetWidth(app){
+  let settingEnabled = !!game.settings.get("downtime-ethck", "extraSheetWidth");
+  let sheetHasTab = ((app.object.data.type === 'npc') && game.settings.get("downtime-ethck", "enableTrainingNpc")) ||
+                    ((app.object.data.type === 'character') && game.settings.get("downtime-ethck", "enableTraining"));
+
+  let currentWidth = app.position.width;
+  let defaultWidth = app.options.width;
+  let sheetIsSmaller = currentWidth < (defaultWidth + game.settings.get("downtime-ethck", "extraSheetWidth"))
+
+  return settingEnabled && sheetHasTab && sheetIsSmaller;
+}
+
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
   //await game.settings.set("downtime-ethck", "migrated", false);
-  const NEEDS_MIGRATION_VERSION = "0.3.3";
+  const NEEDS_MIGRATION_VERSION = "0.4.0";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
   // Skipped multiple versions and upgrading in 0.4.X or higher
@@ -738,6 +900,13 @@ async function _downtimeMigrate(){
     if (migrated.version === NEEDS_MIGRATION_VERSION) return;
   }
 
+  // Save a backup of the old data
+  ui.notifications.info("Ethck's Downtime | Backing up World Downtimes")
+  const oldActivities = game.data.settings.find((setting) => setting.key === "downtime-ethck.activities");
+  const jsonData = JSON.stringify(oldActivities, null, 2);
+  saveDataToFile(jsonData, 'application/json', "downtime-ethck-world-activities-OLD.json");
+  ui.notifications.info("Ethck's Downtime | Saved Activity Data.")
+
   ui.notifications.notify("Ethck's 5e Downtime Tracking | Beginning Migration to updated schema.")
 
   // Update Actor Flags
@@ -745,15 +914,21 @@ async function _downtimeMigrate(){
     // If it doesn't have our flags, idc
     let downtimes = actor.getFlag("downtime-ethck", "trainingItems");
     if (!downtimes) return;
-    let changed = false;
-    [downtimes, changed] = await _updateDowntimes(downtimes);
-    if (changed){
-      let update = {
-        id: actor._id,
-        "flags.downtime-ethck": {trainingItems: downtimes}
-      }
 
-      await actor.update(update, {enforceTypes: false})
+    try {
+      let changed = false;
+      [downtimes, changed] = await _updateDowntimes(downtimes);
+      if (changed){
+        let update = {
+          id: actor._id,
+          "flags.downtime-ethck": {trainingItems: downtimes}
+        }
+
+        await actor.update(update, {enforceTypes: false})
+      }
+    } catch (e) {
+      console.error(e);
+      ui.notifications.warning("Ethck's Downtime | Something went wrong while migrating. Please open bug report with your backed-up copy of your downtimes.");
     }
   })
 
@@ -770,8 +945,9 @@ async function _downtimeMigrate(){
 
 async function _updateDowntimes(downtimes) {
   let changed = false;
-  downtimes.forEach(async (downtime) => {
+  downtimes.forEach((downtime, i) => {
     // Handle old private
+    // 12/3/2020 v0.3.3
     if ("private" in downtime) {
       // If previously updated, the "new" value might be here
       if (!("actPrivate" in downtime)) {
@@ -783,6 +959,7 @@ async function _updateDowntimes(downtimes) {
     }
 
     // Update tables, might not be present?
+    // 12/3/2020 v0.3.3
     if ("complication" in downtime) {
       if ("table" in downtime.complication) {
         // Old format where table was the string id of the table
@@ -798,7 +975,128 @@ async function _updateDowntimes(downtimes) {
         }
       }
     }
+    // 12/23/2020 v0.4.0 transfer to new roll model
+    if ("rollableGroups" in downtime){
+      let newRolls = downtime.rollableGroups.flatMap((group) => {
+        if (group.rolls.length === 0) return;
+        let g = group.group || "";
+        let rolls = group.rolls.map((roll) => {
+          // new format is an object
+          if (!Array.isArray(roll)) return;
+          let typeRoll = determineOldType(roll); // Determine type
+          let dc = roll[1] || null; // Use old DC, or default to null
+          let rollVal = roll[0];
+          // ensure our DC is a number
+          if (typeof dc === "number") {
+            dc = dc.toString();
+          }
+
+          if (typeRoll === "CUSTOM") {
+            rollVal = rollVal.split("Formula: ")[1];
+          } else if (typeRoll === "SKILL_CHECK") {
+            let skills = CONFIG.DND5E.skills;
+            // returns shorthand of skill
+            rollVal = Object.keys(skills).find((key) => skills[key] === rollVal);
+          } else if (typeRoll === "TOOL_CHECK"){
+
+          } else { //abiCheck, save
+            if (typeRoll === "ABILITY_CHECK") {
+              rollVal = rollVal.split(" Check")[0];
+            } else {
+              rollVal = rollVal.split(" Saving Throw")[0];
+            }
+            let abilities = CONFIG.DND5E.abilities;
+            // Returns shorthand of ability
+            rollVal = Object.keys(abilities).find((key) => abilities[key] === rollVal).toLowerCase();
+          }
+          changed = true;
+          return {type: typeRoll, roll: rollVal, group: g, dc: dc}
+        });
+
+        return rolls;
+
+      });
+      newRolls = newRolls.filter(Boolean);
+      downtime.roll = newRolls;
+    }
+    // 12/23/2020 v0.4.0 transfer to new result model
+    if ("results" in downtime) {
+      // downtime.results[0] old format is an array
+      // new format is object
+      if (Array.isArray(downtime.results[0])) {
+        let res = duplicate(downtime.results);
+
+        let newRes = res.map((result) => {
+          return {
+            min: result[0], // lower bound
+            max: result[1], // high bound
+            details: result[2], // description
+            triggerComplication: false // trigger complication if result occurs
+          }
+        });
+
+        downtime.result = newRes;
+        changed = true;
+      }
+    }
+    // 12/23/20 v0.4.0 transfer to new activity model
+    if ("rollableGroups" in downtime && "rollableEvents" in downtime) {
+
+      if (downtime?.type === "succFail"){
+        downtime.type = "SUCCESS_COUNT";
+      } else if (downtime?.type === "categories") {
+        downtime.type = "ROLL_TOTAL";
+      } else {
+        downtime.type = "NO_ROLL";
+      }
+      // Load new model.
+      downtimes[i] = {
+        name       : downtime.name || "New Downtime Activity",
+        description: downtime.description || "My awesome downtime activity",
+        chat_icon  : downtime.img || "icons/svg/d20.svg",
+        sheet_icon : downtime.rollIcon || "icons/svg/d20.svg",
+        type       : downtime.type,  //* ACTIVITY_TYPES
+        roll      : downtime.roll, //* ACTIVITY_ROLL_MODEL
+        result    : downtime.result, //* ACTIVITY_RESULT_MODEL
+        id        : downtime.id.toString() || randomID(),
+        complication: {
+          chance    : downtime.complication.chance || 0,
+          roll_table: downtime.complication.table.id || ""
+        },
+        options: {
+          rolls_are_private        : downtime.actPrivate || false,
+          complications_are_private: downtime.compPrivate || false,
+          ask_for_materials        : downtime.useMaterials || false,
+          days_used                : downtime.timeTaken || "",
+        }
+      }
+
+      changed = true;
+    }
   })
 
   return [downtimes, changed];
 }
+
+function determineOldType(roll) {
+    const abilities = ["str", "dex", "con", "int", "wis", "cha"];
+    const skills = CONFIG.DND5E.skills;
+    const toolFilters = ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"]
+
+    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA CHECK
+    if (roll[0].includes("Check")) {
+      return "ABILITY_CHECK";
+    // STRENGTH, DEXTERITY, CONSTITUTION, INTELLIGENCE, WISDOM, CHARISMA SAVING THROW
+    } else if (roll[0].includes("Saving Throw")) {
+      return "SAVING_THROW";
+    // includes ["Tool", "Supplies", "Kit", "Instrument", "Utensils", "Set"] in name
+    } else if (toolFilters.some((filter) => roll[0].includes(filter))) {
+      return "TOOL_CHECK";
+    // Special formulas
+    } else if (roll[0].includes("Formula:")) {
+      return "CUSTOM";
+    // We must be at skills...
+    } else {
+      return "SKILL_CHECK";
+    }
+  }
