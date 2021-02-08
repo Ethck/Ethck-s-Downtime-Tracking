@@ -836,13 +836,13 @@ async function chooseRollDialog(groups, type = "") {
 
 async function _skillCustHandler(skillAcr, actor){
   return new Promise(async (resolve, reject) => {
-    actor.rollSkill(skillAcr); // call the patched function
+    actor.rollSkill(skillAcr, {}); // call the patched function
     // only way to know it's done is by the final chat message, so listen for it
     Hooks.on("createChatMessage", async (message, options, id) => {
       // discard if not a roll
       if (message.isRoll) {
         // make sure it's our expected Skill Check
-        let skiname = CONFIG.DND5E.skills[rollable.roll];
+        let skiname = CONFIG.DND5E.skills[skillAcr];
         if ((getProperty(message, "data.flavor") && getProperty(message, "data.flavor").includes(skiname + " Skill Check"))) {
           // return the roll
           resolve(message._roll);
