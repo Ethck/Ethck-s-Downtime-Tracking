@@ -1,78 +1,98 @@
+const FORM_TEMPLATE = "modules/downtime-ethck/templates/add-downtime-form2.html";
+
+const DND5E_TOOLS = [
+  "Kit",
+  "Instrument",
+  "Set",
+  "Supplies",
+  "Tool",
+  "Utensil"
+];
+
+const COMPLETION_CHANCES = [10, 25, 50, 75, 100];
+
+/*
+ACTIVITY_TYPES:
+  SUCCESS_COUNT
+  ROLL_TOTAL
+  NO_ROLL
+
+ROLL_TYPES:
+  ABILITY_CHECK
+  SAVING_THROW
+  SKILL_CHECK
+  TOOL_CHECK
+  CUSTOM
+ */
+
+const ACTIVITY_ROLL_MODEL = {
+  type : 0, //* ROLL_TYPES
+  roll : "",
+  group: "",
+  dc   : 0
+}
+
+const ACTIVITY_RESULT_MODEL = {
+  min    : 0,
+  max    : 0,
+  details: "",
+  triggerComplication: false,
+}
+
+const ACTIVITY_MODEL = {
+  name       : "New Downtime Activity",
+  description: "",
+  chat_icon  : "icons/svg/d20.svg",
+  sheet_icon : "icons/svg/d20.svg",
+  type       : 0,  //* ACTIVITY_TYPES
+  roll      : [], //* ACTIVITY_ROLL_MODEL
+  result    : [], //* ACTIVITY_RESULT_MODEL
+  //id
+  complication: {
+    chance    : "",
+    roll_table: ""
+  },
+  options: {
+    rolls_are_private        : false,
+    complications_are_private: false,
+    ask_for_materials        : false,
+    days_used                : 0,
+  }
+}
+
 export class DWTForm extends FormApplication {
-  constructor(actor = {}, activity = {}, editMode = false, ...args) {
+  constructor(actor = {}, activity = {}, editMode = false, world = false, sheet = {}, ...args) {
     super(...args);
     game.users.apps.push(this);
     this.activity = activity;
-    this.rollableEvents = activity["rollableEvents"] || [];
-    this.results = activity["results"] || [];
     this.actor = actor;
-    this.edit = editMode;
-    this.image = activity["img"] || ""
+    this.editing = editMode;
+    this.image = activity.chat_icon || ""
+    this.world = world;
+    this.sheet = sheet;
   }
 
   static get defaultOptions() {
-    const options = super.defaultOptions;
-    if (this.edit) {
-      options.title = "Edit a Downtime Activity";
-    } else {
-      options.title = "Add a Downtime Event";
-    }
-    options.id = "downtime-ethck";
-    options.template =
-      "modules/downtime-ethck/templates/add-downtime-form.html";
-    options.closeOnSubmit = true;
-    options.popOut = true;
-    options.width = 600;
-    options.height = "auto";
-    return options;
+    return mergeObject(super.defaultOptions, {
+      id           : "downtime-ethck",
+      template     : FORM_TEMPLATE,
+      title        : "Downtime Activity Modification",
+      closeOnSubmit: true,
+      popOut       : true,
+      width        : 800,
+      height       : "auto",
+    })
   }
 
   async getData() {
-    // Return data to the template
-    const abilities = CONFIG.DND5E.abilities;
-    const saves = CONFIG.DND5E.abilities;
-    const skills = CONFIG.DND5E.skills;
-    const tools = [
-      "Alchemist's Supplies",
-      "Brewer's Supplies",
-      "Calligrapher's Supplies",
-      "Carpenter's Tools",
-      "Cartographer's Tools",
-      "Cobbler's Tools",
-      "Cook's Utensils",
-      "Dice Set",
-      "Disguise Kit",
-      "Forgery Kit",
-      "Glassblower's Tools",
-      "Herbalism Kit",
-      "Jeweler's Tools",
-      "Leatherworker's Tools",
-      "Mason's Tools",
-      "Musical Instrument(s)",
-      "Navigator's Tools",
-      "Painter's Supplies",
-      "Playing Card Set",
-      "Poisoner's Kit",
-      "Potter's Tools",
-      "Smith's Tools",
-      "Thieves' Tools",
-      "Tinker's Tools",
-      "Weaver's Tools",
-      "Woodcarver's Tools",
-    ]
-
-    const activity = this.activity;
-    const tables = game.tables;
-    const compChances = [10, 25, 50, 75, 100]
-
     return {
-      abilities,
-      saves,
-      skills,
-      tools,
-      activity,
-      tables,
-      compChances
+      abilities: CONFIG.DND5E.abilities,
+      saves: CONFIG.DND5E.abilities,
+      skills: CONFIG.DND5E.skills,
+      tools: DND5E_TOOLS,
+      activity: this.activity,
+      tables: game.tables,
+      compChances: COMPLETION_CHANCES
     };
   }
 
@@ -84,41 +104,63 @@ export class DWTForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
-    // Add Rollable
-    this.element
-      .find(".addRollable")
-      .click((event) => this.handleRollables(event));
-    // Handle deletes in table
-    this.element
-      .find("#rollableEventsTable > tbody > .rollableEvent")
-      .on("click", "#deleteRollable", (event) =>
-        this.handleRollableDelete(event)
-      );
-    // Add results
-    this.element.find(".addResult").click((event) => this.handleResults(event));
-    // Deletes on result(s)
-    this.element
-      .find("#resultsTable > tbody > .result")
-      .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
-    // Picture picker
+
+    this.element.find(".addRollable").click(() => this.addRollable());
+    this.element.find("#rollableEventsTable > li > .result-controls > .delete-roll").click((event) => this.deleteRollable(event));
+
+    this.element.find(".addResult").click(() => this.addResult());
+    this.element.find("#resultsTable > li > .result-controls > .delete-result").click((event) => this.deleteResult(event));
+
+    this.element.find("#rollableEventsTable > #rollable > #roll-type > select").change((event) => this.changeValSelect(event));
+
+
     this.element.find(".file-picker-cust").click((event) => this.handleImage(event));
 
-    // Not really a listener, but update the state of this.
-    if (this.activity.type === "categories"){
-        this.element.find("#categoryActivity").attr("checked", true);
-    } else if (this.activity.type === "noRoll"){
-      this.element.find("#noRollActivity").attr("checked", true);
-    }
+    this.element.find('#' + this.activity.type).attr("checked", true);
+    this.element.find("#SUCCESS_COUNT, #ROLL_TOTAL, #NO_ROLL").change((event) => this.updateRollsStatus($(event.currentTarget).attr("id")));
     // Set initial state of dropdowns to stored values
     if (this.activity.complication !== undefined) {
       this.element.find("#compchance").val(this.activity.complication.chance);
-      this.element.find("#complications").val(this.activity.complication.table.id);
+      this.element.find("#complications").val(this.activity.complication.roll_table);
     }
-    // Set initial values of our options                        OLD                      NEW
-    this.element.find("#privateActivity").attr("checked", this.activity.private || this.activity.actPrivate);
-    this.element.find("#privateComp").attr("checked", this.activity.compPrivate)
-    this.element.find("#timeTaken").val(this.activity.timeTaken);
-    this.element.find("#materials").attr("checked", this.activity.useMaterials)
+    // Set initial values of our options
+    this.element.find("#privateActivity").attr("checked", this.activity.options?.rolls_are_private);
+    this.element.find("#privateComp").attr("checked", this.activity.options?.complications_are_private)
+    this.element.find("#timeTaken").val(this.activity.options?.days_used);
+    this.element.find("#materials").attr("checked", this.activity.options?.ask_for_materials)
+
+    if (this.activity.roll?.length >= 8) {
+      this.element.find("#rollableEventsTable").css("overflow-y", "scroll");
+    }
+
+    if (this.activity.result?.length >= 8) {
+      this.element.find("#resultsTable").css("overflow-y", "scroll");
+    }
+
+    // set field status based on activity type
+    this.updateRollsStatus(this.activity.type);
+
+    if (this.activity.type !== "NO_ROLL") {
+
+      // Handle displaying intitial data
+      // TODO: Hand this off to Handlebars???
+      this.element.find("#rollableEventsTable > #rollable").each((i, roll) => {
+        let id = $(roll).attr("data-id");
+        if (id === "template") return;
+        let event = this.activity.roll[i - 1]
+        let type = event.type;
+        let newVal = event.roll || "";
+
+        $(roll).find("#roll-type > select").val(type);
+        // Set all roll-val to off
+        $(roll).find("#roll-val").find("select, input").css("display", "none");
+        $(roll).find("#roll-val").find("select, input").prop("disabled", true);
+        // Turn on the correct select based on type
+        $(roll).find("#roll-val").find("#" + type).css("display", "");
+        $(roll).find("#roll-val > #" + type).val(newVal);
+        $(roll).find("#roll-val").find("#" + type).prop("disabled", false);
+      });
+    }
   }
 
   async handleImage(event) {
@@ -134,259 +176,319 @@ export class DWTForm extends FormApplication {
     }).browse("");
   }
 
-  handleRollableDelete(event) {
-    // In the rollable table, handle removing elements
-    event.preventDefault();
-    const elem = $(event.currentTarget).parent().parent();
-    const toDel = this.rollableEvents.find((rbl) => rbl[2] == elem.attr("id"));
-    const idx = this.rollableEvents.indexOf(toDel);
-    this.rollableEvents.splice(idx, 1);
-    elem.remove();
+  /**
+   * Adds a new rollable <li> to the list of rollables. Accomplishes
+   * this by copying a hidden template and activating it.
+   */
+  addRollable(){
+    if (this.activity?.type === "NO_ROLL") return;
+    // Copy our template roll
+    let newRoll = this.element.find('#rollableEventsTable > li[data-id ="template"]').clone();
+    // Assign temporary id
+    newRoll.attr("data-id", randomID());
+    // Show it!
+    newRoll.css("display", "");
+    // Enable it
+    newRoll.find("#roll-type > select, #roll-val > #ABILITY_CHECK").prop("disabled", false)
+    newRoll.find("#roll-group > input, #roll-dc > input").prop("disabled", false);
+    // Append
+    this.element.find("#rollableEventsTable").append(newRoll);
+    // Attach new listener
+    newRoll.find(".result-controls > .delete-roll").click((event) => this.deleteRollable(event));
+    newRoll.find("#roll-type > select").change((event) => this.changeValSelect(event));
+
+    this.detectScrolls("roll");
   }
 
-  async handleRollables(event) {
-    // When adding a new roll
+  /**
+   * Deletes a <li> from the rollalbe list.
+   * @param  {[jQuery object]} event Click event from clicking the delete-roll button
+   */
+  deleteRollable(event){
     event.preventDefault();
-    // Setup DOM references
-    const abiElem = this.element.find("#abiCheck");
-    const saveElem = this.element.find("#saveSelect");
-    const skiElem = this.element.find("#skiCheck");
-    const toolElem = this.element.find("#toolSelect");
-    const formulaElem = this.element.find("#rollFormula");
-    const dcElem = this.element.find("#dc");
-    // Get Vals
-    const abi = abiElem.val();
-    const save = saveElem.val();
-    const ski = skiElem.val();
-    const tool = toolElem.val();
-    const formula = formulaElem.val();
-    const dc = dcElem.val() || "";
-    // Error Handling
-    let rbl = "";
+    // Retrieve the row we are in
+    let row = $(event.currentTarget).parent().parent();
+    // Remove it from DOM
+    row.remove();
+    this.detectScrolls("roll");
+  }
 
-    if (abi !== "") {
-      rbl = abi;
-    } else if (save !== "") {
-      rbl = save;
-    } else if (ski !== "") {
-      rbl = ski;
-    } else if (tool !== ""){
-      rbl = tool;
-    } else if (formula !== ""){
-      try {
-        const roll = new Roll(formula) //ensure no error in formula
-        rbl = "Formula: " + formula
-      } catch (e) {
-        ui.notifications.error(e);
+  validateCustom() {
+    this.activity.roll.forEach((roll) => {
+      if (roll.type === "CUSTOM"){
+        let custom = roll.roll;
+
+        // Organize additional properties for use in the context
+        // This finds the value of hit dice for any class in the actor
+        let hdVals = this.actor.data.items.filter((item) => item.type === "class")
+          .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+        // Find the min and the max
+        let hd = {
+          min: Math.min.apply(null, hdVals),
+          max: Math.max.apply(null, hdVals)
+        }
+
+        let context = mergeObject({actor: this.actor, hd: hd}, this.actor.getRollData());
+        if (Roll.validate(custom, context)){//ensure no error in custom
+          let fail = false;
+          custom.split(" + ").forEach((formu) => {
+            // If we're accessing a property
+            if (formu.startsWith("@")) {
+              // Remove either "@actor." or just "@"
+              let testProp = formu.startsWith("@actor.") ? formu.slice(7) : formu.slice(1);
+              // Test if property does not exist (i.e. if not a valid property)
+              if (!(getProperty(context, testProp))) {
+                ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in the context.");
+                fail = true;
+              }
+            }
+          })
+          if (fail) throw "Error in context for rolling.";
+        } else {
+          ui.notifications.warn("Ethck's Downtime Tracking | This is not a valid roll formula.");
+          return;
+        }
+      }
+    });
+  }
+
+  /**
+   * Handle changes of the "Roll Type" to dynamically change the "Roll"
+   * options. For all except type "CUSTOM" we unhide a <select> with
+   * dynamic options. "CUSTOM" maintains a simple input.
+   * 
+   * @param  {[jQuery object]} event triggering change event from a "Roll Type" select.
+   */
+  changeValSelect(event) {
+    event.preventDefault();
+    // double parent used to stay within the same row
+    let valSelect = $(event.currentTarget).parent().parent().find("#roll-val");
+    let type = $(event.currentTarget).val();
+
+    valSelect.find("select, input").css("display", "none");
+    valSelect.find("select, input").prop("disabled", true);
+    valSelect.find("#" + type).css("display", "");
+    valSelect.find("#" + type).prop("disabled", false);
+  }
+
+  updateRollsStatus(type) {
+    // Reset all non-template selects and inputs to enabled
+    this.element.find(`
+      #rollsTable li:not([data-id="template"]) select, 
+      #rollsTable li:not([data-id="template"]) input,
+      #resultsTable li:not([data-id="template"]) input`).prop("disabled", false);
+
+    // Reset status of the multiple selects that respond to roll.roll by invoking
+    // a change event to get changeValSelect() to do its magic.
+    this.element.find('#rollsTable li:not([data-id="template"]) select').trigger("change");
+    // Turn off DCs
+    if (type === "ROLL_TOTAL") {
+      this.element.find("li > #roll-dc > input").prop("disabled", true);
+      this.element.find("li > #roll-dc > input").val(null);
+    // Turn off everything
+    } else if (type === "NO_ROLL") { 
+      this.element.find("#rollsTable select, #rollsTable input").prop("disabled", true);
+      this.element.find("#resultsTable input").prop("disabled", true);
+    }
+
+    this.activity.type = type;
+  }
+  
+  addResult() {
+    if (this.activity?.type === "NO_ROLL") return;
+    // Copy our template result
+    let newResult = this.element.find('#resultsTable > li[data-id ="template"]').clone();
+    // Assign temporary id
+    newResult.attr("data-id", randomID());
+    // Show it!
+    newResult.css("display", "");
+    newResult.find(".result-range > input, .result-details > input, #triggerComplication").prop("disabled", false);
+    // Append
+    this.element.find("#resultsTable > ol").append(newResult);
+    // Attach new listener
+    newResult.find(".result-controls > .delete-result").click((event) => this.deleteResult(event));
+    this.detectScrolls("result");
+  }
+
+  deleteResult(event) {
+    event.preventDefault();
+    // Retrieve the row we are in
+    let row = $(event.currentTarget).parent().parent();
+    // Remove it from DOM
+    row.remove();
+    this.detectScrolls("result");
+  }
+
+  detectScrolls(type) {
+    if (type === "roll") {
+      if (this.element.find("#rollableEventsTable > li").length >= 8) {
+        if (this.element.find("#rollableEventsTable").css("overflow-y") === "visible") {
+          this.element.find("#rollableEventsTable").css("overflow-y", "scroll");
+        }
+      } else {
+        this.element.find("#rollableEventsTable").css("overflow-y", "visible");
+      }
+    } else { //result
+      if (this.element.find("#resultsTable > li").length >= 8) {
+        if (this.element.find("#resultsTable").css("overflow-y") === "visible") {
+          this.element.find("#resultsTable").css("overflow-y", "scroll");
+        }
+      } else {
+        this.element.find("#resultsTable").css("overflow-y", "visible");
       }
     }
+  }
+  
+  /*
+  Loads data from a "form" table that stores the values in each column as
+  a seperate array into an array of rows, where each row has the same
+  shape as `model`.
+  
+  As an example, for `rows` with the shape:
+    [{group: "a", dc: 8}, {group: "b", dc: 72}, {group: "c", dc: 3}]
+  would be represented with columns (expanded FormData) that has the shape:
+    {group: ["a", "b", "c"], dc: [8, 72, 3]}
+  
+  Other assumptions:
+    - A column will either be undefined, or be an array with the same
+      length as other defined columns.
+    - All existing rows have defined values for all keys in `model`.
 
-    if (rbl === "") {
-      ui.notifications.error("ERROR! Select a roll first!");
-      return;
+  @param  {[object]} rows      currently filled out model with vals
+  @param {[object]} columns    expanded FormData 
+  @param {[object]} model      data model to base structure on
+  @param {[String]} dataPrefix prefix for column names
+
+  Special thanks to @Varriount#0883 for their help on this!
+  */
+  loadModelFromTable(rows, columns, model, dataPrefix){
+    for (const key of Object.keys(model)){
+      // Retrieve the column of data, ignore all falsy values
+      const column = columns[dataPrefix + "." + key];
+
+      // Calculate where rows currently exist, and where they will
+      // need to be created.
+      // This is because, if we extend the length of `rows`, we will have 2
+      // sections - one containing existing rows, and one containing
+      // `undefined` values.
+      const existingRowsEnd = Math.min(column.length, rows.length);
+      const allRowsEnd = column.length;
+
+      // Shrink or extend `rows` to remove or add new rows.
+      rows.length = column.length;
+
+      // Loop through the data in the current column.
+      let i = 0;
+
+      // Update existing rows with the column data.
+      for (; i < existingRowsEnd; i++) {
+        rows[i][key] = column[i];
+      }
+
+      // Create new rows with the column data.
+      for (; i < allRowsEnd; i++) {
+        const row = {};
+        row[key]  = column[i];
+        rows[i]   = row;
+      }
     }
-    // End Errors
-    // Get a unique ID
-    const time = Date.now();
-    // Add event
-    this.rollableEvents.push([rbl, dc, time]);
-    // Add the row that shows in the form (DOM!)
-    this.element.find("#rollableEventsTable > tbody").append(
-      `
-            <tr id="` + time + `" class="rollableEvent">
-                <td><label>` + rbl + `</label></td>
-                <td><label>` + dc + `</label></td>
-                <td><input type="text" id="group" placeholder="group name for rolls"></td>
-                <td style="text-align:center;"><a class="item-control training-delete" id="deleteRollable" title="Delete">
-                    <i class="fas fa-trash"></i></a>
-                </td>
-            </tr>`
-    );
-    // Attach new listener
-    this.element
-      .find("#rollableEventsTable > tbody > .rollableEvent")
-      .on("click", "#deleteRollable", (event) =>
-        this.handleRollableDelete(event)
-      );
-
-    //reset to initial vals
-    abiElem.val($("#abiCheck option:first").val());
-    saveElem.val($("#saveSelect option:first").val());
-    skiElem.val($("#skiCheck option:first").val());
-    toolElem.val($("#toolSelect option:first").val());
-    formulaElem.val("")
-    dcElem.val("");
-  }
-
-  handleResultDelete(event) {
-    // Delete result
-    event.preventDefault();
-    const elem = $(event.currentTarget).parent().parent();
-    const toDel = this.results.find((res) => res[3] == elem.attr("id"));
-    const idx = this.results.indexOf(toDel);
-    this.results.splice(idx, 1);
-    elem.remove();
-  }
-
-  handleResults(event) {
-    // Add result to table
-    event.preventDefault();
-
-    const minV = "0";
-    const maxV = "5";
-    const textV = "You win 5 cakes."
-    // ID
-    const time = Date.now();
-    // Add event
-    this.results.push([parseInt(minV), parseInt(maxV), textV, time]);
-    // Add the row that shows in the form (DOM!)
-    this.element.find("#resultsTable > tbody").append(
-      `<tr id="` + time +`" class="result">
-        <td><input style="margin: 5px;" value="`+ minV +`" type="text" id="rollStart"></input></td>
-        <td><input style="margin: 5px;" value="` + maxV + `" type="text" id="rollEnd"></input></td>
-        <td><input style="margin: 5px;" value="` + textV + `" type="text" id="rollDesc"></input></td>
-        <td style="text-align:center;"><a class="item-control training-delete" id="deleteResult" title="Delete">
-            <i class="fas fa-trash"></i></a>
-        </td>
-      </tr>`
-    );
-
-    this.element
-      .find("#resultsTable > tbody > #" + time)
-      .on("click", "#deleteResult", (event) => this.handleResultDelete(event));
   }
 
   async _updateObject(event, formData) {
-    // create/edit activity to show
-    // Get vals from form
-    const actName = this.element.find("#name").val();
-    const actDesc = this.element.find("#desc").val();
-    const actRollImage = this.element.find('[name="rollIcon"]').val() || "icons/svg/d20.svg";
-    const actType =
-      this.element.find("#succFailActivity:checked").val() ||
-      this.element.find("#categoryActivity:checked").val() ||
-      this.element.find("#noRollActivity:checked").val();
-    const actPrivate = this.element.find("#privateActivity").prop("checked");
-    const compPrivate = this.element.find("#privateComp").prop("checked");
-    const actTimeTaken = this.element.find("#timeTaken").val();
-    const useMaterials = this.element.find("#materials").prop("checked");
-
-    // Make the complication object with table and chance
-
-    const complication = {
-      table: {
-        id: this.element.find("#complications").val(),
-        name: this.element.find("#complications").text().trim()
-      },
-      chance: parseInt(this.element.find("#compchance").val())
-    }
-
-
-    // Override value of this.rollableEvents with the input in the form.
-    this.rollableEvents = this.rollableEvents.map((rollableEvent) => {
-      return [
-        rollableEvent[0],
-        this.element.find("#" + rollableEvent[2] + " > td > #dc").val(),
-        rollableEvent[2]
-      ];
-    });
-
-    // Handle OR grouping of rollableEvents
-    let rollableGroups = [{ group: "", rolls: [] }];
-    this.rollableEvents.forEach((rollableEvent) => {
-      const groupVal = this.element
-        .find("#" + rollableEvent[2] + " > td > #group")
-        .val();
-      rollableGroups.forEach((groupDict) => {
-        if (groupDict["group"] == groupVal) {
-          groupDict["rolls"].push(rollableEvent);
-        }
-      });
-
-      if (
-        rollableGroups.find((group) => group["group"] === groupVal) ===
-        undefined
-      ) {
-        const groupDict = {
-          group: groupVal,
-          rolls: [rollableEvent],
-        };
-
-        rollableGroups.push(groupDict);
-      }
-    });
-
-    // Add "new" values from the input fields so that changes are reflected.
-    this.results = this.results.map((result) => {
-      return[
-        parseInt(this.element.find("#" + result[3] + " > td > #rollStart").val()),
-        parseInt(this.element.find("#" + result[3] + " > td > #rollEnd").val()),
-        this.element.find("#" + result[3] + " > td > #rollDesc").val(),
-        result[3]
-      ];
-    });
-
-
-    // Setup or update the values of our activity
-    let activity = {};
-    if (!this.edit) {
-      activity = {
-        name: actName || "New Downtime Activity",
-        description: actDesc || "",
-        changes: [],
-        rollableEvents: this.rollableEvents,
-        rollableGroups: rollableGroups,
-        results: this.results,
-        id: Date.now(),
-        type: actType,
-        img: this.image,
-        complication: complication,
-        actPrivate: actPrivate,
-        compPrivate: compPrivate,
-        actTimeTaken: actTimeTaken,
-        rollIcon: actRollImage,
-        useMaterials: useMaterials
-      };
+    // preserve old ID or make new one
+    let id = 0;
+    if ("id" in this.activity) {
+      id = this.activity.id;
     } else {
-      activity = this.activity;
-      activity["name"] = actName;
-      activity["description"] = actDesc;
-      activity["rollableEvents"] = this.rollableEvents;
-      activity["rollableGroups"] = rollableGroups;
-      activity["results"] = this.results;
-      activity["type"] = actType;
-      activity["img"] = this.image;
-      activity["complication"] = complication;
-      activity["actPrivate"] = actPrivate;
-      activity["compPrivate"] = compPrivate;
-      activity["timeTaken"] = actTimeTaken;
-      activity["rollIcon"] = actRollImage;
-      activity["useMaterials"] = useMaterials;
+      id = randomID();
+    }
+    // ensure id is a string
+    if (typeof id === "number") id = id.toString();
+
+    let rolls = this.activity.roll;
+    let results = this.activity.result;
+
+    // recreate activity
+    this.activity = expandObject(formData);
+    this.activity.id = id;
+
+    // Load old roll/result from activity otherwise
+    // loadModelFromTable requires these to exist
+    this.activity.roll = rolls || [];
+    this.activity.result = results || [];
+
+    this.activity.chat_icon = this.image;
+
+    if ("roll.roll" in formData) {
+      // there is a disabled template that needs to be pruned. It is
+      // always in the first slot of the formData array, so we can just remove
+      // it.
+      formData["roll.type"].shift()
+      formData["roll.group"].shift()
+      if ("roll.dc" in formData) {
+        formData["roll.dc"].shift()
+      } else {
+        // if activity type (not roll.type) is NOT SUCCESS_COUNT
+        // the ALL DC fields are disabled, thus roll.dc does not
+        // exist. loadModelFromTable requires all columns to exist.
+        // So we make a new array of the same size as roll.type and
+        // fill it with null (just some default non-visible value).
+        formData["roll.dc"] = Array(formData["roll.type"].length).fill(null)
+      }
+      // roll.roll is FILLED with nulls because every
+      // select (5 * row) has a value, but only one
+      // is enabled. All the disabled selects (also hidden)
+      // return null in the formData
+      formData["roll.roll"] = formData["roll.roll"].filter((x) => x !== null);
+      this.loadModelFromTable(this.activity.roll, formData, ACTIVITY_ROLL_MODEL, "roll");
     }
 
+    if ("result.min" in formData){
+      // Same deal with the template applies here
+      formData["result.min"].shift();
+      formData["result.max"].shift();
+      formData["result.details"].shift();
+      formData["result.triggerComplication"].shift();
+      this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
+    }
+
+    // extra validate on custom formulas...
+    try {
+      this.validateCustom();
+    } catch (e) {
+      console.error(e);
+      throw "Ethck's Downtime Tracking | Broken custom formula. Please fix."
+    }
+
+    // Update!!!
     const actor = this.actor;
     // local scope
-    if (!jQuery.isEmptyObject(actor)) {
+    if (!this.world) {
       let flags = actor.getFlag("downtime-ethck", "trainingItems");
-      if (!this.edit) {
-        activity["world"] = false;
-        // Update flags and actor
-        flags.push(activity);
+
+      if (this.editing) {
+        let act = flags.find((act) => act.id == this.activity.id);
+        let idx = flags.indexOf(act);
+        flags[idx] = this.activity;
+      } else {
+        flags.push(this.activity);
       }
       await actor.unsetFlag("downtime-ethck", "trainingItems")
       await actor.setFlag("downtime-ethck", "trainingItems", flags)
     // World scope
     } else {
-      activity["world"] = true;
+      this.activity["world"] = true;
       const settings = game.settings.get("downtime-ethck", "activities");
-      if (this.edit) {
-        let act = settings.find((act) => act.id == activity.id);
+      if (this.editing) {
+        let act = settings.find((act) => act.id == this.activity.id);
         let idx = settings.indexOf(act);
-        settings[idx] = activity;
+        settings[idx] = this.activity;
       } else {
-        settings.push(activity);
+        settings.push(this.activity);
       }
       await game.settings.set("downtime-ethck", "activities", settings);
+      // rerender the character sheet to reflect updated activities
+      this.sheet.render(true);
     }
   }
 }

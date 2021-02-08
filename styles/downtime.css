@@ -1,28 +1,63 @@
 /*********************************/
+/*         Character Sheet      */
+/*****************************/
+
+/*********************************/
 /*         DOWNTIME TAB        */
 /*****************************/
 
 /* Tweak some item controls styles to fit the additional buttons*/
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-controls {
+.inventory-list.ethck-downtime .ethck-item-controls {
 	min-width: fit-content;
 	min-width: -moz-fit-content;
+	justify-content: space-between;
+	flex: 0 0 44px;
 }
 
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-controls a {
+.inventory-list.ethck-downtime .ethck-item-controls a {
 	min-width: fit-content;
 	min-width: -moz-fit-content;
 	flex: 1 !important;
 	margin-right: 5px;
+	font-size: 12px;
 }
 
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item .item-name {
+.inventory-list.ethck-downtime .item .item-name {
 	flex: 0 1 30%;
 }
 /* Type Column */
-.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type {
-	text-transform: capitalize;
-	flex: 1 0 60%;
+.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type,
+.inventory-list.ethck-downtime .item-detail.type {
+	flex: 1 0 50%;
 	text-align: left;
+    overflow-y: hidden;
+    height: 1.2em;
+}
+
+/* 
+These rules come from the .item-image class in the same spot
+as .actirity-roll, but this prevents other modules (i.e. Better Rolls)
+from overriding our event listeners and disabling our hard work!
+*/
+.tidy5e.sheet.actor .items-list .item .item-name .activity-roll {
+    flex: 0 0 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 5px 0px 0px 5px;
+    margin-right: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dnd5e.sheet.actor .items-list .item .item-name .activity-roll {
+    flex: 0 0 30px;
+    height: 30px;
+    background-size: 30px;
+    border: none;
+    margin-right: 5px;
 }
 
 /*********************************/
@@ -40,6 +75,16 @@
 .ethck-downtime-table .resultLeft {
 	text-align: left;
 }
+
+#rollableEventsTable > li > #roll-val > input,
+#rollableEventsTable > li > #roll-val > select {
+	width: 100%;
+}
+
+#rollableEventsTable > li.table-result.table-header.flexrow > div.result-details {
+	margin-left: 20px;
+}
+
 
 /*********************************/
 /*         DOWNTIME FORM       */
@@ -61,6 +106,41 @@
     display: flex;
     flex: 1;
     margin: 0px 3px 3px 0px;
+}
+
+.ethck-downtime-form .tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.ethck-downtime-form .tooltip .tooltiptext {
+  visibility: hidden;
+  width: 400px;
+  background-color: #f1f0ec;
+  color: black;
+  border-radius: 1px;
+  padding: 5px;
+  line-height: 1;
+  padding-top: 3px;
+  border-style: double;
+  font-style: normal;
+  font-weight: normal;
+  font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+  font-size: 14px;
+  
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+.ethck-downtime-form .tooltip .tooltiptext.left {
+  top: 0px;
+  right: 105%; 
+}
+
+.ethck-downtime-form .tooltip:hover .tooltiptext {
+  visibility: visible;
 }
 
 
@@ -115,50 +195,4 @@
 
 .dark-mode .activity-log .action-table table tr:hover td {
 	background-color: rgba(63,136,230, 0.4);
-}
-
-
-/*********************************/
-/*     SUPPORT FOR TIDY 5E     */
-/*****************************/
-
-.tidy5e .inventory-list.ethck-downtime .item-controls .item-create {
-	padding-left: 5px;
-	padding-right: 5px;
-}
-
-.tidy5e .inventory-list.ethck-downtime .item-controls .item-create:last-child {
-	margin-right: 0px;
-}
-
-/* Tweak activity entries on NPC sheet */
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item .item-name .item-image {
-	height: 30px;
-	width: 30px;
-	flex: 0 0 30px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item .item-name h4 {
-	line-height: 30px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item-detail .downtime-override {
-	max-width: 40px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .inventory-header .item-controls a.item-create {
-	margin-top: 0px;
-	padding: 4px 5px;
-	margin-right: 5px;
-}
-
-.tidy5e.sheet.actor.npc .inventory-list.ethck-downtime .item {
-	line-height: 30px;
-}
-
-/* Controls dark mode support */
-.tidy5eDark .tidy5e.sheet.actor .inventory-list.ethck-downtime .item-controls a,
-.tidy5eDark .tidy5e.sheet.actor .inventory-list.ethck-downtime .item-controls a:hover {
-  color: var(--darkmode-primary-color);
-	font-weight: 300;
 }
