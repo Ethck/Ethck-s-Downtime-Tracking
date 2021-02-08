@@ -38,6 +38,32 @@
     height: 1.2em;
 }
 
+/* 
+These rules come from the .item-image class in the same spot
+as .actirity-roll, but this prevents other modules (i.e. Better Rolls)
+from overriding our event listeners and disabling our hard work!
+*/
+.tidy5e.sheet.actor .items-list .item .item-name .activity-roll {
+    flex: 0 0 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 5px 0px 0px 5px;
+    margin-right: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dnd5e.sheet.actor .items-list .item .item-name .activity-roll {
+    flex: 0 0 30px;
+    height: 30px;
+    background-size: 30px;
+    border: none;
+    margin-right: 5px;
+}
+
 /*********************************/
 /*         ALL FORMS           */
 /*****************************/
