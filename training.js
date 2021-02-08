@@ -2,7 +2,6 @@
 import AuditLog from "./audit-log.js";
 import { DWTForm } from "./downtime.js";
 import { GMConfig } from "./gmConfig.js";
-// import { ChooseRoll } from "./chooseRoll.js";
 import { d20Roll } from "../../systems/dnd5e/module/dice.js";
 
 // Register Game Settings
