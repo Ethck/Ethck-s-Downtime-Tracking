@@ -74,6 +74,15 @@ Hooks.once("init", () => {
     default: "blindroll",
   });
 
+  game.settings.register("downtime-ethck", "extraSheetWidth", {
+    name: "Extra Sheet Width",
+    hint: "# of pixels to increase width of sheet by.",
+    scope: "client",
+    config: true,
+    default: 50,
+    type: Number
+  });
+
   game.settings.register("downtime-ethck", "activities", {
     scope: "world",
     config: false,
@@ -448,6 +457,14 @@ async function addTrainingTab(app, html, data) {
 }
 
 Hooks.on(`renderActorSheet`, (app, html, data) => {
+  // Borrowed from Crash's 5e-training to allow choice
+  // of whether to be on same line or not.
+  let widenSheet = adjustSheetWidth(app);
+  if(widenSheet){
+    let newPos = {width: app.position.width + game.settings.get("downtime-ethck", "extraSheetWidth")}
+    app.setPosition(newPos);
+  }
+
   addTrainingTab(app, html, data).then(function () {
     if (app.activateDowntimeTab) {
       app._tabs[0].activate("downtime");
@@ -850,6 +867,21 @@ async function _skillCustHandler(skillAcr, actor){
       }
     });
   })
+}
+
+// Determines whether or not the sheet should have its width adjusted.
+// If the setting for extra width is set, and if the sheet is of a type for which
+// we have training enabled, this returns true.
+function adjustSheetWidth(app){
+  let settingEnabled = !!game.settings.get("downtime-ethck", "extraSheetWidth");
+  let sheetHasTab = ((app.object.data.type === 'npc') && game.settings.get("downtime-ethck", "enableTrainingNpc")) ||
+                    ((app.object.data.type === 'character') && game.settings.get("downtime-ethck", "enableTraining"));
+
+  let currentWidth = app.position.width;
+  let defaultWidth = app.options.width;
+  let sheetIsSmaller = currentWidth < (defaultWidth + game.settings.get("downtime-ethck", "extraSheetWidth"))
+
+  return settingEnabled && sheetHasTab && sheetIsSmaller;
 }
 
 async function _downtimeMigrate(){

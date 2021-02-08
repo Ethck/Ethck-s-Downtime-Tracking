@@ -1,10 +1,6 @@
 /*********************************/
 /*         Character Sheet      */
 /*****************************/
-/* Allow for all tabs to be on the same line */
-.dnd5e.sheet .sheet-navigation .item {
-  margin: 0 0.5em;
-}
 
 /*********************************/
 /*         DOWNTIME TAB        */
