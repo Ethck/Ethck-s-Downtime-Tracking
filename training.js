@@ -943,7 +943,7 @@ async function _downtimeMigrate(){
   await game.settings.set("downtime-ethck", "migrated", {status: true, version: NEEDS_MIGRATION_VERSION});
 }
 
-async function _updateDowntimes(downtimes) {
+export async function _updateDowntimes(downtimes) {
   let changed = false;
   downtimes.forEach((downtime, i) => {
     // Handle old private
