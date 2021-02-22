@@ -2,10 +2,10 @@
     "name": "downtime-ethck",
     "title": "Ethck's 5e Downtime Tracking",
     "description": "Adds a section to the character sheet to keep track of downtime activities.",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "author": "Ethck",
-    "minimumCoreVersion": "0.6.0",
-    "compatibleCoreVersion": "0.7.8",
+    "minimumCoreVersion": "0.7.0",
+    "compatibleCoreVersion": "0.7.9",
     "systems": [
         "dnd5e"
     ],
@@ -25,5 +25,14 @@
             "type": "cover",
             "url": "https://raw.githubusercontent.com/Ethck/Ethck-s-Downtime-Tracking/master/images/Cover.png"
         }
-    ]
+    ],
+    "dependencies": [
+        {
+            "name": "autocomplete-inline-properties",
+            "type": "module",
+            "manifest": "https://raw.githubusercontent.com/schultzcole/FVTT-Autocomplete-Inline-Properties/master/module.json"
+        }
+    ],
+    "bugs": "https://github.com/Ethck/Ethck-s-Downtime-Tracking/issues",
+    "allowBugReporter": true
 }
