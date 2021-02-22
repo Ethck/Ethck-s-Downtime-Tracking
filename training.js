@@ -99,6 +99,32 @@ Hooks.once("init", () => {
     config: false,
     default: {status: false, version: "0.3.3"}
   })
+
+  // Autocomplete Inline Properties AIP
+  // Define the config for our package
+  const aipConfig = {
+      packageName: "downtime-ethck",
+      sheetClasses: [
+          {
+              name: "DWTForm",
+              fieldConfigs: [
+                  {
+                      selector: `.ethck-downtime-form #rollable #CUSTOM`,
+                      showButton: true,
+                      allowHotkey: true,
+                      dataMode: CONST.AIP?.DATA_MODE.CUSTOM,
+                      customDataGetter: (sheet) => {
+                        return rollContext(sheet.actor);
+                      },
+                      customInlinePrefix: "@",
+                  },
+              ]
+          },
+      ]
+  };
+  
+  // Add our config
+  CONFIG.AIP?.PACKAGE_CONFIG.push(aipConfig);
 });
 
 Hooks.once("ready", () => {
@@ -764,25 +790,30 @@ async function formulaRoll(formula, actor) {
       }
     }
 
-    // Organize additional properties for use in the context
-    // This finds the value of hit dice for any class in the actor
-    let hdVals = actor.data.items.filter((item) => item.type === "class")
-      .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
-    // Find the min and the max
-    // These must be roll values, so add 1d to start.
-    let hd = {
-      min: "1d" + Math.min.apply(null, hdVals),
-      max: "1d" + Math.max.apply(null, hdVals)
-    }
-
-    // make the roll, providing a reference to actor
-    let context = mergeObject({actor: actor, hd: hd}, actor.getRollData());
+    let context = rollContext(actor);
     let myRoll = new Roll(formula.join(" + "), context);
     myRoll.roll();
     await myRoll.toMessage();
     // we're done!
     resolve(myRoll);
   });
+}
+
+function rollContext(actor) {
+  // Organize additional properties for use in the context
+  // This finds the value of hit dice for any class in the actor
+  let hdVals = actor.data.items.filter((item) => item.type === "class")
+    .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+  // Find the min and the max
+  // These must be roll values, so add 1d to start.
+  let hd = {
+    min: "1d" + Math.min.apply(null, hdVals),
+    max: "1d" + Math.max.apply(null, hdVals)
+  }
+
+  // return custom context + og context in the same object
+  return mergeObject({actor: actor, hd: hd}, actor.getRollData());
+
 }
 
 // slightly reworked _d20RollDialog from the d&d5e system
