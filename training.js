@@ -561,9 +561,9 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
   });
 
   // Test if complications are being used
-  if (activity.complication !== undefined && (activity.complication.chance !== " " || activity.complication.table !== " ")){
+  if (activity.complication !== undefined){
     const num = Math.floor(Math.random() * 100) + 1 // 1-100
-    if (triggeredComp || num <= activity.complication.chance){
+    if (triggeredComp || num <= parseInt(activity.complication.chance)){
       // Complication has occured
       let tableRes = game.tables.get(activity.complication.roll_table);
       // Also outputs chat message, YAY!
