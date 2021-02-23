@@ -8,6 +8,8 @@ Ethck's 5e Downtime Tracking allows you to create a series of rolls with optiona
 downtime activities as detailed in Xanathar's Guide to Everything (and/or however you desire!).
 
 ## Recent Changes
+* Added in Bug Reporter functionality
+* Added in Autocomplete Inline Properties (autocomplete for custom attributes!)
 * Complete redesign of the entire interface
 
 ## How to Use
