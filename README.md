@@ -46,14 +46,14 @@ With 0.3.2 I've introduced SMART rolls that can use properties from your charact
 In order to use these rolls, you MUST use the "Custom Formula" roll type. When entering in your roll,
 you will have to use the `@` sign to signal you want to use a property. Below are some common properties.
 ```
-@actor.data.data.abilities.str.mod
-@actor.data.data.attributes.hp.value
-@actor.data.data.attributes.movement.walk
-@actor.data.data.attributes.prof
-@actor.data.data.attributes.spelldc
-@actor.data.data.currency.gp
-@actor.data.data.bonsues.mwak
-@actor.data.data.resources.primary.value
+@abilities.str.mod
+@attributes.hp.value
+@attributes.movement.walk
+@attributes.prof
+@attributes.spelldc
+@currency.gp
+@bonsues.mwak
+@resources.primary.value
 ```
 
 and soooo many more.
@@ -63,6 +63,16 @@ If you want to find more properties, you can use the following methods:
 3) Type in `_token.actor.data.data` to the console and hit enter.
 4) Navigate through the list in the console. All of those are options!
 ![SMART Rolls](images/smartRolls2.png)
+
+#### Custom Attributes
+In addition to everything you can already find in the actor's data, I have added the following properties for your use.
+
+```
+hd.max # The largest hit die of the actor's classes
+hd.min # The smallest hit die of the actor's classes
+```
+
+Please let me know if there are any other attributes you would like to see!
 
 ### Using Downtime Activities
 In order to roll these downtime activities, just navigate to an actor's character sheet, go in the
