@@ -646,7 +646,7 @@ async function rollRollable(actor, activity, rollable) {
   return new Promise(async (resolve, reject) => {
     let res = [];
     let r = null;
-    let br = game.settings.get("downtime-ethck", "betterRollsCompat");
+    let br = game.settings.get("downtime-ethck", "betterRollsCompat") && game.modules.get("betterrolls5e").active;
     if (rollable.type === "ABILITY_CHECK"){
       // roll an ability check, then dc
       // rollAbilityTest assumes that the argument
