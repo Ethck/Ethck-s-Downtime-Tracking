@@ -716,7 +716,9 @@ async function rollRollable(actor, activity, rollable) {
     }
 
     if (br) {
-      r._total = r.BetterRollsCardBinding.roll.entries.find((part) => part.type === "multiroll").entries[0].total;
+      if (r._total === undefined) {
+        r._total = r.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total;
+      }
     }
 
     const dc = await rollDC(rollable);
