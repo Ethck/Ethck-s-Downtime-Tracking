@@ -51,6 +51,15 @@ Hooks.once("init", () => {
     type: Boolean
   });
 
+  game.settings.register("downtime-ethck", "betterRollsCompat", {
+    name: "Enable Compatibility for Better Rolls",
+    hint: "Allows for Better Rolls alternate roll format to be used.",
+    scope: "world",
+    config: true,
+    default: false,
+    type: Boolean
+  });
+
   game.settings.register("downtime-ethck", "tabName", {
     name: "Tab Name",
     hint: "Name for the custom downtime tab",
@@ -637,15 +646,24 @@ async function rollRollable(actor, activity, rollable) {
   return new Promise(async (resolve, reject) => {
     let res = [];
     let r = null;
+    let br = game.settings.get("downtime-ethck", "betterRollsCompat") && game.modules.get("betterrolls5e").active;
     if (rollable.type === "ABILITY_CHECK"){
       // roll an ability check, then dc
       // rollAbilityTest assumes that the argument
       // is in short form, i.e. "str", "con"
-      r = await actor.rollAbilityTest(rollable.roll)
+      if (br) {
+        r = await BetterRolls.rollCheck(actor, rollable.roll, {});
+      } else {
+        r = await actor.rollAbilityTest(rollable.roll);
+      }
     } else if (rollable.type === "SAVING_THROW"){
       // roll a save
       // rollAbilitySave has the same assumption
-      r = await actor.rollAbilitySave(rollable.roll);
+      if (br) {
+        r = await BetterRolls.rollSave(actor, rollable.roll, {});
+      } else {
+        r = await actor.rollAbilitySave(rollable.roll);
+      }
     } else if (rollable.type === "TOOL_CHECK"){
       let actorTool;
       // instead of giving the user the 20+ instruments to select
@@ -669,7 +687,11 @@ async function rollRollable(actor, activity, rollable) {
       actorTool = actorTools[choice[0]];
 
       if (actorTool !== null) {
-        r = await actorTool.rollToolCheck();
+        if (br) {
+          r = await BetterRolls.rollItem(actorTool).toMessage();
+        } else {
+          r = await actorTool.rollToolCheck();
+        }
       } else {
         // No tool of that name found.
         ui.notifications.error("Tool with name " + rollable[0] + " not found. Please ensure the name is correct.");
@@ -685,12 +707,23 @@ async function rollRollable(actor, activity, rollable) {
       if (skillCust && skillCust.active){
         r = await _skillCustHandler(rollable.roll, actor);
       } else {
-        r = await actor.rollSkill(rollable.roll)
+        if (br) {
+          r = await BetterRolls.rollSkill(actor, rollable.roll, {});
+        } else {
+          r = await actor.rollSkill(rollable.roll);
+        }
+      }
+    }
+
+    if (br) {
+      if (r._total === undefined) {
+        r._total = r.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total;
       }
     }
 
     const dc = await rollDC(rollable);
     res = [r._total, dc._total];
+
 
     // For some reason, we don't have a roll or a dc roll...
     if (res.length === 0) {
@@ -701,7 +734,11 @@ async function rollRollable(actor, activity, rollable) {
     if (game.dice3d) { // If dice so nice is being used, wait till matching animation is over.
       Hooks.on('diceSoNiceRollComplete', (messageId) => {
         let dsnMessage = game.messages.get(messageId);
-        if (dsnMessage.data.content === res[0].toString()) {
+        if (br) {
+          if (dsnMessage.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total === res[0]) {
+            resolve(res);
+          }
+        } else if (dsnMessage.data.content === res[0].toString()) {
           resolve(res);
         }
       });

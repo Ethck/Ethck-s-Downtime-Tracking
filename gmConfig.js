@@ -66,7 +66,7 @@ export class GMConfig extends FormApplication {
 
     readTextFromFile(file).then(async result => {
       let settings = JSON.parse(JSON.parse(result).value);
-      newDowntimes = _updateDowntimes(settings);
+      let [newDowntimes, changed] = await _updateDowntimes(settings);
       game.settings.set("downtime-ethck", "activities", newDowntimes)
     });
   }
