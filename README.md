@@ -103,4 +103,4 @@ From Crash:
 
 This work is also licensed under the 
 
-![Foundry Virtual Tabletop EULA - Limited License Agreement for Module Development.](https://foundryvtt.com/article/license/)
+[Foundry Virtual Tabletop EULA - Limited License Agreement for Module Development.](https://foundryvtt.com/article/license/)
