@@ -954,7 +954,7 @@ function adjustSheetWidth(app){
 async function _downtimeMigrate(){
   if (!game.user.isGM) return;
   //await game.settings.set("downtime-ethck", "migrated", false);
-  const NEEDS_MIGRATION_VERSION = "0.4.0";
+  const NEEDS_MIGRATION_VERSION = "0.4.3";
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
   // Skipped multiple versions and upgrading in 0.4.X or higher
@@ -1139,6 +1139,11 @@ export async function _updateDowntimes(downtimes) {
         }
       }
 
+      changed = true;
+    }
+    // 3/20/2021 v0.4.3 added activity visibility
+    if (!("hidden" in downtime.options)) {
+      downtime.options.hidden = false;
       changed = true;
     }
   })
