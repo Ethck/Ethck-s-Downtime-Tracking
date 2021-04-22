@@ -734,8 +734,8 @@ async function rollRollable(actor, activity, rollable) {
     if (game.dice3d) { // If dice so nice is being used, wait till matching animation is over.
       Hooks.on('diceSoNiceRollComplete', (messageId) => {
         let dsnMessage = game.messages.get(messageId);
-        if (br) {
-          if (dsnMessage.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total === res[0]) {
+        if (br && dsnMessage.BetterRollsCardBinding) {
+          if (dsnMessage.BetterRollsCardBinding.roll.entries.find((part) => part.type === "multiroll").entries[0].total === res[0]) {
             resolve(res);
           }
         } else if (dsnMessage.data.content === res[0].toString()) {
