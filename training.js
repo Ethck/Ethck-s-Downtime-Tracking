@@ -731,7 +731,7 @@ async function rollRollable(actor, activity, rollable) {
       reject();
     }
 
-    if (game.dice3d) { // If dice so nice is being used, wait till matching animation is over.
+    if (game.dice3d && game.dice3d.isEnabled()) { // If dice so nice is being used, wait till matching animation is over.
       Hooks.on('diceSoNiceRollComplete', (messageId) => {
         let dsnMessage = game.messages.get(messageId);
         if (br && dsnMessage.BetterRollsCardBinding) {
