@@ -4,8 +4,8 @@
     "description": "Adds a section to the character sheet to keep track of downtime activities.",
     "version": "0.5.0",
     "author": "Ethck",
-    "minimumCoreVersion": "0.8.0",
-    "compatibleCoreVersion": "0.8.1",
+    "minimumCoreVersion": "0.8.5",
+    "compatibleCoreVersion": "0.8.6",
     "systems": [
         "dnd5e"
     ],
@@ -27,5 +27,7 @@
         }
     ],
     "bugs": "https://github.com/Ethck/Ethck-s-Downtime-Tracking/issues",
-    "allowBugReporter": true
+    "flags": {
+        "allowBugReporter": true
+    }
 }
