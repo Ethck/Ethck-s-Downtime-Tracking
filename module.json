@@ -5,7 +5,7 @@
     "version": "0.5.0",
     "author": "Ethck",
     "minimumCoreVersion": "0.8.5",
-    "compatibleCoreVersion": "0.8.6",
+    "compatibleCoreVersion": "0.8.8",
     "systems": [
         "dnd5e"
     ],
