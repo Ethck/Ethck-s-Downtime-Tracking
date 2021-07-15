@@ -13,25 +13,27 @@
     </li>
     <ol class="item-list">
       {{#each actorAct.actor.flags.downtime-ethck.trainingItems as |training tid| }}
-        <li class="item flexrow">
-          <div class="item-name flexrow rollable">
-            {{#if training.sheet_icon}}
-            <div class="activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.sheet_icon}});"></div>
-            {{else}}
-            <div class="activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
-            {{/if}}
-            <h4 class="activity-toggle-desc localRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
-          </div>
-          <div class="item-detail type">
-            {{{training.description}}}
-          </div>
-          <div class="ethck-item-controls">
-            <a class="item-control activity-edit" id="ethck-edit-{{tid}}" title="Edit Downtime Activity"><i class="fas fa-edit"></i></a>
-            <a class="item-control activity-delete" id="ethck-delete-{{tid}}" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a>
-            <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Up"><i class="fas fa-chevron-up"></i></a>
-            <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Down"><i class="fas fa-chevron-down"></i></a>
-          </div>
-        </li>
+        {{#if (or ../isGM (eq training.options.hidden false))}}
+          <li class="item flexrow">
+            <div class="item-name flexrow rollable">
+              {{#if training.sheet_icon}}
+              <div class="activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.sheet_icon}});"></div>
+              {{else}}
+              <div class="activity-roll localRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
+              {{/if}}
+              <h4 class="activity-toggle-desc localRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
+            </div>
+            <div class="item-detail type">
+              {{{training.description}}}
+            </div>
+            <div class="ethck-item-controls">
+              <a class="item-control activity-edit" id="ethck-edit-{{tid}}" title="Edit Downtime Activity"><i class="fas fa-edit"></i></a>
+              <a class="item-control activity-delete" id="ethck-delete-{{tid}}" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a>
+              <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Up"><i class="fas fa-chevron-up"></i></a>
+              <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Down"><i class="fas fa-chevron-down"></i></a>
+            </div>
+          </li>
+        {{/if}}
       {{/each}}
     </ol>
     <li class="items-header flexrow">
@@ -46,27 +48,29 @@
     </li>
     <ol class="item-list">
       {{#each activities as |training tid| }}
-        <li class="item flexrow">
-          <div class="item-name flexrow rollable">
-            {{#if training.sheet_icon}}
-            <div class="activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.sheet_icon}});"></div>
-            {{else}}
-            <div class="activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
+        {{#if (or ../isGM (eq training.options.hidden false))}}
+          <li class="item flexrow">
+            <div class="item-name flexrow rollable">
+              {{#if training.sheet_icon}}
+              <div class="activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url({{training.sheet_icon}});"></div>
+              {{else}}
+              <div class="activity-roll worldRoll" id="ethck-roll-{{tid}}" title="Roll Downtime Activity" style="background-image: url(icons/svg/d20.svg);"></div>
+              {{/if}}
+              <h4 class="activity-toggle-desc worldRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
+            </div>
+            <div class="item-detail type">
+              {{{training.description}}}
+            </div>
+            {{#if ../isGM}}
+            <div class="ethck-item-controls worldRoll">
+              <a class="item-control activity-edit" id="ethck-edit-{{tid}}" title="Edit Downtime Activity"><i class="fas fa-edit"></i></a>
+              <a class="item-control activity-delete" id="ethck-delete-{{tid}}" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a>
+              <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Up"><i class="fas fa-chevron-up"></i></a>
+              <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Down"><i class="fas fa-chevron-down"></i></a>
+            </div>
             {{/if}}
-            <h4 class="activity-toggle-desc worldRoll" id="ethck-toggle-desc-{{tid}}" title="Toggle Summary">{{training.name}}</h4>
-          </div>
-          <div class="item-detail type">
-            {{{training.description}}}
-          </div>
-          {{#if ../isGM}}
-          <div class="ethck-item-controls worldRoll">
-            <a class="item-control activity-edit" id="ethck-edit-{{tid}}" title="Edit Downtime Activity"><i class="fas fa-edit"></i></a>
-            <a class="item-control activity-delete" id="ethck-delete-{{tid}}" title="Delete Downtime Activity"><i class="fas fa-trash"></i></a>
-            <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Up"><i class="fas fa-chevron-up"></i></a>
-            <a class="item-control activity-move" id="ethck-move-{{tid}}" title="Move Activity Down"><i class="fas fa-chevron-down"></i></a>
-          </div>
-          {{/if}}
-        </li>
+          </li>
+        {{/if}}
       {{/each}}
     </ol>
   </ol>

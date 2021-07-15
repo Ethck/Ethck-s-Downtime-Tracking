@@ -57,6 +57,7 @@ const ACTIVITY_MODEL = {
     complications_are_private: false,
     ask_for_materials        : false,
     days_used                : 0,
+    hidden                   : false,
   }
 }
 
@@ -128,6 +129,7 @@ export class DWTForm extends FormApplication {
     this.element.find("#privateComp").attr("checked", this.activity.options?.complications_are_private)
     this.element.find("#timeTaken").val(this.activity.options?.days_used);
     this.element.find("#materials").attr("checked", this.activity.options?.ask_for_materials)
+    this.element.find("#hidden2").attr("checked", this.activity.options?.hidden)
 
     if (this.activity.roll?.length >= 8) {
       this.element.find("#rollableEventsTable").css("overflow-y", "scroll");
