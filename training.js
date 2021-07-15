@@ -840,7 +840,7 @@ function rollContext(actor) {
   // Organize additional properties for use in the context
   // This finds the value of hit dice for any class in the actor
   let hdVals = actor.data.items.filter((item) => item.type === "class")
-    .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+    .map((hd) => parseInt(hd.data.data.hitDice.split("d")[1]));
   // Find the min and the max
   // These must be roll values, so add 1d to start.
   let hd = {

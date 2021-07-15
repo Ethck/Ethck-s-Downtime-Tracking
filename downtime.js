@@ -221,7 +221,7 @@ export class DWTForm extends FormApplication {
         // Organize additional properties for use in the context
         // This finds the value of hit dice for any class in the actor
         let hdVals = this.actor.data.items.filter((item) => item.type === "class")
-          .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+          .map((hd) => parseInt(hd.data.data.hitDice.split("d")[1]));
         // Find the min and the max
         let hd = {
           min: Math.min.apply(null, hdVals),
