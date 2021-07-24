@@ -758,8 +758,8 @@ async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
         Hooks.on(`CrashTrainingTabReady`, async (app2, html2, data2) => {
             let crash5eTrainingHtml = html2.find(".crash-training");
             crash5eTrainingHtml.find(".ethck-downtime").remove() //Remove Old
-            crash5eTrainingHtml.append(ethckDowntimeTabHtml); // Add New
-            crash5eTrainingHtml.find(".inventory-list").wrapAll('<ol class="inventory-list"></ol>')
+            crash5eTrainingHtml.find(".items-list").append(ethckDowntimeTabHtml); // Add New
+            crash5eTrainingHtml.find(".inventory-list.items-list.ethck-downtime").wrap("<section style='margin-top: 5%;'></section>")
             resolve(crash5eTrainingHtml);
         });
       } else {
