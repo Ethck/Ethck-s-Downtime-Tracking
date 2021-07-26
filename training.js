@@ -2,7 +2,8 @@
 import AuditLog from "./audit-log.js";
 import { DWTForm } from "./downtime.js";
 import { GMConfig } from "./gmConfig.js";
-import { d20Roll } from "../../systems/dnd5e/module/dice.js";
+
+let activateDowntimeTab = false;
 
 // Register Game Settings
 Hooks.once("init", () => {
@@ -212,7 +213,6 @@ async function addTrainingTab(app, html, data) {
       event.preventDefault();
       let form = new DWTForm(actor);
       form.render(true);
-      fixActiveTab(app, CRASH_COMPAT)
     });
 
     // Add New Downtime Activity
@@ -220,7 +220,6 @@ async function addTrainingTab(app, html, data) {
       event.preventDefault();
       let form = new DWTForm(actor, {}, false, true, app);
       form.render(true);
-      fixActiveTab(app, CRASH_COMPAT)
     });
 
     // Edit Downtime Activity
@@ -240,7 +239,6 @@ async function addTrainingTab(app, html, data) {
       }
       let form = new DWTForm(actor, activity, true, world, app);
       form.render(true);
-      fixActiveTab(app, CRASH_COMPAT)
     });
 
     // Remove Downtime Activity
@@ -293,7 +291,7 @@ async function addTrainingTab(app, html, data) {
               await actor.unsetFlag("downtime-ethck", "trainingItems");
               await actor.setFlag("downtime-ethck", "trainingItems", flags);
             }
-            fixActiveTab(app, CRASH_COMPAT)
+    
           }
         },
       }).render(true);
@@ -343,7 +341,6 @@ async function addTrainingTab(app, html, data) {
         await actor.setFlag("downtime-ethck", "trainingItems", tflags)
       }
 
-      fixActiveTab(app, CRASH_COMPAT)
     });
 
     // Roll Downtime Activity
@@ -478,14 +475,16 @@ async function addTrainingTab(app, html, data) {
     })
 
     // Set Training Tab as Active
-    downtimeHTML.find('.tabs .item[data-tab="downtime"]').click((ev) => {
-      app.activateDowntimeTab = true;
+    html.find('.tabs .item[data-tab="downtime"]').click((ev) => {
+      activateDowntimeTab = true;
+      console.log("SETTING ACTIVATE");
+      console.log(activateDowntimeTab);
     });
 
     // Unset Training Tab as Active
-    downtimeHTML.find('.tabs .item:not(.tabs .item[data-tab="downtime"])')
+    html.find('.tabs .item:not(.tabs .item[data-tab="downtime"])')
       .click((ev) => {
-        app.activateDowntimeTab = false;
+        activateDowntimeTab = false;
       });
   }
 }
@@ -500,7 +499,8 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
   }
 
   addTrainingTab(app, html, data).then(function () {
-    if (app.activateDowntimeTab) {
+    console.log(activateDowntimeTab);
+    if (activateDowntimeTab) {
       app._tabs[0].activate("downtime");
     }
   });
@@ -767,13 +767,6 @@ async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
         resolve(sheet);
       }
   });
-}
-
-// Weird bug with our tab not being activated after submitting forms.
-function fixActiveTab(app, CRASH_COMPAT) {
-  if (!CRASH_COMPAT) {
-    app.activateDowntimeTab = true;
-  }
 }
 
 async function materialsPrompt(activity) {
