@@ -754,12 +754,16 @@ async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
   return new Promise((resolve, reject) => {
     // Add our HTML nicely...
     if (CRASH_COMPAT === true && game.settings.get("downtime-ethck", "crashCompat")) {
-        ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
         Hooks.on(`CrashTrainingTabReady`, async (app2, html2, data2) => {
+            console.log(ethckDowntimeTabHtml)
+            ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
+            console.log(ethckDowntimeTabHtml)
             let crash5eTrainingHtml = html2.find(".crash-training");
-            crash5eTrainingHtml.find(".ethck-downtime").remove() //Remove Old
+            crash5eTrainingHtml.find(".ethck-downtime").remove(); // Remove Old
             crash5eTrainingHtml.find(".items-list").append(ethckDowntimeTabHtml); // Add New
-            crash5eTrainingHtml.find(".inventory-list.items-list.ethck-downtime").wrap("<section style='margin-top: 5%;'></section>")
+            crash5eTrainingHtml.find(".ethck-downtime").wrap("<section style='margin-top: 5%;'></section>")
+            //html2.find(".crash-training .items-list section").remove() //Remove Old
+            console.log(ethckDowntimeTabHtml.find("section"));
             resolve(crash5eTrainingHtml);
         });
       } else {
