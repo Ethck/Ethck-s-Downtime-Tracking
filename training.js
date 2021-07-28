@@ -477,7 +477,6 @@ async function addTrainingTab(app, html, data) {
     // Set Training Tab as Active
     html.find('.tabs .item[data-tab="downtime"]').click((ev) => {
       activateDowntimeTab = true;
-      console.log("SETTING ACTIVATE");
       console.log(activateDowntimeTab);
     });
 
@@ -499,7 +498,6 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
   }
 
   addTrainingTab(app, html, data).then(function () {
-    console.log(activateDowntimeTab);
     if (activateDowntimeTab) {
       app._tabs[0].activate("downtime");
     }
@@ -757,7 +755,7 @@ async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
         Hooks.on(`CrashTrainingTabReady`, async (app2, html2, data2) => {
             ethckDowntimeTabHtml = ethckDowntimeTabHtml.find(".inventory-list").unwrap();
             let crash5eTrainingHtml = html2.find(".crash-training");
-            crash5eTrainingHtml.find(".ethck-downtime").remove(); // Remove Old
+            crash5eTrainingHtml.find(".ethck-downtime, .items-list section").remove(); // Remove Old
             crash5eTrainingHtml.find(".items-list").append(ethckDowntimeTabHtml); // Add New
             crash5eTrainingHtml.find(".ethck-downtime").wrap("<section style='margin-top: 5%;'></section>")
             crash5eTrainingHtml.find(".ethck-downtime").parent().prepend("<label>Above this is Crash's Tracking and Training. Below is Ethck's Downtime</label>")
@@ -1130,6 +1128,7 @@ export async function _updateDowntimes(downtimes) {
           complications_are_private: downtime.compPrivate || false,
           ask_for_materials        : downtime.useMaterials || false,
           days_used                : downtime.timeTaken || "",
+          hidden                   : false
         }
       }
 
