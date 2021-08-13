@@ -153,7 +153,7 @@ async function addTrainingTab(app, html, data) {
 
   if (showTrainingTab) {
     // Get our actor
-    let actor = game.actors.entities.find((a) => a.data._id === data.actor._id);
+    let actor = game.actors.contents.find((a) => a.data._id === data.actor._id);
     // Make sure flags exist if they don't already
     if (
       actor.data.flags["downtime-ethck"] === undefined ||
@@ -554,17 +554,17 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials){
 
   // Determine if we whisper this message, and who to
   const cmsgVis = activity.options.rolls_are_private || game.settings.get("core", "rollMode") === "gmroll";
-  const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser._id)
+  const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser.id)
 
   // Results message
   ChatMessage.create({
-    user: game.user._id,
+    user: game.user.id,
     speaker: ChatMessage.getSpeaker({actor}),
     content: cmsgTemplate,
     flavor: "has completed the downtime activity of " + activity.name,
     type: CONST.CHAT_MESSAGE_TYPES.IC,
     // Current user + all gm users
-    whisper: cmsgVis ? [game.user._id, ...gmUserIds] : []
+    whisper: cmsgVis ? [game.user.id, ...gmUserIds] : []
   });
 
   // Test if complications are being used
@@ -732,11 +732,11 @@ async function rollRollable(actor, activity, rollable) {
     if (game.dice3d) { // If dice so nice is being used, wait till matching animation is over.
       Hooks.on('diceSoNiceRollComplete', (messageId) => {
         let dsnMessage = game.messages.get(messageId);
-        if (br) {
-          if (dsnMessage.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total === res[0]) {
-            resolve(res);
-          }
-        } else if (dsnMessage.data.content === res[0].toString()) {
+        if (dsnMessage.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total === res[0]) {
+          resolve(res);
+        }
+
+        if (dsnMessage.data.content === res[0].toString()) {
           resolve(res);
         }
       });
@@ -911,6 +911,7 @@ async function chooseRollDialog(groups, type = "") {
 }
 
 async function _skillCustHandler(skillAcr, actor){
+  let br = game.settings.get("downtime-ethck", "betterRollsCompat") && game.modules.get("betterrolls5e").active;
   return new Promise(async (resolve, reject) => {
     actor.rollSkill(skillAcr, {}); // call the patched function
     // only way to know it's done is by the final chat message, so listen for it
@@ -919,9 +920,14 @@ async function _skillCustHandler(skillAcr, actor){
       if (message.isRoll) {
         // make sure it's our expected Skill Check
         let skiname = CONFIG.DND5E.skills[skillAcr];
-        if ((getProperty(message, "data.flavor") && getProperty(message, "data.flavor").includes(skiname + " Skill Check"))) {
+        if ((getProperty(message, "data.flavor") && getProperty(message, "data.flavor").includes(skiname + " Skill Check")) ||
+            (br && $(message.data.content).find("header h3").text() == skiname)) {
           // return the roll
-          resolve(message._roll);
+          if (br) {
+            resolve({"_total": parseInt($(message.data.content).find(".dice-total span").text())});
+          } else {
+            resolve(message._roll);
+          }
         }
       }
     });
@@ -980,7 +986,7 @@ async function _downtimeMigrate(){
       [downtimes, changed] = await _updateDowntimes(downtimes);
       if (changed){
         let update = {
-          id: actor._id,
+          id: actor.id,
           "flags.downtime-ethck": {trainingItems: downtimes}
         }
 
@@ -1028,7 +1034,7 @@ export async function _updateDowntimes(downtimes) {
           if (downtime.complication.table !== "") {
             let table = game.tables.getName(downtime.complication.table);
             if (!table) table = game.tables.get(downtime.complication.table);
-            tid = table._id;
+            tid = table.id;
           }
           downtime.complication.table = {id: tid};
           changed = true;
