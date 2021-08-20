@@ -477,7 +477,6 @@ async function addTrainingTab(app, html, data) {
     // Set Training Tab as Active
     html.find('.tabs .item[data-tab="downtime"]').click((ev) => {
       activateDowntimeTab = true;
-      console.log(activateDowntimeTab);
     });
 
     // Unset Training Tab as Active
@@ -715,7 +714,9 @@ async function rollRollable(actor, activity, rollable) {
 
     if (br) {
       if (r._total === undefined) {
-        r._total = r.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total;
+        const brEntries = r.entries.find((part) => part.type === "multiroll").entries.map((entry) => entry.total);
+        let result = r.params.rollState === "lowest" ? Math.min(...brEntries) : Math.max(...brEntries);
+        r._total = result;
       }
     }
 
@@ -732,8 +733,13 @@ async function rollRollable(actor, activity, rollable) {
     if (game.dice3d) { // If dice so nice is being used, wait till matching animation is over.
       Hooks.on('diceSoNiceRollComplete', (messageId) => {
         let dsnMessage = game.messages.get(messageId);
-        if (dsnMessage.BetterRollsCardBinding?.roll.entries.find((part) => part.type === "multiroll").entries[0].total === res[0]) {
-          resolve(res);
+        const brMessage = dsnMessage.BetterRollsCardBinding?.roll;
+        if (brMessage){
+          const brEntries = brMessage.entries.find((part) => part.type === "multiroll").entries.map((entry) => entry.total);
+          let result = brMessage.params.rollState === "lowest" ? Math.min(...brEntries) : Math.max(...brEntries);
+          if (result === res[0]) {
+            resolve(res);
+          }
         }
 
         if (dsnMessage.data.content === res[0].toString()) {
