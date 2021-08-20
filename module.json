@@ -5,8 +5,8 @@
     "version": "Replaced in Releases",
     "author": "Ethck",
     "minimumCoreVersion": "0.8.5",
-    "compatibleCoreVersion": "0.8.8",
-    "systems": [
+    "compatibleCoreVersion": "0.8.9",
+    "system": [
         "dnd5e"
     ],
     "esmodules": [
