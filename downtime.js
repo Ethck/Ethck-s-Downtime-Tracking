@@ -86,15 +86,26 @@ export class DWTForm extends FormApplication {
   }
 
   async getData() {
-    return {
-      abilities: CONFIG.DND5E.abilities,
-      saves: CONFIG.DND5E.abilities,
-      skills: CONFIG.DND5E.skills,
-      tools: DND5E_TOOLS,
-      activity: this.activity,
-      tables: game.tables,
-      compChances: COMPLETION_CHANCES
-    };
+    if (game.system.id === "dnd5e"){
+      return {
+        abilities: CONFIG.DND5E.abilities,
+        saves: CONFIG.DND5E.abilities,
+        skills: CONFIG.DND5E.skills,
+        tools: DND5E_TOOLS,
+        activity: this.activity,
+        tables: game.tables,
+        compChances: COMPLETION_CHANCES
+      };
+    } else if (game.system.id === "pf1") {
+      return {
+        abilities: CONFIG.PF1.abilities,
+        saves: CONFIG.PF1.savingThrows,
+        skills: CONFIG.PF1.skills,
+        activity: this.activity,
+        tables: game.tables,
+        compChances: COMPLETION_CHANCES
+      }
+    }
   }
 
   render(force, context = {}) {

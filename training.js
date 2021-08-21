@@ -188,10 +188,21 @@ async function addTrainingTab(app, html, data) {
       }
     }
 
-    const skills = CONFIG.DND5E.skills;
+    if (game.system.id === "dnd5e") {
+      const skills = CONFIG.DND5E.skills;
+    } else if (game.system.id === "pf1") {
+      const skills = CONFIG.PF1.skills;
+    }
 
     // Create the tab content
-    let sheet = html.find(".sheet-body");
+    let sheet;
+    if (game.system.id === "dnd5e"){
+      sheet = html.find(".sheet-body");
+    } else if (game.system.id === "pf1"){
+      sheet = html.find(".primary-body");
+      // template expects flags to be up a level, so copy them over.
+      data.actor.flags["downtime-ethck"] = data.actor.data.flags["downtime-ethck"];
+    }
 
     // Compile our template
     let ethckDowntimeTabHtml = $(
@@ -393,9 +404,17 @@ async function addTrainingTab(app, html, data) {
           for (const [key,val] of Object.entries(igroups)) {
             readableGroups[key] = val.map((roll) => {
               if (roll.type === "ABILITY_CHECK" || roll.type === "SAVING_THROW"){
-                roll.roll = CONFIG.DND5E.abilities[roll.roll]
+                if (game.system.id === "dnd5e"){
+                  roll.roll = CONFIG.DND5E.abilities[roll.roll]
+                } else if (game.system.id === "pf1") {
+                  roll.roll = CONFIG.PF1.abilities[roll.roll]
+                }
               } else if (roll.type === "SKILL_CHECK") {
-                roll.roll = CONFIG.DND5E.skills[roll.roll]
+                if (game.system.id === "dnd5e"){
+                  roll.roll = CONFIG.DND5E.skills[roll.roll]
+                } else if (game.system.id === "pf1") {
+                  roll.roll = CONFIG.PF1.skills[roll.roll]
+                }
               } else {
                 roll.roll = roll.roll;
               }
@@ -498,7 +517,11 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
 
   addTrainingTab(app, html, data).then(function () {
     if (activateDowntimeTab) {
-      app._tabs[0].activate("downtime");
+      if (game.system.id === "dnd5e"){
+        app._tabs[0].activate("downtime");
+      } else if (game.system.id === "pf1"){
+        app._tabsAlt.activate("downtime");
+      }
     }
   });
 });
@@ -659,7 +682,11 @@ async function rollRollable(actor, activity, rollable) {
       if (br) {
         r = await BetterRolls.rollSave(actor, rollable.roll, {});
       } else {
-        r = await actor.rollAbilitySave(rollable.roll);
+        if (game.system.id === "dnd5e"){
+          r = await actor.rollAbilitySave(rollable.roll);
+        } else if (game.system.id === "pf1"){
+          r = await actor.rollSavingThrow(rollable.roll);
+        }
       }
     } else if (rollable.type === "TOOL_CHECK"){
       let actorTool;
@@ -712,6 +739,12 @@ async function rollRollable(actor, activity, rollable) {
       }
     }
 
+    // pf1 return object has an extra layer on top that we don't need
+    // so we strip it here
+    if (game.system.id === "pf1"){
+      r = r._roll;
+    }
+
     if (br) {
       if (r._total === undefined) {
         const brEntries = r.entries.find((part) => part.type === "multiroll").entries.map((entry) => entry.total);
@@ -722,6 +755,7 @@ async function rollRollable(actor, activity, rollable) {
 
     const dc = await rollDC(rollable);
     res = [r._total, dc._total];
+    console.log(res, r);
 
 
     // For some reason, we don't have a roll or a dc roll...
