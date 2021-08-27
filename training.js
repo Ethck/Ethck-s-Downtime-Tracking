@@ -850,33 +850,33 @@ async function formulaRoll(formula, actor) {
             formula.push(...bonus.split(" + "));
         }
         // only supports 1dX rolls by making them 2dX
-        if (game.system.id === "dnd5e"){
-          if (parseInt(formula[0].split("d")[0]) === 1) {
-              let mods = "";
-              if (dRoll !== 0) {
-                  if (dRoll === 1) {
-                      mods += "kh"; // Advantage
-                  } else {
-                      mods += "kl"; // Disadvantage
-                  }
+        if (game.system.id === "dnd5e") {
+            if (parseInt(formula[0].split("d")[0]) === 1) {
+                let mods = "";
+                if (dRoll !== 0) {
+                    if (dRoll === 1) {
+                        mods += "kh"; // Advantage
+                    } else {
+                        mods += "kl"; // Disadvantage
+                    }
 
-                  let firstTerms = formula[0].split("d");
-                  let newFirst = "2d" + firstTerms[1];
-                  formula[0] = newFirst + mods;
-              }
-          }
+                    let firstTerms = formula[0].split("d");
+                    let newFirst = "2d" + firstTerms[1];
+                    formula[0] = newFirst + mods;
+                }
+            }
         } else if (game.system.id === "pf1") {
-          // Pathfinder has "Normal", "Take 10", and "Take 20"
-          // The "Take X" sets the result to "X"
-          // Order is 
-          // 1 = Normal
-          // 0 = Take 10
-          // -1 = Take 20
-          if (dRoll === 0) {
-            formula = [10];
-          } else if (dRoll === -1){
-            formula = [20];
-          }
+            // Pathfinder has "Normal", "Take 10", and "Take 20"
+            // The "Take X" sets the result to "X"
+            // Order is
+            // 1 = Normal
+            // 0 = Take 10
+            // -1 = Take 20
+            if (dRoll === 0) {
+                formula = [10];
+            } else if (dRoll === -1) {
+                formula = [20];
+            }
         }
 
         let context = rollContext(actor);
@@ -892,14 +892,12 @@ function rollContext(actor) {
     // Organize additional properties for use in the context
     // This finds the value of hit dice for any class in the actor
     let hdVals = [];
-    if (game.system.id === "dnd5e"){
-      hdVals = actor.data.items
-          .filter((item) => item.type === "class")
-          .map((hd) => parseInt(hd.data.data.hitDice.split("d")[1]));
-    } else if (game.system.id === "pf1"){
-      hdVals = actor.data.items
-          .filter((item) => item.type === "class")
-          .map((hd) => parseInt(hd.data.data.hd));
+    if (game.system.id === "dnd5e") {
+        hdVals = actor.data.items
+            .filter((item) => item.type === "class")
+            .map((hd) => parseInt(hd.data.data.hitDice.split("d")[1]));
+    } else if (game.system.id === "pf1") {
+        hdVals = actor.data.items.filter((item) => item.type === "class").map((hd) => parseInt(hd.data.data.hd));
     }
     // Find the min and the max
     // These must be roll values, so add 1d to start.

@@ -241,11 +241,11 @@ export class DWTForm extends FormApplication {
                 // Organize additional properties for use in the context
                 // This finds the value of hit dice for any class in the actor
                 let hdVals = [];
-                if (game.system.id === "dnd5e"){
+                if (game.system.id === "dnd5e") {
                     hdVals = this.actor.data.items
                         .filter((item) => item.type === "class")
                         .map((hd) => parseInt(hd.data.data.hitDice.split("d")[1]));
-                } else if (game.system.id === "pf1"){
+                } else if (game.system.id === "pf1") {
                     hdVals = this.actor.data.items
                         .filter((item) => item.type === "class")
                         .map((hd) => parseInt(hd.data.data.hd));
