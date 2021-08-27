@@ -244,13 +244,16 @@ export class DWTForm extends FormApplication {
         let context = mergeObject({actor: this.actor, hd: hd}, this.actor.getRollData());
         if (Roll.validate(custom, context)){//ensure no error in custom
           let fail = false;
-          custom.split(" + ").forEach((formu) => {
+          custom.split(" ").forEach((formu) => {
+            // remove extraneous spacing
+            formu = formu.trim();
             // If we're accessing a property
             if (formu.startsWith("@")) {
               // Remove either "@actor." or just "@"
+              // actor. allows for "absolute" paths as opposed to just roll data
               let testProp = formu.startsWith("@actor.") ? formu.slice(7) : formu.slice(1);
               // Test if property does not exist (i.e. if not a valid property)
-              if (!(getProperty(context, testProp))) {
+              if (getProperty(context, testProp) === undefined) {
                 ui.notifications.warn("Ethck's Downtime Tracking | " + formu + " is not present in the context.");
                 fail = true;
               }
