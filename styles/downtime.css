@@ -43,7 +43,8 @@ These rules come from the .item-image class in the same spot
 as .actirity-roll, but this prevents other modules (i.e. Better Rolls)
 from overriding our event listeners and disabling our hard work!
 */
-.tidy5e.sheet.actor .items-list .item .item-name .activity-roll {
+.tidy5e.sheet.actor .items-list .item .item-name .activity-roll,
+.pf1.sheet.actor .items-list.ethck-downtime .item .item-name .activity-roll {
     flex: 0 0 24px;
     height: 24px;
     background-repeat: no-repeat;
@@ -62,6 +63,11 @@ from overriding our event listeners and disabling our hard work!
     background-size: 30px;
     border: none;
     margin-right: 5px;
+}
+
+.pf1.sheet.actor .items-list.ethck-downtime .item .item-detail {
+  justify-content: left;
+  height: auto;
 }
 
 /*********************************/
