@@ -757,7 +757,6 @@ async function rollRollable(actor, activity, rollable) {
 
         const dc = await rollDC(rollable);
         res = [r._total, dc._total];
-        console.log(res, r);
 
         // For some reason, we don't have a roll or a dc roll...
         if (res.length === 0) {

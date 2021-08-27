@@ -65,6 +65,11 @@ from overriding our event listeners and disabling our hard work!
     margin-right: 5px;
 }
 
+.pf1.sheet.actor .items-list.ethck-downtime .item .item-detail {
+  justify-content: left;
+  height: auto;
+}
+
 /*********************************/
 /*         ALL FORMS           */
 /*****************************/
