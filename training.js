@@ -154,6 +154,11 @@ async function addTrainingTab(app, html, data) {
     if (showTrainingTab) {
         // Get our actor
         let actor = game.actors.contents.find((a) => a.data._id === data.actor._id);
+        // actor isn't loaded in the world, or doesn't exist
+        // i.e. compendiums
+        if (actor === undefined) {
+            return;
+        }
         // Make sure flags exist if they don't already
         if (actor.data.flags["downtime-ethck"] === undefined || actor.data.flags["downtime-ethck"] === null) {
             await actor.setFlag("downtime-ethck", "trainingItems", []);
