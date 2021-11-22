@@ -500,12 +500,12 @@ async function addTrainingTab(app, html, data) {
 
         // Set Training Tab as Active
         html.find('.tabs .item[data-tab="downtime"]').click((ev) => {
-            activateDowntimeTab = true;
+            app.activateDowntimeTab = true;
         });
 
         // Unset Training Tab as Active
         html.find('.tabs .item:not(.tabs .item[data-tab="downtime"])').click((ev) => {
-            activateDowntimeTab = false;
+            app.activateDowntimeTab = false;
         });
     }
 }
@@ -520,7 +520,7 @@ Hooks.on(`renderActorSheet`, (app, html, data) => {
     }
 
     addTrainingTab(app, html, data).then(function () {
-        if (activateDowntimeTab) {
+        if (app.activateDowntimeTab) {
             if (game.system.id === "dnd5e") {
                 app._tabs[0].activate("downtime");
             } else if (game.system.id === "pf1") {
@@ -555,8 +555,17 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials) 
             }
         });
     } else if (activity.type === "ROLL_TOTAL") {
+        let rollTotal = 0;
+        if (res.length > 1) {
+            // Take the first number of each roll and add them all together
+            // Rolls are [roll, dc]
+            rollTotal = res.reduce((sum, roll) => sum + roll[0], 0);
+        } else {
+            rollTotal = res[0][0];
+        }
+
         activity.result.forEach((result) => {
-            if (res[0][0] >= parseInt(result.min) && res[0][0] <= parseInt(result.max)) {
+            if (rollTotal >= parseInt(result.min) && rollTotal <= parseInt(result.max)) {
                 cmsgResult = result.details;
                 if (result.triggerComplication) triggeredComp = true;
             }
@@ -768,7 +777,6 @@ async function rollRollable(actor, activity, rollable) {
             throw "Ethck's Downtime Tracking | Error on rolling.";
             reject();
         }
-
         if (game.dice3d) {
             // If dice so nice is being used, wait till matching animation is over.
             Hooks.on("diceSoNiceRollComplete", (messageId) => {
