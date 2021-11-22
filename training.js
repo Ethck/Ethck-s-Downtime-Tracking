@@ -777,30 +777,7 @@ async function rollRollable(actor, activity, rollable) {
             throw "Ethck's Downtime Tracking | Error on rolling.";
             reject();
         }
-        if (game.dice3d) {
-            // If dice so nice is being used, wait till matching animation is over.
-            Hooks.on("diceSoNiceRollComplete", (messageId) => {
-                let dsnMessage = game.messages.get(messageId);
-                const brMessage = dsnMessage.BetterRollsCardBinding?.roll;
-                if (brMessage) {
-                    const brEntries = brMessage.entries
-                        .find((part) => part.type === "multiroll")
-                        .entries.map((entry) => entry.total);
-                    let result =
-                        brMessage.params.rollState === "lowest" ? Math.min(...brEntries) : Math.max(...brEntries);
-                    if (result === res[0]) {
-                        resolve(res);
-                    }
-                }
-
-                if (dsnMessage.data.content === res[0].toString()) {
-                    resolve(res);
-                }
-            });
-            // no DSN, just normal.
-        } else {
-            resolve(res);
-        }
+        resolve(res);
     });
 }
 
