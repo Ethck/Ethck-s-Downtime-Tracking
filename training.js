@@ -770,7 +770,6 @@ async function rollRollable(actor, activity, rollable) {
                 const brEntries = r.entries
                     .find((part) => part.type === "multiroll")
                     .entries.map((entry) => entry.total);
-                console.log(brEntries);
                 let result = r.params.rollState === "lowest" ? Math.min(...brEntries) : Math.max(...brEntries);
                 r._total = result;
             }
