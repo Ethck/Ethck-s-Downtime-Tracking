@@ -761,6 +761,12 @@ async function rollRollable(actor, activity, rollable) {
 
         if (br) {
             if (r._total === undefined) {
+                // For some reason Tool Checks still have this BetterRollsCardBinding
+                // so we alias some expected properties.
+                if (r.entries === undefined) {
+                    r.entries = r.BetterRollsCardBinding.roll.entries;
+                    r.params = r.BetterRollsCardBinding.roll.params;
+                }
                 const brEntries = r.entries
                     .find((part) => part.type === "multiroll")
                     .entries.map((entry) => entry.total);
