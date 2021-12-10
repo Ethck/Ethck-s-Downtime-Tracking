@@ -1,13 +1,16 @@
 # Ethck's 5e Downtime Tracking
-![All Downloads](https://img.shields.io/github/downloads/ethck/Ethck-s-Downtime-Tracking/total?style=for-the-badge)
-![Latest Downloads](https://img.shields.io/github/downloads/ethck/Ethck-s-Downtime-Tracking/latest/total?style=for-the-badge)
-![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fdowntime-ethck&style=for-the-badge)
+![Latest Downloads](https://img.shields.io/badge/dynamic/json?label=Downloads@latest&query=assets%5B1%5D.download_count&url=https%3A%2F%2Fapi.github.com%2Frepos%2FEthck%2FEthck-s-Downtime-Tracking%2Freleases%2Flatest)
+![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fdowntime-ethck)
+![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2FEthck%2FEthck-s-Downtime-Tracking%2Fmaster%2Fmodule.json&label=Foundry%20Version&query=$.compatibleCoreVersion&colorB=orange)
 
 ## Summary
 Ethck's 5e Downtime Tracking allows you to create a series of rolls with optional predefined DCs that represent
 downtime activities as detailed in Xanathar's Guide to Everything (and/or however you desire!).
 
 ## Recent Changes
+* Numerous Compatibility Fixes for Crash's Tracking & Training, Dice so Nice, Better Rolls 5e, & Skill Customization for 5e!
+* Added in Bug Reporter functionality
+* Added in Autocomplete Inline Properties (autocomplete for custom attributes!)
 * Complete redesign of the entire interface
 
 ## How to Use
@@ -44,14 +47,14 @@ With 0.3.2 I've introduced SMART rolls that can use properties from your charact
 In order to use these rolls, you MUST use the "Custom Formula" roll type. When entering in your roll,
 you will have to use the `@` sign to signal you want to use a property. Below are some common properties.
 ```
-@actor.data.data.abilities.str.mod
-@actor.data.data.attributes.hp.value
-@actor.data.data.attributes.movement.walk
-@actor.data.data.attributes.prof
-@actor.data.data.attributes.spelldc
-@actor.data.data.currency.gp
-@actor.data.data.bonsues.mwak
-@actor.data.data.resources.primary.value
+@abilities.str.mod
+@attributes.hp.value
+@attributes.movement.walk
+@attributes.prof
+@attributes.spelldc
+@currency.gp
+@bonsues.mwak
+@resources.primary.value
 ```
 
 and soooo many more.
@@ -61,6 +64,16 @@ If you want to find more properties, you can use the following methods:
 3) Type in `_token.actor.data.data` to the console and hit enter.
 4) Navigate through the list in the console. All of those are options!
 ![SMART Rolls](images/smartRolls2.png)
+
+#### Custom Attributes
+In addition to everything you can already find in the actor's data, I have added the following properties for your use.
+
+```
+hd.max # The largest hit die of the actor's classes
+hd.min # The smallest hit die of the actor's classes
+```
+
+Please let me know if there are any other attributes you would like to see!
 
 ### Using Downtime Activities
 In order to roll these downtime activities, just navigate to an actor's character sheet, go in the
@@ -91,4 +104,4 @@ From Crash:
 
 This work is also licensed under the 
 
-![Foundry Virtual Tabletop EULA - Limited License Agreement for Module Development.](https://foundryvtt.com/article/license/)
+[Foundry Virtual Tabletop EULA - Limited License Agreement for Module Development.](https://foundryvtt.com/article/license/)
