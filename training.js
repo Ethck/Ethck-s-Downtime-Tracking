@@ -651,8 +651,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials) 
 async function rollDC(rollable) {
     if (!rollable.dc) return { _total: 0 }; // If no DC, return fake total (it doesn't matter...)
     const rdc = new Roll(rollable.dc);
-    const dcRoll = rdc.roll();
-    dcRoll.toMessage(
+    rdc.toMessage(
         {},
         {
             rollMode: game.settings.get("downtime-ethck", "dcRollMode"),
@@ -660,7 +659,7 @@ async function rollDC(rollable) {
         }
     );
 
-    return dcRoll;
+    return rdc;
 }
 
 /*
@@ -877,7 +876,6 @@ async function formulaRoll(formula, actor) {
 
         let context = rollContext(actor);
         let myRoll = new Roll(formula.join(" + "), context);
-        myRoll.roll();
         await myRoll.toMessage();
         // we're done!
         resolve(myRoll);

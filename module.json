@@ -5,7 +5,7 @@
     "version": "Replaced in Releases",
     "author": "Ethck",
     "minimumCoreVersion": "0.8.5",
-    "compatibleCoreVersion": "0.8.9",
+    "compatibleCoreVersion": "9",
     "system": [
         "dnd5e",
         "pf1"
