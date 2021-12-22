@@ -52,6 +52,15 @@ Hooks.once("init", () => {
         type: Boolean,
     });
 
+    game.settings.register("downtime-ethck", "crashCompatMessage", {
+        name: "Add Extra Text To Distingusih between Downtime and Training?",
+        hint: "Determines if extra text shows up between crash's tacking and training and this mod.",
+        scope: "world",
+        config: true,
+        default: true,
+        type: Boolean,
+    });
+
     game.settings.register("downtime-ethck", "betterRollsCompat", {
         name: "Enable Compatibility for Better Rolls",
         hint: "Allows for Better Rolls alternate roll format to be used.",
@@ -796,10 +805,15 @@ async function compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet) {
                 crash5eTrainingHtml.find(".ethck-downtime, .items-list section").remove(); // Remove Old
                 crash5eTrainingHtml.find(".items-list").append(ethckDowntimeTabHtml); // Add New
                 crash5eTrainingHtml.find(".ethck-downtime").wrap("<section style='margin-top: 5%;'></section>");
-                crash5eTrainingHtml
-                    .find(".ethck-downtime")
-                    .parent()
-                    .prepend("<label>Above this is Crash's Tracking and Training. Below is Ethck's Downtime</label>");
+                const crashExtraDesc = game.settings.get("downtime-ethck", "crashCompatMessage");
+                if (crashExtraDesc) {
+                    crash5eTrainingHtml
+                        .find(".ethck-downtime")
+                        .parent()
+                        .prepend(
+                            "<label>Above this is Crash's Tracking and Training. Below is Ethck's Downtime</label>"
+                        );
+                }
                 resolve(crash5eTrainingHtml);
             });
         } else {
