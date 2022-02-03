@@ -433,6 +433,20 @@ export class DWTForm extends FormApplication {
         }
     }
 
+    async _onSubmit(event) {
+        let updateData = {};
+
+        // Overwrite the triggerComplication array with the checked status of
+        // each triggerComplication checkbox
+        // This is necessary because FormData does NOT submit unchecked boxes.
+
+        let compChecks = event.target.querySelectorAll("#triggerComplication");
+        compChecks = Array.from(compChecks).map((e) => e.checked);
+        updateData["result.triggerComplication"] = compChecks;
+
+        super._onSubmit(event, { updateData: updateData });
+    }
+
     async _updateObject(event, formData) {
         // preserve old ID or make new one
         let id = 0;
