@@ -660,7 +660,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials) 
 async function rollDC(rollable) {
     if (!rollable.dc) return { _total: 0 }; // If no DC, return fake total (it doesn't matter...)
     const rdc = new Roll(rollable.dc);
-    rdc.toMessage(
+    await rdc.toMessage(
         {},
         {
             rollMode: game.settings.get("downtime-ethck", "dcRollMode"),
