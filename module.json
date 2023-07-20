@@ -4,8 +4,13 @@
     "description": "Adds a section to the character sheet to keep track of downtime activities.",
     "version": "Replaced in Releases",
     "author": "Ethck",
-    "minimumCoreVersion": "0.8.5",
-    "compatibleCoreVersion": "9",
+    "minimumCoreVersion": "11",
+    "compatibleCoreVersion": "11",
+    "compatibility": {
+        "minimum": 11,
+        "verified": 11,
+        "maximum": 11
+    },
     "system": [
         "dnd5e",
         "pf1"
