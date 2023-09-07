@@ -80,9 +80,17 @@ export class DWTForm extends FormApplication {
 
     async getData() {
         if (game.system.id === "dnd5e") {
+            const attributes = {
+                str: "Strength",
+                dex: "Dexterity",
+                con: "Constitution",
+                int: "Intelligence",
+                wis: "Wisdom",
+                cha: "Charisma",
+            };
             return {
-                abilities: CONFIG.DND5E.abilities,
-                saves: CONFIG.DND5E.abilities,
+                abilities: attributes,
+                saves: attributes,
                 skills: CONFIG.DND5E.skills,
                 tools: DND5E_TOOLS,
                 activity: this.activity,
@@ -433,20 +441,6 @@ export class DWTForm extends FormApplication {
         }
     }
 
-    async _onSubmit(event) {
-        let updateData = {};
-
-        // Overwrite the triggerComplication array with the checked status of
-        // each triggerComplication checkbox
-        // This is necessary because FormData does NOT submit unchecked boxes.
-
-        let compChecks = event.target.querySelectorAll("#triggerComplication");
-        compChecks = Array.from(compChecks).map((e) => e.checked);
-        updateData["result.triggerComplication"] = compChecks;
-
-        super._onSubmit(event, { updateData: updateData });
-    }
-
     async _updateObject(event, formData) {
         // preserve old ID or make new one
         let id = 0;
@@ -457,6 +451,32 @@ export class DWTForm extends FormApplication {
         }
         // ensure id is a string
         if (typeof id === "number") id = id.toString();
+
+        // Fix form data because for some reason FormDataExtended from Foundry doesn't like me
+        let betterFormData = new FormData(this.form);
+        let bFormData = {};
+        for (const pair of betterFormData.entries()) {
+            if (pair[0].includes(".") && !pair[0].includes("complication") && !pair[0].includes("options")) {
+                if (pair[0] in bFormData) {
+                    bFormData[pair[0]].push(pair[1]);
+                } else {
+                    bFormData[pair[0]] = [pair[1]];
+                }
+            } else {
+                bFormData[pair[0]] = pair[1];
+            }
+        }
+
+        formData = bFormData;
+
+        // Overwrite the triggerComplication array with the checked status of
+        // each triggerComplication checkbox
+        // This is necessary because FormData does NOT submit unchecked boxes.
+
+        let compChecks = event.target.querySelectorAll("#triggerComplication");
+        compChecks = Array.from(compChecks).map((e) => e.checked);
+        compChecks.shift();
+        formData["result.triggerComplication"] = compChecks;
 
         let rolls = this.activity.roll;
         let results = this.activity.result;
@@ -473,14 +493,7 @@ export class DWTForm extends FormApplication {
         this.activity.chat_icon = this.image;
 
         if ("roll.roll" in formData) {
-            // there is a disabled template that needs to be pruned. It is
-            // always in the first slot of the formData array, so we can just remove
-            // it.
-            formData["roll.type"].shift();
-            formData["roll.group"].shift();
-            if ("roll.dc" in formData) {
-                formData["roll.dc"].shift();
-            } else {
+            if (!"roll.dc" in formData) {
                 // if activity type (not roll.type) is NOT SUCCESS_COUNT
                 // the ALL DC fields are disabled, thus roll.dc does not
                 // exist. loadModelFromTable requires all columns to exist.
@@ -497,11 +510,16 @@ export class DWTForm extends FormApplication {
         }
 
         if ("result.min" in formData) {
-            // Same deal with the template applies here
-            formData["result.min"].shift();
-            formData["result.max"].shift();
-            formData["result.details"].shift();
-            formData["result.triggerComplication"].shift();
+            if (!"result.triggerComplication" in formData) {
+                // if activity type (not roll.type) is NOT SUCCESS_COUNT
+                // the ALL DC fields are disabled, thus result.triggerComplication does not
+                // exist. loadModelFromTable requires all columns to exist.
+                // So we make a new array of the same size as roll.type and
+                // fill it with null (just some default non-visible value).
+                console.log("Adding triggerComplication");
+                formData["result.triggerComplication"] = Array(formData["result.min"].length).fill(null);
+            }
+            console.log(formData);
             this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
         }
 

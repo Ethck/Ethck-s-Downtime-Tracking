@@ -162,14 +162,14 @@ async function addTrainingTab(app, html, data) {
 
     if (showTrainingTab) {
         // Get our actor
-        let actor = game.actors.contents.find((a) => a.data._id === data.actor._id);
+        let actor = game.actors.contents.find((a) => a._id === data.actor._id);
         // actor isn't loaded in the world, or doesn't exist
         // i.e. compendiums
         if (actor === undefined) {
             return;
         }
         // Make sure flags exist if they don't already
-        if (actor.data.flags["downtime-ethck"] === undefined || actor.data.flags["downtime-ethck"] === null) {
+        if (actor.flags["downtime-ethck"] === undefined || actor.flags["downtime-ethck"] === null) {
             await actor.setFlag("downtime-ethck", "trainingItems", []);
             await actor.setFlag("downtime-ethck", "changes", []);
         }
@@ -185,7 +185,7 @@ async function addTrainingTab(app, html, data) {
             game.settings.get("downtime-ethck", "crashCompat")
         ) {
             // 0.4.6 changed how the tab is rendered, so our new logic requires this (10/23/2020)
-            if (isNewerVersion(crash5eTraining.data.version, "0.4.6")) {
+            if (isNewerVersion(crash5eTraining.version, "0.4.6")) {
                 // version must be GREATER to return true.
                 CRASH_COMPAT = true;
             } else {
@@ -218,7 +218,7 @@ async function addTrainingTab(app, html, data) {
         } else if (game.system.id === "pf1") {
             sheet = html.find(".primary-body");
             // template expects flags to be up a level, so copy them over.
-            data.actor.flags["downtime-ethck"] = data.actor.data.flags["downtime-ethck"];
+            data.actor.flags["downtime-ethck"] = data.actor.flags["downtime-ethck"];
         }
 
         // Compile our template
@@ -463,7 +463,7 @@ async function addTrainingTab(app, html, data) {
         downtimeHTML.find(".activity-toggle-desc").click(async (event) => {
             event.preventDefault();
             // Set up some variables
-            //let flags = actor.data.flags["downtime-ethck"];
+            //let flags = actor.flags["downtime-ethck"];
             let fieldId = event.currentTarget.id;
             let trainingIdx = parseInt(fieldId.replace("ethck-toggle-desc-", ""));
             let activity = {};
@@ -594,7 +594,7 @@ async function outputRolls(actor, activity, event, trainingIdx, res, materials) 
 
     // Determine if we whisper this message, and who to
     const cmsgVis = activity.options.rolls_are_private || game.settings.get("core", "rollMode") === "gmroll";
-    const gmUserIds = game.data.users.filter((user) => user.role === 4).map((gmUser) => gmUser.id);
+    const gmUserIds = game.users.filter((user) => user.role === 4).map((gmUser) => gmUser.id);
 
     // Results message
     ChatMessage.create({
@@ -713,13 +713,13 @@ async function rollRollable(actor, activity, rollable) {
             // in the actor's inventory and provide the ability to choose
             // between them.
             const actorTools = actor.items.filter(
-                (item) => item.type === "tool" && item.data.name.toLowerCase().includes(rollable.roll.toLowerCase())
+                (item) => item.type === "tool" && item.name.toLowerCase().includes(rollable.roll.toLowerCase())
             );
 
             let toolChoices = {
                 rollableGroups: actorTools.map((tool) => {
                     return {
-                        roll: tool.data.name,
+                        roll: tool.name,
                         dc: rollable.dc,
                         group: rollable.roll,
                     };
@@ -901,11 +901,11 @@ function rollContext(actor) {
     // This finds the value of hit dice for any class in the actor
     let hdVals = [];
     if (game.system.id === "dnd5e") {
-        hdVals = actor.data.items
+        hdVals = actor.items
             .filter((item) => item.type === "class")
-            .map((hd) => parseInt(hd.data.data.hitDice.split("d")[1]));
+            .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
     } else if (game.system.id === "pf1") {
-        hdVals = actor.data.items.filter((item) => item.type === "class").map((hd) => parseInt(hd.data.data.hd));
+        hdVals = actor.items.filter((item) => item.type === "class").map((hd) => parseInt(hd.data.hd));
     }
     // Find the min and the max
     // These must be roll values, so add 1d to start.
@@ -1001,11 +1001,11 @@ async function _skillCustHandler(skillAcr, actor) {
                 if (
                     (getProperty(message, "data.flavor") &&
                         getProperty(message, "data.flavor").includes(skiname + " Skill Check")) ||
-                    (br && $(message.data.content).find("header h3").text() == skiname)
+                    (br && $(message.content).find("header h3").text() == skiname)
                 ) {
                     // return the roll
                     if (br) {
-                        resolve({ _total: parseInt($(message.data.content).find(".dice-total span").text()) });
+                        resolve({ _total: parseInt($(message.content).find(".dice-total span").text()) });
                     } else {
                         resolve(message._roll);
                     }
@@ -1021,8 +1021,8 @@ async function _skillCustHandler(skillAcr, actor) {
 function adjustSheetWidth(app) {
     let settingEnabled = !!game.settings.get("downtime-ethck", "extraSheetWidth");
     let sheetHasTab =
-        (app.object.data.type === "npc" && game.settings.get("downtime-ethck", "enableTrainingNpc")) ||
-        (app.object.data.type === "character" && game.settings.get("downtime-ethck", "enableTraining"));
+        (app.object.type === "npc" && game.settings.get("downtime-ethck", "enableTrainingNpc")) ||
+        (app.object.type === "character" && game.settings.get("downtime-ethck", "enableTraining"));
 
     let currentWidth = app.position.width;
     let defaultWidth = app.options.width;
@@ -1043,14 +1043,14 @@ async function _downtimeMigrate() {
     // If we have migrated before
     if (migrated.status) {
         // If our version is newer than the NEEDS_MIGRATION_VERSION
-        if (isNewerVersion(game.modules.get("downtime-ethck").data.version, NEEDS_MIGRATION_VERSION)) return;
+        if (isNewerVersion(game.modules.get("downtime-ethck").version, NEEDS_MIGRATION_VERSION)) return;
         // If we are on the same version, but have migrated.
         if (migrated.version === NEEDS_MIGRATION_VERSION) return;
     }
 
     // Save a backup of the old data
     ui.notifications.info("Ethck's Downtime | Backing up World Downtimes");
-    const oldActivities = game.data.settings.find((setting) => setting.key === "downtime-ethck.activities");
+    const oldActivities = game.settings.find((setting) => setting.key === "downtime-ethck.activities");
     const jsonData = JSON.stringify(oldActivities, null, 2);
     saveDataToFile(jsonData, "application/json", "downtime-ethck-world-activities-OLD.json");
     ui.notifications.info("Ethck's Downtime | Saved Activity Data.");

@@ -109,7 +109,7 @@
               <div class="result-details" id="roll-val">
                 <select id="ABILITY_CHECK" name="roll.roll" disabled>
                   {{#each abilities}}
-                    <option value="{{@key}}">{{this}}</option>
+                      <option value="{{@key}}">{{this}}</option>
                   {{/each}}
                 </select>
                 <select id="SAVING_THROW" style="display: none;" name="roll.roll" disabled>
@@ -119,7 +119,7 @@
                 </select>
                 <select id="SKILL_CHECK" style="display: none;" name="roll.roll" disabled>
                   {{#each skills}}
-                    <option value="{{@key}}">{{this}}</option>
+                    <option value="{{@key}}">{{this.label}}</option>
                   {{/each}}
                 </select>
                 <select id="TOOL_CHECK" style="display: none;"  name="roll.roll" disabled>
@@ -171,7 +171,7 @@
                 </select>
                 <select id="SKILL_CHECK" style="display: none;" disabled name="roll.roll">
                   {{#each ../skills}}
-                    <option value="{{@key}}">{{this}}</option>
+                    <option value="{{@key}}">{{this.label}}</option>
                   {{/each}}
                 </select>
                 <select id="TOOL_CHECK" style="display: none;" disabled name="roll.roll">
