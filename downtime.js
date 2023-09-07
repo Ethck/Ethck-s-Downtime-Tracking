@@ -478,6 +478,8 @@ export class DWTForm extends FormApplication {
         compChecks.shift();
         formData["result.triggerComplication"] = compChecks;
 
+        console.log(formData);
+
         let rolls = this.activity.roll;
         let results = this.activity.result;
 
@@ -493,7 +495,7 @@ export class DWTForm extends FormApplication {
         this.activity.chat_icon = this.image;
 
         if ("roll.roll" in formData) {
-            if (!"roll.dc" in formData) {
+            if (!("roll.dc" in formData)) {
                 // if activity type (not roll.type) is NOT SUCCESS_COUNT
                 // the ALL DC fields are disabled, thus roll.dc does not
                 // exist. loadModelFromTable requires all columns to exist.
@@ -510,16 +512,14 @@ export class DWTForm extends FormApplication {
         }
 
         if ("result.min" in formData) {
-            if (!"result.triggerComplication" in formData) {
+            if (!("result.triggerComplication" in formData)) {
                 // if activity type (not roll.type) is NOT SUCCESS_COUNT
                 // the ALL DC fields are disabled, thus result.triggerComplication does not
                 // exist. loadModelFromTable requires all columns to exist.
                 // So we make a new array of the same size as roll.type and
                 // fill it with null (just some default non-visible value).
-                console.log("Adding triggerComplication");
                 formData["result.triggerComplication"] = Array(formData["result.min"].length).fill(null);
             }
-            console.log(formData);
             this.loadModelFromTable(this.activity.result, formData, ACTIVITY_RESULT_MODEL, "result");
         }
 
