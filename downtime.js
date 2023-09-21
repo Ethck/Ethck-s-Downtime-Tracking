@@ -469,6 +469,20 @@ export class DWTForm extends FormApplication {
 
         formData = bFormData;
 
+        console.log(formData);
+        const optionCheckKeys = ["ask_for_materials", "complications_are_private", "hidden", "rolls_are_private"];
+        for (const key of optionCheckKeys) {
+            if (!(`options.${key}` in formData)) {
+                formData[`options.${key}`] = false;
+            } else {
+                if (formData[`options.${key}`] == "on") {
+                    formData[`options.${key}`] = true;
+                } else {
+                    formData[`options.${key}`] = false;
+                }
+            }
+        }
+
         // Overwrite the triggerComplication array with the checked status of
         // each triggerComplication checkbox
         // This is necessary because FormData does NOT submit unchecked boxes.
@@ -477,8 +491,6 @@ export class DWTForm extends FormApplication {
         compChecks = Array.from(compChecks).map((e) => e.checked);
         compChecks.shift();
         formData["result.triggerComplication"] = compChecks;
-
-        console.log(formData);
 
         let rolls = this.activity.roll;
         let results = this.activity.result;
