@@ -22,6 +22,15 @@
 	font-size: 12px;
 }
 
+.dnd5e.sheet.actor .inventory-list.ethck-downtime .item-detail.type,
+.inventory-list.ethck-downtime img.activity-roll {
+  flex: 0 0 30px;
+  height: 30px;
+  background-size: 30px;
+  border: none;
+  margin-right: 5px;
+}
+
 .inventory-list.ethck-downtime .item .item-name {
 	flex: 0 1 30%;
 }

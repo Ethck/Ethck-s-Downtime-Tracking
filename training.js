@@ -233,279 +233,7 @@ async function addTrainingTab(app, html, data) {
         // attach to sheet
         let downtimeHTML = await compileDowntimeTab(CRASH_COMPAT, ethckDowntimeTabHtml, sheet);
 
-        // Add New Downtime Activity
-        downtimeHTML.find(".activity-add").click(async (event) => {
-            event.preventDefault();
-            let form = new DWTForm(actor);
-            form.render(true);
-        });
-
-        // Add New Downtime Activity
-        downtimeHTML.find(".world-add").click(async (event) => {
-            event.preventDefault();
-            let form = new DWTForm(actor, {}, false, true, app);
-            form.render(true);
-        });
-
-        // Edit Downtime Activity
-        downtimeHTML.find(".activity-edit").click(async (event) => {
-            event.preventDefault();
-
-            // Set up some variables
-            let fieldId = event.currentTarget.id;
-            let trainingIdx = parseInt(fieldId.replace("ethck-edit-", ""));
-            let activity;
-            let world = false;
-            if ($(event.currentTarget).parent().hasClass("worldRoll")) {
-                activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
-                world = true;
-            } else {
-                activity = flags[trainingIdx];
-            }
-            let form = new DWTForm(actor, activity, true, world, app);
-            form.render(true);
-        });
-
-        // Remove Downtime Activity
-        downtimeHTML.find(".activity-delete").click(async (event) => {
-            event.preventDefault();
-
-            // Set up some variables
-            let fieldId = event.currentTarget.id;
-            let trainingIdx = parseInt(fieldId.replace("ethck-delete-", ""));
-            let world = false;
-            let activity;
-            if ($(event.currentTarget).parent().hasClass("worldRoll")) {
-                activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
-                world = true;
-            } else {
-                activity = flags[trainingIdx];
-            }
-            let del = false;
-            let dialogContent = await renderTemplate("modules/downtime-ethck/templates/delete-training-dialog.html");
-
-            // Create dialog
-            new Dialog({
-                title: `Delete Downtime Activity`,
-                content: dialogContent,
-                buttons: {
-                    yes: {
-                        icon: "<i class='fas fa-check'></i>",
-                        label: "Delete",
-                        callback: () => (del = true),
-                    },
-                    no: {
-                        icon: "<i class='fas fa-times'></i>",
-                        label: "Cancel",
-                        callback: () => (del = false),
-                    },
-                },
-                default: "yes",
-                close: async (html) => {
-                    if (del) {
-                        // Delete item and update actor
-                        if (world) {
-                            let newAct = game.settings.get("downtime-ethck", "activities");
-                            newAct.splice(trainingIdx, 1);
-                            await game.settings.set("downtime-ethck", "activities", newAct);
-                            app.render(true);
-                        } else {
-                            flags.splice(trainingIdx, 1);
-                            await actor.unsetFlag("downtime-ethck", "trainingItems");
-                            await actor.setFlag("downtime-ethck", "trainingItems", flags);
-                        }
-                    }
-                },
-            }).render(true);
-        });
-
-        // Move Downtime Activity
-        downtimeHTML.find(".activity-move").click(async (event) => {
-            event.preventDefault();
-
-            // Set up some variables
-            let fieldId = event.currentTarget.id;
-            let trainingIdx = parseInt(fieldId.replace("ethck-move-", ""));
-
-            let tflags;
-            let world = false;
-            if ($(event.currentTarget).parent().hasClass("worldRoll")) {
-                tflags = game.settings.get("downtime-ethck", "activities");
-                world = true;
-            } else {
-                tflags = duplicate(flags);
-            }
-
-            let activity = tflags[trainingIdx];
-
-            let move = 0;
-            if ($(event.target).hasClass("fa-chevron-up")) {
-                move = -1;
-            } else {
-                move = 1;
-            }
-            // loop to bottom
-            if (trainingIdx === 0 && move === -1) {
-                tflags.push(tflags.shift());
-                // loop to top
-            } else if (trainingIdx === tflags.length - 1 && move === 1) {
-                tflags.unshift(tflags.pop());
-                // anywhere in between
-            } else {
-                tflags[trainingIdx] = tflags[trainingIdx + move];
-                tflags[trainingIdx + move] = activity;
-            }
-
-            if (world) {
-                await game.settings.set("downtime-ethck", "activities", tflags);
-                app.render(true);
-            } else {
-                await actor.setFlag("downtime-ethck", "trainingItems", tflags);
-            }
-        });
-
-        // Roll Downtime Activity
-        downtimeHTML.find(".activity-roll").click(async (event) => {
-            event.preventDefault();
-
-            let fieldId = event.currentTarget.id;
-            let trainingIdx = parseInt(fieldId.replace("ethck-roll-", ""));
-            let activity = {};
-
-            // Get our activity given the selected roll
-            if ($(event.currentTarget).hasClass("localRoll")) {
-                activity = flags[trainingIdx];
-            } else if ($(event.currentTarget).hasClass("worldRoll")) {
-                activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
-            }
-
-            const materials = await materialsPrompt(activity);
-
-            let res = [];
-
-            let rolls = [];
-            if (activity.type !== "NO_ROLL") {
-                // build dict of group: rolls pairs
-                // key is the group name
-                // val is the roll(s) in that group
-                const groups = {};
-                for (let roll of activity.roll) {
-                    let group = groups[roll.group];
-                    // make a new group
-                    if (group == null) {
-                        group = [];
-                        groups[roll.group] = group;
-                    }
-                    // add to group
-                    group.push(roll);
-                }
-
-                if (Object.values(groups).every((rg) => rg.length === 1)) {
-                    // No choices, just execute
-                    // Just store all values.
-                    rolls = Object.values(groups).flat();
-                } else {
-                    // Some choices need to be made
-                    // choices is array of selected index for each group
-                    // i.e. [1, 0, 3, 0]
-
-                    // We internally use shorthand for everything
-                    // so convert it to longhand when we print
-                    let readableGroups = {};
-                    let igroups = duplicate(groups);
-                    for (const [key, val] of Object.entries(igroups)) {
-                        readableGroups[key] = val.map((roll) => {
-                            if (roll.type === "ABILITY_CHECK" || roll.type === "SAVING_THROW") {
-                                if (game.system.id === "dnd5e") {
-                                    roll.roll = CONFIG.DND5E.abilities[roll.roll];
-                                } else if (game.system.id === "pf1") {
-                                    roll.roll = CONFIG.PF1.abilities[roll.roll];
-                                }
-                            } else if (roll.type === "SKILL_CHECK") {
-                                if (game.system.id === "dnd5e") {
-                                    roll.roll = CONFIG.DND5E.skills[roll.roll];
-                                } else if (game.system.id === "pf1") {
-                                    roll.roll = CONFIG.PF1.skills[roll.roll];
-                                }
-                            } else {
-                                roll.roll = roll.roll;
-                            }
-
-                            return roll;
-                        });
-                    }
-
-                    const choices = await chooseRollDialog(readableGroups);
-                    const groupVals = Object.values(groups);
-                    // match choices to their indexed rolls.
-                    rolls = groupVals.map((group, i) => {
-                        return group[choices[i]];
-                    });
-                }
-            }
-
-            try {
-                // wait for rollRollable to roll these
-                let rollRes = rolls.map(async (roll) => {
-                    return await rollRollable(actor, activity, roll);
-                });
-                res.push(...(await Promise.all(rollRes)));
-                // output results
-                outputRolls(actor, activity, event, trainingIdx, res, materials);
-            } catch (e) {
-                console.log(e);
-            }
-        });
-
-        // Toggle Information Display
-        // Modified version of _onItemSummary from dnd5e system located in
-        // dnd5e/module/actor/sheets/base.js
-        downtimeHTML.find(".activity-toggle-desc").click(async (event) => {
-            event.preventDefault();
-            // Set up some variables
-            //let flags = actor.flags["downtime-ethck"];
-            let fieldId = event.currentTarget.id;
-            let trainingIdx = parseInt(fieldId.replace("ethck-toggle-desc-", ""));
-            let activity = {};
-
-            if ($(event.currentTarget).hasClass("localRoll")) {
-                activity = flags[trainingIdx];
-            } else if ($(event.currentTarget).hasClass("worldRoll")) {
-                activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
-            }
-
-            let desc = "";
-
-            let li = $(event.currentTarget).parents(".item");
-
-            if (li.hasClass("expanded")) {
-                let summary = li.children(".item-summary");
-                summary.slideUp(200, () => summary.remove());
-            } else {
-                let div = $(
-                    `<div class="item-summary"><label>Description: ` +
-                        activity.description +
-                        `</label></br><label>` +
-                        desc +
-                        `</label></div>`
-                );
-                li.append(div.hide());
-                div.slideDown(200);
-            }
-            li.toggleClass("expanded");
-        });
-
-        // Review Changes
-        downtimeHTML.find(".activity-log").click(async (event) => {
-            event.preventDefault();
-            new AuditLog(actor).render(true);
-        });
-
-        // Edit world level downtime activities
-        downtimeHTML.find(".edit-world").click(async (event) => {
-            event.preventDefault();
-            new GMConfig().render(true);
-        });
+        downtimeHandler(downtimeHTML, actor, app);
 
         // Set Training Tab as Active
         html.find('.tabs .item[data-tab="downtime"]').click((ev) => {
@@ -1255,4 +983,321 @@ function determineOldType(roll) {
     } else {
         return "SKILL_CHECK";
     }
+}
+
+// 12/27/23 Add compat with kgar tidy5e sheet rewrite
+Hooks.once("tidy5e-sheet.ready", (api) => {
+    api.registerCharacterTab(
+        new api.models.HandlebarsTab({
+            title: game.settings.get("downtime-ethck", "tabName"),
+            path: "modules/downtime-ethck/templates/training-section.html",
+            tabId: "downtime-ethck",
+            getData: async (data) => {
+                let showTrainingTab = false;
+                if (data.isCharacter) {
+                    showTrainingTab = game.settings.get("downtime-ethck", "enableTraining");
+                } else if (data.isNPC) {
+                    showTrainingTab = game.settings.get("downtime-ethck", "enableTrainingNpc");
+                }
+
+                if (showTrainingTab) {
+                    // Get our actor
+                    let actor = data.actor;
+                    // Make sure flags exist if they don't already
+                    if (actor.flags["downtime-ethck"] === undefined || actor.flags["downtime-ethck"] === null) {
+                        await actor.setFlag("downtime-ethck", "trainingItems", []);
+                        await actor.setFlag("downtime-ethck", "changes", []);
+                    }
+
+                    data.activities = game.settings.get("downtime-ethck", "activities");
+                    data.actorAct = data;
+                    data.isGM = game.user.isGM;
+                    return new Promise((resolve) => {
+                        resolve(data);
+                    });
+                }
+            },
+            onRender(params) {
+                const myTab = $(params.tabContentsElement);
+                downtimeHandler(myTab, params.data.actor, params.app);
+            },
+        })
+    );
+});
+
+function downtimeHandler(downtimeHTML, actor, app) {
+    let flags = actor.getFlag("downtime-ethck", "trainingItems");
+    // Add New Downtime Activity
+    downtimeHTML.find(".activity-add").click(async (event) => {
+        event.preventDefault();
+        let form = new DWTForm(actor);
+        form.render(true);
+    });
+
+    // Add New Downtime Activity
+    downtimeHTML.find(".world-add").click(async (event) => {
+        event.preventDefault();
+        let form = new DWTForm(actor, {}, false, true, app);
+        form.render(true);
+    });
+
+    // Edit Downtime Activity
+    downtimeHTML.find(".activity-edit").click(async (event) => {
+        event.preventDefault();
+
+        // Set up some variables
+        let fieldId = event.currentTarget.id;
+        let trainingIdx = parseInt(fieldId.replace("ethck-edit-", ""));
+        let activity;
+        let world = false;
+        if ($(event.currentTarget).parent().hasClass("worldRoll")) {
+            activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
+            world = true;
+        } else {
+            activity = flags[trainingIdx];
+        }
+        let form = new DWTForm(actor, activity, true, world, app);
+        form.render(true);
+    });
+
+    // Remove Downtime Activity
+    downtimeHTML.find(".activity-delete").click(async (event) => {
+        event.preventDefault();
+
+        // Set up some variables
+        let fieldId = event.currentTarget.id;
+        let trainingIdx = parseInt(fieldId.replace("ethck-delete-", ""));
+        let world = false;
+        let activity;
+        if ($(event.currentTarget).parent().hasClass("worldRoll")) {
+            activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
+            world = true;
+        } else {
+            activity = flags[trainingIdx];
+        }
+        let del = false;
+        let dialogContent = await renderTemplate("modules/downtime-ethck/templates/delete-training-dialog.html");
+
+        // Create dialog
+        new Dialog({
+            title: `Delete Downtime Activity`,
+            content: dialogContent,
+            buttons: {
+                yes: {
+                    icon: "<i class='fas fa-check'></i>",
+                    label: "Delete",
+                    callback: () => (del = true),
+                },
+                no: {
+                    icon: "<i class='fas fa-times'></i>",
+                    label: "Cancel",
+                    callback: () => (del = false),
+                },
+            },
+            default: "yes",
+            close: async (html) => {
+                if (del) {
+                    // Delete item and update actor
+                    if (world) {
+                        let newAct = game.settings.get("downtime-ethck", "activities");
+                        newAct.splice(trainingIdx, 1);
+                        await game.settings.set("downtime-ethck", "activities", newAct);
+                        app.render(true);
+                    } else {
+                        flags.splice(trainingIdx, 1);
+                        await actor.unsetFlag("downtime-ethck", "trainingItems");
+                        await actor.setFlag("downtime-ethck", "trainingItems", flags);
+                    }
+                }
+            },
+        }).render(true);
+    });
+
+    // Move Downtime Activity
+    downtimeHTML.find(".activity-move").click(async (event) => {
+        event.preventDefault();
+
+        // Set up some variables
+        let fieldId = event.currentTarget.id;
+        let trainingIdx = parseInt(fieldId.replace("ethck-move-", ""));
+
+        let tflags;
+        let world = false;
+        if ($(event.currentTarget).parent().hasClass("worldRoll")) {
+            tflags = game.settings.get("downtime-ethck", "activities");
+            world = true;
+        } else {
+            tflags = duplicate(flags);
+        }
+
+        let activity = tflags[trainingIdx];
+
+        let move = 0;
+        if ($(event.target).hasClass("fa-chevron-up")) {
+            move = -1;
+        } else {
+            move = 1;
+        }
+        // loop to bottom
+        if (trainingIdx === 0 && move === -1) {
+            tflags.push(tflags.shift());
+            // loop to top
+        } else if (trainingIdx === tflags.length - 1 && move === 1) {
+            tflags.unshift(tflags.pop());
+            // anywhere in between
+        } else {
+            tflags[trainingIdx] = tflags[trainingIdx + move];
+            tflags[trainingIdx + move] = activity;
+        }
+
+        if (world) {
+            await game.settings.set("downtime-ethck", "activities", tflags);
+            app.render(true);
+        } else {
+            await actor.setFlag("downtime-ethck", "trainingItems", tflags);
+        }
+    });
+
+    // Roll Downtime Activity
+    downtimeHTML.find(".activity-roll").click(async (event) => {
+        event.preventDefault();
+
+        let fieldId = event.currentTarget.id;
+        let trainingIdx = parseInt(fieldId.replace("ethck-roll-", ""));
+        let activity = {};
+
+        // Get our activity given the selected roll
+        if ($(event.currentTarget).hasClass("localRoll")) {
+            activity = flags[trainingIdx];
+        } else if ($(event.currentTarget).hasClass("worldRoll")) {
+            activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
+        }
+
+        const materials = await materialsPrompt(activity);
+
+        let res = [];
+
+        let rolls = [];
+        if (activity.type !== "NO_ROLL") {
+            // build dict of group: rolls pairs
+            // key is the group name
+            // val is the roll(s) in that group
+            const groups = {};
+            for (let roll of activity.roll) {
+                let group = groups[roll.group];
+                // make a new group
+                if (group == null) {
+                    group = [];
+                    groups[roll.group] = group;
+                }
+                // add to group
+                group.push(roll);
+            }
+
+            if (Object.values(groups).every((rg) => rg.length === 1)) {
+                // No choices, just execute
+                // Just store all values.
+                rolls = Object.values(groups).flat();
+            } else {
+                // Some choices need to be made
+                // choices is array of selected index for each group
+                // i.e. [1, 0, 3, 0]
+
+                // We internally use shorthand for everything
+                // so convert it to longhand when we print
+                let readableGroups = {};
+                let igroups = duplicate(groups);
+                for (const [key, val] of Object.entries(igroups)) {
+                    readableGroups[key] = val.map((roll) => {
+                        if (roll.type === "ABILITY_CHECK" || roll.type === "SAVING_THROW") {
+                            if (game.system.id === "dnd5e") {
+                                roll.roll = CONFIG.DND5E.abilities[roll.roll];
+                            } else if (game.system.id === "pf1") {
+                                roll.roll = CONFIG.PF1.abilities[roll.roll];
+                            }
+                        } else if (roll.type === "SKILL_CHECK") {
+                            if (game.system.id === "dnd5e") {
+                                roll.roll = CONFIG.DND5E.skills[roll.roll];
+                            } else if (game.system.id === "pf1") {
+                                roll.roll = CONFIG.PF1.skills[roll.roll];
+                            }
+                        } else {
+                            roll.roll = roll.roll;
+                        }
+
+                        return roll;
+                    });
+                }
+
+                const choices = await chooseRollDialog(readableGroups);
+                const groupVals = Object.values(groups);
+                // match choices to their indexed rolls.
+                rolls = groupVals.map((group, i) => {
+                    return group[choices[i]];
+                });
+            }
+        }
+
+        try {
+            // wait for rollRollable to roll these
+            let rollRes = rolls.map(async (roll) => {
+                return await rollRollable(actor, activity, roll);
+            });
+            res.push(...(await Promise.all(rollRes)));
+            // output results
+            outputRolls(actor, activity, event, trainingIdx, res, materials);
+        } catch (e) {
+            console.log(e);
+        }
+    });
+
+    // Toggle Information Display
+    // Modified version of _onItemSummary from dnd5e system located in
+    // dnd5e/module/actor/sheets/base.js
+    downtimeHTML.find(".activity-toggle-desc").click(async (event) => {
+        event.preventDefault();
+        // Set up some variables
+        //let flags = actor.flags["downtime-ethck"];
+        let fieldId = event.currentTarget.id;
+        let trainingIdx = parseInt(fieldId.replace("ethck-toggle-desc-", ""));
+        let activity = {};
+
+        if ($(event.currentTarget).hasClass("localRoll")) {
+            activity = flags[trainingIdx];
+        } else if ($(event.currentTarget).hasClass("worldRoll")) {
+            activity = game.settings.get("downtime-ethck", "activities")[trainingIdx];
+        }
+
+        let desc = "";
+
+        let li = $(event.currentTarget).parents(".item");
+
+        if (li.hasClass("expanded")) {
+            let summary = li.children(".item-summary");
+            summary.slideUp(200, () => summary.remove());
+        } else {
+            let div = $(
+                `<div class="item-summary"><label>Description: ` +
+                    activity.description +
+                    `</label></br><label>` +
+                    desc +
+                    `</label></div>`
+            );
+            li.append(div.hide());
+            div.slideDown(200);
+        }
+        li.toggleClass("expanded");
+    });
+
+    // Review Changes
+    downtimeHTML.find(".activity-log").click(async (event) => {
+        event.preventDefault();
+        new AuditLog(actor).render(true);
+    });
+
+    // Edit world level downtime activities
+    downtimeHTML.find(".edit-world").click(async (event) => {
+        event.preventDefault();
+        new GMConfig().render(true);
+    });
 }
