@@ -196,9 +196,9 @@ async function addTrainingTab(app, html, data) {
         } else {
             // Update the nav menu
             let tabs = html.find('.tabs[data-group="primary"]');
-            let trainingTabBtn;
             if (!tabs.find('.item[data-tab="downtime"]').length) {
                 //Prevent addition of tab more than once
+                let trainingTabBtn;
                 if (game.system.id === "dnd5e") {
                     trainingTabBtn = $('<a class="item" data-tab="downtime"><i class="fas fa-beer-mug"></i></a>');
                 } else {
