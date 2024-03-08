@@ -195,7 +195,7 @@ async function addTrainingTab(app, html, data) {
             }
         } else {
             // Update the nav menu
-            let tabName = game.settings.get("downtime-ethck", "tabName");
+            let tabName = game.system.id === "dnd5e" ? $('<i class="fas fa-beer-mug"></i>') : game.settings.get("downtime-ethck", "tabName");
             let trainingTabBtn = $('<a class="item" data-tab="downtime">' + tabName + "</a>");
             let tabs = html.find('.tabs[data-group="primary"]');
 
@@ -214,7 +214,7 @@ async function addTrainingTab(app, html, data) {
         // Create the tab content
         let sheet;
         if (game.system.id === "dnd5e") {
-            sheet = html.find(".sheet-body");
+            sheet = html.find(".tab-body");
         } else if (game.system.id === "pf1") {
             sheet = html.find(".primary-body");
             // template expects flags to be up a level, so copy them over.
