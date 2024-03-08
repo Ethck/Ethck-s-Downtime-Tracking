@@ -195,12 +195,16 @@ async function addTrainingTab(app, html, data) {
             }
         } else {
             // Update the nav menu
-            let tabName = game.system.id === "dnd5e" ? $('<i class="fas fa-beer-mug"></i>') : game.settings.get("downtime-ethck", "tabName");
-            let trainingTabBtn = $('<a class="item" data-tab="downtime">' + tabName + "</a>");
             let tabs = html.find('.tabs[data-group="primary"]');
-
+            let trainingTabBtn;
             if (!tabs.find('.item[data-tab="downtime"]').length) {
                 //Prevent addition of tab more than once
+                if (game.system.id === "dnd5e") {
+                    trainingTabBtn = $('<a class="item" data-tab="downtime"><i class="fas fa-beer-mug"></i></a>');
+                } else {
+                    let tabName = game.settings.get("downtime-ethck", "tabName");
+                    trainingTabBtn = $('<a class="item" data-tab="downtime">' + tabName + "</a>");
+                }
                 tabs.append(trainingTabBtn);
             }
         }
