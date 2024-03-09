@@ -15,6 +15,18 @@
         "dnd5e",
         "pf1"
     ],
+    "relationships": {
+        "systems": [
+            {
+                "id": "dnd5e",
+                "type": "system",
+                "compatibility": {
+                    "minimum": "3.0.0",
+                    "verified": "3.0.4"
+                }
+            }
+        ]
+    },
     "esmodules": [
         "training.js",
         "downtime.js"
