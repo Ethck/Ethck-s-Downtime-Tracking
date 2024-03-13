@@ -444,9 +444,18 @@ async function rollRollable(actor, activity, rollable) {
             // When selected, this option will then find every tool of that type
             // in the actor's inventory and provide the ability to choose
             // between them.
-            const actorTools = actor.items.filter(
-                (item) => item.type === "tool" && item.name.toLowerCase().includes(rollable.roll.toLowerCase())
-            );
+
+            // D&D5e 3.0 changed tool types
+            // now have Tool, Musical Instrument, Gaming Set, Artisan's Tools
+            // "", "music", "game", "art" are the ids
+            let actorTools;
+            if (game.system.id === "dnd5e") {
+                let toolType = rollable.roll;
+                if (toolType === "tool") {
+                    toolType = "";
+                }
+                actorTools = actor.items.filter((item) => item.type === "tool" && item.system.type.value === toolType);
+            }
 
             let toolChoices = {
                 rollableGroups: actorTools.map((tool) => {
@@ -635,7 +644,7 @@ function rollContext(actor) {
     if (game.system.id === "dnd5e") {
         hdVals = actor.items
             .filter((item) => item.type === "class")
-            .map((hd) => parseInt(hd.data.hitDice.split("d")[1]));
+            .map((hd) => parseInt(hd.system.hitDice.split("d")[1]));
     } else if (game.system.id === "pf1") {
         hdVals = actor.items.filter((item) => item.type === "class").map((hd) => parseInt(hd.data.hd));
     }
@@ -766,10 +775,10 @@ function adjustSheetWidth(app) {
 async function _downtimeMigrate() {
     if (!game.user.isGM) return;
     //await game.settings.set("downtime-ethck", "migrated", false);
-    const NEEDS_MIGRATION_VERSION = "0.4.3";
+    const NEEDS_MIGRATION_VERSION = "0.7.6";
     // Updating from old install -> Migrated
     // Fresh install -> No migration CHECK
-    // Skipped multiple versions and upgrading in 0.4.X or higher
+    // Skipped multiple versions and upgrading
     // X round of migrations (bound to happen again, right?)
     let migrated = game.settings.get("downtime-ethck", "migrated");
     // If we have migrated before
@@ -782,7 +791,7 @@ async function _downtimeMigrate() {
 
     // Save a backup of the old data
     ui.notifications.info("Ethck's Downtime | Backing up World Downtimes");
-    const oldActivities = game.settings.find((setting) => setting.key === "downtime-ethck.activities");
+    const oldActivities = game.settings.get("downtime-ethck", "activities");
     const jsonData = JSON.stringify(oldActivities, null, 2);
     saveDataToFile(jsonData, "application/json", "downtime-ethck-world-activities-OLD.json");
     ui.notifications.info("Ethck's Downtime | Saved Activity Data.");
@@ -960,6 +969,28 @@ export async function _updateDowntimes(downtimes) {
         if (!("hidden" in downtime.options)) {
             downtime.options.hidden = false;
             changed = true;
+        }
+        // 3/12/2024 v0.7.7 converted tools to use D&D5e tool types
+        if (game.system.id === "dnd5e") {
+            if (downtime.roll.some((r) => r.type === "TOOL_CHECK")) {
+                downtime.roll.forEach((r, i) => {
+                    if (r.type !== "TOOL_CHECK") return;
+
+                    if (r.roll === "Kit") {
+                        downtime.roll[i].roll = "tool";
+                    } else if (r.roll === "Instrument") {
+                        downtime.roll[i].roll = "music";
+                    } else if (r.roll === "Set") {
+                        downtime.roll[i].roll = "game";
+                    } else if (r.roll === "Supplies") {
+                        downtime.roll[i].roll = "art";
+                    } else if (r.roll === "Tool") {
+                        downtime.roll[i].roll = "tool";
+                    } else if (r.roll === "Utensil") {
+                        downtime.roll[i].roll = "art";
+                    }
+                });
+            }
         }
     });
 

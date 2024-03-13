@@ -124,7 +124,7 @@
                 </select>
                 <select id="TOOL_CHECK" style="display: none;"  name="roll.roll" disabled>
                   {{#each tools as | tool |}}
-                    <option value="{{tool}}">{{tool}}</option>
+                    <option value="{{@key}}">{{tool}}</option>
                   {{/each}}
                 </select>
                 <input type="text" id="CUSTOM" value="{{roll.roll}}" placeholder="@attributes.str.mod" style="display: none;" name="roll.roll" disabled/>
@@ -176,7 +176,7 @@
                 </select>
                 <select id="TOOL_CHECK" style="display: none;" disabled name="roll.roll">
                   {{#each ../tools as | tool |}}
-                    <option value="{{tool}}">{{tool}}</option>
+                    <option value="{{@key}}">{{tool}}</option>
                   {{/each}}
                 </select>
                 <input type="text" id="CUSTOM" value="{{roll.roll}}" placeholder="@attributes.str.mod" style="display: none;" disabled name="roll.roll"/>

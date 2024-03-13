@@ -88,11 +88,14 @@ export class DWTForm extends FormApplication {
                 wis: "Wisdom",
                 cha: "Charisma",
             };
+
+            const TOOLS = foundry.utils.mergeObject({ tool: "Tools" }, CONFIG.DND5E.toolTypes);
+
             return {
                 abilities: attributes,
                 saves: attributes,
                 skills: CONFIG.DND5E.skills,
-                tools: DND5E_TOOLS,
+                tools: TOOLS,
                 activity: this.activity,
                 tables: game.tables,
                 compChances: COMPLETION_CHANCES,
@@ -250,13 +253,13 @@ export class DWTForm extends FormApplication {
                 // This finds the value of hit dice for any class in the actor
                 let hdVals = [];
                 if (game.system.id === "dnd5e") {
-                    hdVals = this.actor.data.items
+                    hdVals = this.actor.items
                         .filter((item) => item.type === "class")
-                        .map((hd) => parseInt(hd.data.data.hitDice.split("d")[1]));
+                        .map((hd) => parseInt(hd.system.hitDice.split("d")[1]));
                 } else if (game.system.id === "pf1") {
-                    hdVals = this.actor.data.items
+                    hdVals = this.actor.items
                         .filter((item) => item.type === "class")
-                        .map((hd) => parseInt(hd.data.data.hd));
+                        .map((hd) => parseInt(hd.system.hd));
                 }
                 // Find the min and the max
                 let hd = {
