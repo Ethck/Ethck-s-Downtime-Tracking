@@ -9,12 +9,9 @@
     "compatibility": {
         "minimum": 11,
         "verified": 11,
-        "maximum": 11
+        "maximum": 12
     },
-    "system": [
-        "dnd5e",
-        "pf1"
-    ],
+    "system": ["dnd5e", "pf1"],
     "relationships": {
         "systems": [
             {
@@ -27,13 +24,8 @@
             }
         ]
     },
-    "esmodules": [
-        "training.js",
-        "downtime.js"
-    ],
-    "styles": [
-        "styles/downtime.css"
-    ],
+    "esmodules": ["training.js", "downtime.js"],
+    "styles": ["styles/downtime.css"],
     "url": "https://github.com/Ethck/Ethck-s-Downtime-Tracking",
     "manifest": "Replaced in Releases",
     "readme": "https://github.com/Ethck/Ethck-s-Downtime-Tracking/blob/master/README.md",
